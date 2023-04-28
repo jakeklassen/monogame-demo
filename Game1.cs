@@ -166,10 +166,10 @@ public class Game1 : Game
     spriteBatch.Draw(playerTexture, player.position, null, Color.White, player.rotation, new Vector2(12, 12), 1f, SpriteEffects.None, 0f);
 
     // Draw the fps msg
-    fps.DrawFps(spriteBatch, font, new Vector2(0f, 55f), Color.White);
+    fps.DrawFps(spriteBatch, font, new Vector2(2f, 55f), Color.White);
     // spriteBatch.DrawString(font, frameRate.ToString(), new Vector2(10f, 10f), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
-    spriteBatch.DrawString(font, $"Is Fixed TimeStep: {IsFixedTimeStep}", new Vector2(10f, 25f), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
-    spriteBatch.DrawString(font, $"Vsync: {graphics.SynchronizeWithVerticalRetrace}", new Vector2(10f, 40f), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
+    spriteBatch.DrawString(font, $"Is Fixed TimeStep: {IsFixedTimeStep}", new Vector2(2f, 25f), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
+    spriteBatch.DrawString(font, $"Vsync: {graphics.SynchronizeWithVerticalRetrace}", new Vector2(2f, 40f), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
 
     spriteBatch.End();
 
@@ -198,7 +198,7 @@ public class SimpleFps
 
     if (elapsed > msgFrequency)
     {
-      msg = " Fps: " + (frames / elapsed).ToString() + "\n\n Elapsed time: " + elapsed.ToString() + "\n\n Updates: " + updates.ToString() + "\n\n Frames: " + frames.ToString();
+      msg = "Fps: " + (frames / elapsed).ToString() + "\n\nElapsed time: " + elapsed.ToString() + "\n\nUpdates: " + updates.ToString() + "\n\nFrames: " + frames.ToString();
       elapsed = 0;
       frames = 0;
       updates = 0;
