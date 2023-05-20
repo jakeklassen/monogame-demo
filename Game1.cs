@@ -1,28 +1,19 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using MonoGame.Extended;
 using MonoGame.Extended.BitmapFonts;
+using MonoGame.Extended.Entities;
+using MonoGame.Extended.ViewportAdapters;
 
 namespace monogame_demo;
 
-public class Player
-{
-  public Vector2 velocity = Vector2.Zero;
-  public Vector2 position = Vector2.Zero;
-  public Vector2 lastPosition = Vector2.Zero;
-  public Vector2 direction = new Vector2(0, 0);
-  public float rotation = 0f;
-}
-
 public class Game1 : Game
 {
+  const int TargetWidth = 128;
+  const int TargetHeight = 128;
 
-  const int TargetWidth = 256; // 384
-  const int TargetHeight = 144; // 216
-  Matrix Scale;
-
-  float scaleX = 0;
-  float scaleY = 0;
+  private OrthographicCamera _camera;
 
   GraphicsDeviceManager graphics;
   SpriteBatch spriteBatch;
@@ -32,11 +23,9 @@ public class Game1 : Game
 
   private Texture2D playerTexture;
   private Texture2D mapTexture;
+  private Texture2D spriteSheetTexture;
 
-  private Player player = new Player();
-
-  private double last = 0;
-  private int gameScale = 3;
+  private World _world;
 
   private bool hasToggledVsync = false;
   private bool hasToggledFixedTimeStep = false;
@@ -47,8 +36,8 @@ public class Game1 : Game
     Content.RootDirectory = "Content";
     IsMouseVisible = true;
 
-    graphics.PreferredBackBufferWidth = 1920;
-    graphics.PreferredBackBufferHeight = 1080;
+    // graphics.PreferredBackBufferWidth = 1920;
+    // graphics.PreferredBackBufferHeight = 1080;
     // this is for fullscreen but like 'borderless'
     graphics.HardwareModeSwitch = false;
     graphics.IsFullScreen = true;
@@ -62,12 +51,34 @@ public class Game1 : Game
 
   protected override void Initialize()
   {
-    scaleX = graphics.PreferredBackBufferWidth / TargetWidth;
-    scaleY = graphics.PreferredBackBufferHeight / TargetHeight;
-
-    Scale = Matrix.CreateScale(new Vector3(scaleX, scaleY, 1));
-
     base.Initialize();
+
+    var viewportAdapter = new BoxingViewportAdapter(Window, GraphicsDevice, TargetWidth, TargetHeight);
+    _camera = new OrthographicCamera(viewportAdapter);
+
+    _world = new WorldBuilder()
+      .AddSystem(new PlayerSystem())
+      .AddSystem(new MovementSystem())
+      .AddSystem(new StarfieldSystem())
+      .AddSystem(new StarfieldRenderingSystem(graphics.GraphicsDevice, _camera))
+      .AddSystem(new SpriteRenderingSystem(graphics.GraphicsDevice, _camera, spriteSheetTexture))
+      .Build();
+
+    {
+      var player = _world.CreateEntity();
+
+      player.Attach(new Direction());
+      player.Attach(new Sprite(new Rectangle(16, 0, 8, 8)));
+      player.Attach(new TagPlayer());
+      player.Attach(
+        new Transform(new Vector2(TargetWidth / 2 + playerTexture.Width / 2, TargetHeight / 2 + playerTexture.Height / 2), 0f, Vector2.One)
+      );
+      player.Attach(new Velocity(60, 60));
+    }
+
+    StarFactory.CreateStarfield(_world, TargetWidth, TargetHeight, 100);
+
+    Components.Add(_world);
   }
 
   protected override void LoadContent()
@@ -77,11 +88,14 @@ public class Game1 : Game
     font = Content.Load<BitmapFont>("Font/pico-8");
     playerTexture = Content.Load<Texture2D>("Graphics/player-ship");
     mapTexture = Content.Load<Texture2D>("Graphics/map");
+    spriteSheetTexture = Content.Load<Texture2D>("Graphics/shmup");
+  }
 
-    player.position.X = 20;
-    player.position.Y = TargetHeight / 2 - playerTexture.Height / 2;
-    player.velocity.X = 60;
-    player.velocity.Y = 60;
+  protected override void UnloadContent()
+  {
+    base.UnloadContent();
+
+    spriteBatch.Dispose();
   }
 
   protected override void Update(GameTime gameTime)
@@ -92,27 +106,6 @@ public class Game1 : Game
 
     if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
       Exit();
-
-    player.direction.X = 0;
-    player.direction.Y = 0;
-
-    if (Keyboard.GetState().IsKeyDown(Keys.Left))
-    {
-      player.direction.X = -1;
-    }
-    else if (Keyboard.GetState().IsKeyDown(Keys.Right))
-    {
-      player.direction.X = 1;
-    }
-
-    if (Keyboard.GetState().IsKeyDown(Keys.Up))
-    {
-      player.direction.Y = -1;
-    }
-    else if (Keyboard.GetState().IsKeyDown(Keys.Down))
-    {
-      player.direction.Y = 1;
-    }
 
     if (Keyboard.GetState().IsKeyDown(Keys.F) && hasToggledFixedTimeStep == false)
     {
@@ -142,13 +135,6 @@ public class Game1 : Game
 
     fps.Update(gameTime);
 
-    player.lastPosition.X = player.position.X;
-    player.lastPosition.Y = player.position.Y;
-    player.position.X += player.velocity.X * delta * player.direction.X;
-    player.position.Y += player.velocity.Y * delta * player.direction.Y;
-
-    // last = now;
-
     base.Update(gameTime);
   }
 
@@ -156,14 +142,15 @@ public class Game1 : Game
   {
     float frameRate = 1 / (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-    GraphicsDevice.Clear(Color.Gray);
+    GraphicsDevice.Clear(Color.Black);
 
     // spriteBatch.Begin(SpriteSortMode.Deferred, null, SamplerState.PointClamp, null, null, null, null);
-    spriteBatch.Begin(SpriteSortMode.Immediate, null, SamplerState.PointClamp, null, null, null, Scale);
+    // spriteBatch.Begin(SpriteSortMode.Immediate, null, SamplerState.PointClamp, null, null, null, scale);
+    spriteBatch.Begin(SpriteSortMode.Immediate, null, SamplerState.PointClamp, null, null, null, _camera.GetViewMatrix());
 
-    spriteBatch.Draw(mapTexture, Vector2.Zero, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
+    // spriteBatch.Draw(mapTexture, Vector2.Zero, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
 
-    spriteBatch.Draw(playerTexture, player.position, null, Color.White, player.rotation, new Vector2(12, 12), 1f, SpriteEffects.None, 0f);
+    // spriteBatch.Draw(playerTexture, player.position, null, Color.White, player.rotation, new Vector2(12, 12), 1f, SpriteEffects.None, 0f);
 
     // Draw the fps msg
     fps.DrawFps(spriteBatch, font, new Vector2(2f, 55f), Color.White);
@@ -171,8 +158,9 @@ public class Game1 : Game
     spriteBatch.DrawString(font, $"Is Fixed TimeStep: {IsFixedTimeStep}", new Vector2(2f, 25f), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
     spriteBatch.DrawString(font, $"Vsync: {graphics.SynchronizeWithVerticalRetrace}", new Vector2(2f, 40f), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
 
-    spriteBatch.End();
+    spriteBatch.DrawString(font, $"Entity #: {_world.EntityCount}", new Vector2(2f, 32f), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
 
+    spriteBatch.End();
 
     base.Draw(gameTime);
   }
