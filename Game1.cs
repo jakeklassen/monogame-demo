@@ -144,19 +144,11 @@ public class Game1 : Game
 
     GraphicsDevice.Clear(Color.Black);
 
-    // spriteBatch.Begin(SpriteSortMode.Deferred, null, SamplerState.PointClamp, null, null, null, null);
-    // spriteBatch.Begin(SpriteSortMode.Immediate, null, SamplerState.PointClamp, null, null, null, scale);
     spriteBatch.Begin(SpriteSortMode.Immediate, null, SamplerState.PointClamp, null, null, null, _camera.GetViewMatrix());
 
-    // spriteBatch.Draw(mapTexture, Vector2.Zero, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
-
-    // spriteBatch.Draw(playerTexture, player.position, null, Color.White, player.rotation, new Vector2(12, 12), 1f, SpriteEffects.None, 0f);
-
-    // Draw the fps msg
-    fps.DrawFps(spriteBatch, font, new Vector2(2f, 55f), Color.White);
-    // spriteBatch.DrawString(font, frameRate.ToString(), new Vector2(10f, 10f), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
     spriteBatch.DrawString(font, $"Is Fixed TimeStep: {IsFixedTimeStep}", new Vector2(2f, 25f), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
     spriteBatch.DrawString(font, $"Vsync: {graphics.SynchronizeWithVerticalRetrace}", new Vector2(2f, 40f), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
+    fps.DrawFps(spriteBatch, font, new Vector2(2f, 55f), Color.White);
 
     spriteBatch.DrawString(font, $"Entity #: {_world.EntityCount}", new Vector2(2f, 32f), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
 
@@ -166,39 +158,3 @@ public class Game1 : Game
   }
 }
 
-public class SimpleFps
-{
-  private double frames = 0;
-  private double updates = 0;
-  private double elapsed = 0;
-  private double last = 0;
-  private double now = 0;
-  public double msgFrequency = 1.0f;
-  public string msg = "";
-
-  /// <summary>
-  /// The msgFrequency here is the reporting time to update the message.
-  /// </summary>
-  public void Update(GameTime gameTime)
-  {
-    now = gameTime.TotalGameTime.TotalSeconds;
-    elapsed = (double)(now - last);
-
-    if (elapsed > msgFrequency)
-    {
-      msg = "Fps: " + (frames / elapsed).ToString() + "\n\nElapsed time: " + elapsed.ToString() + "\n\nUpdates: " + updates.ToString() + "\n\nFrames: " + frames.ToString();
-      elapsed = 0;
-      frames = 0;
-      updates = 0;
-      last = now;
-    }
-
-    updates++;
-  }
-
-  public void DrawFps(SpriteBatch spriteBatch, BitmapFont font, Vector2 fpsDisplayPosition, Color fpsTextColor)
-  {
-    spriteBatch.DrawString(font, msg, fpsDisplayPosition, fpsTextColor, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
-    frames++;
-  }
-}
