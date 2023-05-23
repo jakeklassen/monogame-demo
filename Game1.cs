@@ -36,11 +36,11 @@ public class Game1 : Game
     Content.RootDirectory = "Content";
     IsMouseVisible = true;
 
-    // graphics.PreferredBackBufferWidth = 1920;
-    // graphics.PreferredBackBufferHeight = 1080;
+    graphics.PreferredBackBufferWidth = 512;
+    graphics.PreferredBackBufferHeight = 512;
     // this is for fullscreen but like 'borderless'
     graphics.HardwareModeSwitch = false;
-    graphics.IsFullScreen = true;
+    graphics.IsFullScreen = false;
     graphics.PreferMultiSampling = false;
     graphics.SynchronizeWithVerticalRetrace = true;
     graphics.ApplyChanges();
