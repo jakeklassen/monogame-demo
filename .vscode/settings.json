@@ -1,4 +1,4 @@
 {
   "editor.formatOnSave": true,
-  "omnisharp.organizeImportsOnFormat": true
+  "omnisharp.organizeImportsOnFormat": true,
 }

@@ -1,5 +1,4 @@
 using System;
-using Components;
 using MonoGame.Extended.Entities;
 using Vector2 = Microsoft.Xna.Framework.Vector2;
 

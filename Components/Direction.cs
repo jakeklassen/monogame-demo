@@ -1,3 +1,4 @@
+using System;
 using Microsoft.Xna.Framework;
 
 public class Direction
@@ -21,5 +22,15 @@ public class Direction
   {
     X = direction.X;
     Y = direction.Y;
+  }
+
+  public Direction Random()
+  {
+    var random = new Random();
+
+    return new Direction(
+      x: 1 * Math.Sign(random.NextSingle() * 2 - 1),
+      y: 1 * Math.Sign(random.NextSingle() * 2 - 1)
+    );
   }
 }

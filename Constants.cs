@@ -20,7 +20,7 @@ using Components;
 //   Color15 = 0xFFCCAA
 // }
 
-static class Pico8Color
+public class Pico8Color
 {
   static public Color Color0 = new Color(0x00, 0x00, 0x00, 0xFF);
   static public Color Color1 = new Color(0x1D, 0x2B, 0x53, 0xFF);
