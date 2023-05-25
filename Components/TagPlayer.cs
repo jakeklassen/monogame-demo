@@ -1,3 +1,4 @@
-namespace CherryBomb.Components;
-
-public class TagPlayer { }
+namespace Components
+{
+	public class TagPlayer { }
+}

@@ -1,37 +1,38 @@
 using System;
 
-using CherryBomb.Components;
+using Components;
 
 using Microsoft.Xna.Framework;
 
 using MonoGame.Extended.Entities;
 using MonoGame.Extended.Entities.Systems;
 
-namespace CherryBomb.Systems;
-
-public class StarfieldSystem : EntityUpdateSystem
+namespace Systems
 {
-	private ComponentMapper<Transform> _transformMapper;
-	private readonly Random _random = new();
-
-	public StarfieldSystem() : base(Aspect.All(typeof(Star), typeof(Transform)))
+	public class StarfieldSystem : EntityUpdateSystem
 	{
-	}
+		private ComponentMapper<Transform> _transformMapper;
+		private readonly Random _random = new();
 
-	public override void Initialize(IComponentMapperService mapperService)
-	{
-		_transformMapper = mapperService.GetMapper<Transform>();
-	}
-
-	public override void Update(GameTime gameTime)
-	{
-		foreach (var entity in ActiveEntities)
+		public StarfieldSystem() : base(Aspect.All(typeof(Star), typeof(Transform)))
 		{
-			var transform = _transformMapper.Get(entity);
+		}
 
-			if (transform.Position.Y > 128)
+		public override void Initialize(IComponentMapperService mapperService)
+		{
+			_transformMapper = mapperService.GetMapper<Transform>();
+		}
+
+		public override void Update(GameTime gameTime)
+		{
+			foreach (var entity in ActiveEntities)
 			{
-				transform.Position = new Vector2(_random.Next(1, 127), -1);
+				var transform = _transformMapper.Get(entity);
+
+				if (transform.Position.Y > 128)
+				{
+					transform.Position = new Vector2(_random.Next(1, 127), -1);
+				}
 			}
 		}
 	}

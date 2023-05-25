@@ -1,15 +1,16 @@
 using Microsoft.Xna.Framework;
 
-namespace CherryBomb.Components;
-
-public class Sprite
+namespace Components
 {
-	public Rectangle CurrentFrame { get; set; }
-	public float Opacity { get; set; } = 1f;
-
-	public Sprite(Rectangle frame, float opacity = 1f)
+	public class Sprite
 	{
-		CurrentFrame = frame;
-		Opacity = opacity;
+		public Rectangle CurrentFrame { get; set; }
+		public float Opacity { get; set; } = 1f;
+
+		public Sprite(Rectangle frame, float opacity = 1f)
+		{
+			CurrentFrame = frame;
+			Opacity = opacity;
+		}
 	}
 }

@@ -1,36 +1,37 @@
-using CherryBomb.Components;
+using Components;
 
 using Microsoft.Xna.Framework;
 
 using MonoGame.Extended.Entities;
 using MonoGame.Extended.Entities.Systems;
 
-namespace CherryBomb.Systems;
-
-public class ShockwaveSystem : EntityUpdateSystem
+namespace Systems
 {
-	private ComponentMapper<Shockwave> _shockwaveMapper;
-
-	public ShockwaveSystem() : base(Aspect.All(typeof(Shockwave)))
+	public class ShockwaveSystem : EntityUpdateSystem
 	{
-	}
+		private ComponentMapper<Shockwave> _shockwaveMapper;
 
-	public override void Initialize(IComponentMapperService mapperService)
-	{
-		_shockwaveMapper = mapperService.GetMapper<Shockwave>();
-	}
-
-	public override void Update(GameTime gameTime)
-	{
-		foreach (var entity in ActiveEntities)
+		public ShockwaveSystem() : base(Aspect.All(typeof(Shockwave)))
 		{
-			var shockwave = _shockwaveMapper.Get(entity);
+		}
 
-			shockwave.Radius += shockwave.Speed * (float)gameTime.ElapsedGameTime.TotalSeconds;
+		public override void Initialize(IComponentMapperService mapperService)
+		{
+			_shockwaveMapper = mapperService.GetMapper<Shockwave>();
+		}
 
-			if (shockwave.Radius >= shockwave.TargetRadius)
+		public override void Update(GameTime gameTime)
+		{
+			foreach (var entity in ActiveEntities)
 			{
-				DestroyEntity(entity);
+				var shockwave = _shockwaveMapper.Get(entity);
+
+				shockwave.Radius += shockwave.Speed * (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+				if (shockwave.Radius >= shockwave.TargetRadius)
+				{
+					DestroyEntity(entity);
+				}
 			}
 		}
 	}

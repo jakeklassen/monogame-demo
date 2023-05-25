@@ -1,25 +1,26 @@
-namespace CherryBomb.Components;
-
-public class Velocity
+namespace Components
 {
-	public float X { get; set; }
-	public float Y { get; set; }
-
-	public Velocity()
+	public class Velocity
 	{
-		X = 0;
-		Y = 0;
-	}
+		public float X { get; set; }
+		public float Y { get; set; }
 
-	public Velocity(float x, float y)
-	{
-		X = x;
-		Y = y;
-	}
+		public Velocity()
+		{
+			X = 0;
+			Y = 0;
+		}
 
-	public Velocity(Velocity velocity)
-	{
-		X = velocity.X;
-		Y = velocity.Y;
+		public Velocity(float x, float y)
+		{
+			X = x;
+			Y = y;
+		}
+
+		public Velocity(Velocity velocity)
+		{
+			X = velocity.X;
+			Y = velocity.Y;
+		}
 	}
 }

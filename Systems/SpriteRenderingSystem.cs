@@ -1,4 +1,4 @@
-using CherryBomb.Components;
+using Components;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -9,55 +9,56 @@ using MonoGame.Extended.Entities.Systems;
 
 using XnaColor = Microsoft.Xna.Framework.Color;
 
-namespace CherryBomb.Systems;
-
-public class SpriteRenderingSystem : EntityDrawSystem
+namespace Systems
 {
-	private readonly SpriteBatch _spriteBatch;
-
-	private readonly OrthographicCamera _camera;
-
-	private readonly Texture2D _spriteSheetTexture;
-
-	private ComponentMapper<Sprite> _spriteMapper;
-
-	private ComponentMapper<Transform> _transformMapper;
-
-	public SpriteRenderingSystem(GraphicsDevice graphicsDevice, OrthographicCamera camera, Texture2D spriteSheetTexture) : base(Aspect.All(typeof(Sprite), typeof(Transform)))
+	public class SpriteRenderingSystem : EntityDrawSystem
 	{
-		_camera = camera;
-		_spriteBatch = new SpriteBatch(graphicsDevice);
-		_spriteSheetTexture = spriteSheetTexture;
-	}
+		private readonly SpriteBatch _spriteBatch;
 
-	public override void Initialize(IComponentMapperService mapperService)
-	{
-		_spriteMapper = mapperService.GetMapper<Sprite>();
-		_transformMapper = mapperService.GetMapper<Transform>();
-	}
+		private readonly OrthographicCamera _camera;
 
-	public override void Draw(GameTime gameTime)
-	{
-		_spriteBatch.Begin(SpriteSortMode.Immediate, null, SamplerState.PointClamp, null, null, null, _camera.GetViewMatrix());
+		private readonly Texture2D _spriteSheetTexture;
 
-		foreach (var entity in ActiveEntities)
+		private ComponentMapper<Sprite> _spriteMapper;
+
+		private ComponentMapper<Transform> _transformMapper;
+
+		public SpriteRenderingSystem(GraphicsDevice graphicsDevice, OrthographicCamera camera, Texture2D spriteSheetTexture) : base(Aspect.All(typeof(Sprite), typeof(Transform)))
 		{
-			var sprite = _spriteMapper.Get(entity);
-			var transform = _transformMapper.Get(entity);
-
-			_spriteBatch.Draw(
-				_spriteSheetTexture,
-				transform.Position,
-				sprite.CurrentFrame,
-				XnaColor.White,
-				transform.Rotation,
-				new Vector2(sprite.CurrentFrame.Width, sprite.CurrentFrame.Height),
-				1f,
-				SpriteEffects.None,
-				0f
-			);
+			_camera = camera;
+			_spriteBatch = new SpriteBatch(graphicsDevice);
+			_spriteSheetTexture = spriteSheetTexture;
 		}
 
-		_spriteBatch.End();
+		public override void Initialize(IComponentMapperService mapperService)
+		{
+			_spriteMapper = mapperService.GetMapper<Sprite>();
+			_transformMapper = mapperService.GetMapper<Transform>();
+		}
+
+		public override void Draw(GameTime gameTime)
+		{
+			_spriteBatch.Begin(SpriteSortMode.Immediate, null, SamplerState.PointClamp, null, null, null, _camera.GetViewMatrix());
+
+			foreach (var entity in ActiveEntities)
+			{
+				var sprite = _spriteMapper.Get(entity);
+				var transform = _transformMapper.Get(entity);
+
+				_spriteBatch.Draw(
+					_spriteSheetTexture,
+					transform.Position,
+					sprite.CurrentFrame,
+					XnaColor.White,
+					transform.Rotation,
+					new Vector2(sprite.CurrentFrame.Width, sprite.CurrentFrame.Height),
+					1f,
+					SpriteEffects.None,
+					0f
+				);
+			}
+
+			_spriteBatch.End();
+		}
 	}
 }

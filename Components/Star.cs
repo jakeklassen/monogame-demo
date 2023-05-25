@@ -1,11 +1,12 @@
-namespace CherryBomb.Components;
-
-public class Star
+namespace Components
 {
-	public Color Color { get; set; }
-
-	public Star(Color color)
+	public class Star
 	{
-		Color = color;
+		public Color Color { get; set; }
+
+		public Star(Color color)
+		{
+			Color = color;
+		}
 	}
 }

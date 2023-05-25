@@ -1,4 +1,4 @@
-using CherryBomb.Components;
+using Components;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -9,45 +9,46 @@ using MonoGame.Extended.Entities.Systems;
 
 using XnaColor = Microsoft.Xna.Framework.Color;
 
-namespace CherryBomb.Systems;
-
-public class StarfieldRenderingSystem : EntityDrawSystem
+namespace Systems
 {
-	private readonly SpriteBatch _spriteBatch;
-
-	private readonly OrthographicCamera _camera;
-
-	private ComponentMapper<Star> _starMapper;
-
-	private ComponentMapper<Transform> _transformMapper;
-
-	public StarfieldRenderingSystem(GraphicsDevice graphicsDevice, OrthographicCamera camera) : base(Aspect.All(typeof(Star), typeof(Transform)))
+	public class StarfieldRenderingSystem : EntityDrawSystem
 	{
-		_camera = camera;
-		_spriteBatch = new SpriteBatch(graphicsDevice);
-	}
+		private readonly SpriteBatch _spriteBatch;
 
-	public override void Initialize(IComponentMapperService mapperService)
-	{
-		_starMapper = mapperService.GetMapper<Star>();
-		_transformMapper = mapperService.GetMapper<Transform>();
-	}
+		private readonly OrthographicCamera _camera;
 
-	public override void Draw(GameTime gameTime)
-	{
-		_spriteBatch.Begin(SpriteSortMode.Immediate, null, SamplerState.PointClamp, null, null, null, _camera.GetViewMatrix());
+		private ComponentMapper<Star> _starMapper;
 
-		foreach (var entity in ActiveEntities)
+		private ComponentMapper<Transform> _transformMapper;
+
+		public StarfieldRenderingSystem(GraphicsDevice graphicsDevice, OrthographicCamera camera) : base(Aspect.All(typeof(Star), typeof(Transform)))
 		{
-			var star = _starMapper.Get(entity);
-			var transform = _transformMapper.Get(entity);
-
-			var rectangle = new RectangleF(transform.Position.X, transform.Position.Y, 1, 1);
-			var color = new XnaColor(star.Color.R, star.Color.G, star.Color.B, star.Color.A);
-
-			_spriteBatch.DrawRectangle(rectangle, color);
+			_camera = camera;
+			_spriteBatch = new SpriteBatch(graphicsDevice);
 		}
 
-		_spriteBatch.End();
+		public override void Initialize(IComponentMapperService mapperService)
+		{
+			_starMapper = mapperService.GetMapper<Star>();
+			_transformMapper = mapperService.GetMapper<Transform>();
+		}
+
+		public override void Draw(GameTime gameTime)
+		{
+			_spriteBatch.Begin(SpriteSortMode.Immediate, null, SamplerState.PointClamp, null, null, null, _camera.GetViewMatrix());
+
+			foreach (var entity in ActiveEntities)
+			{
+				var star = _starMapper.Get(entity);
+				var transform = _transformMapper.Get(entity);
+
+				var rectangle = new RectangleF(transform.Position.X, transform.Position.Y, 1, 1);
+				var color = new XnaColor(star.Color.R, star.Color.G, star.Color.B, star.Color.A);
+
+				_spriteBatch.DrawRectangle(rectangle, color);
+			}
+
+			_spriteBatch.End();
+		}
 	}
 }

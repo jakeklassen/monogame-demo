@@ -1,111 +1,113 @@
-using CherryBomb.Components;
+using CherryBomb;
+using Components;
 
 using Microsoft.Xna.Framework;
 
 using MonoGame.Extended.Entities;
 using MonoGame.Extended.Entities.Systems;
 
-namespace CherryBomb.Systems;
-
-public class ParticleSystem : EntityUpdateSystem
+namespace Systems
 {
-	private ComponentMapper<Particle> _particleMapper;
-	private ComponentMapper<Velocity> _velocityMapper;
-
-	public ParticleSystem() : base(Aspect.All(typeof(Particle), typeof(Velocity)))
+	public class ParticleSystem : EntityUpdateSystem
 	{
-	}
+		private ComponentMapper<Particle> _particleMapper;
+		private ComponentMapper<Velocity> _velocityMapper;
 
-	public override void Initialize(IComponentMapperService mapperService)
-	{
-		_particleMapper = mapperService.GetMapper<Particle>();
-		_velocityMapper = mapperService.GetMapper<Velocity>();
-	}
-
-	public override void Update(GameTime gameTime)
-	{
-		foreach (var entity in ActiveEntities)
+		public ParticleSystem() : base(Aspect.All(typeof(Particle), typeof(Velocity)))
 		{
-			var particle = _particleMapper.Get(entity);
-			var velocity = _velocityMapper.Get(entity);
+		}
 
-			particle.Age += (float)gameTime.ElapsedGameTime.TotalSeconds;
-			velocity.X -= velocity.X * 0.85f * (float)gameTime.ElapsedGameTime.TotalSeconds;
-			velocity.Y -= velocity.Y * 0.85f * (float)gameTime.ElapsedGameTime.TotalSeconds;
+		public override void Initialize(IComponentMapperService mapperService)
+		{
+			_particleMapper = mapperService.GetMapper<Particle>();
+			_velocityMapper = mapperService.GetMapper<Velocity>();
+		}
 
-			if (particle.Age >= particle.MaxAge)
+		public override void Update(GameTime gameTime)
+		{
+			foreach (var entity in ActiveEntities)
 			{
-				particle.Radius -= 0.5f;
+				var particle = _particleMapper.Get(entity);
+				var velocity = _velocityMapper.Get(entity);
 
-				if (particle.Radius <= 0)
+				particle.Age += (float)gameTime.ElapsedGameTime.TotalSeconds;
+				velocity.X -= velocity.X * 0.85f * (float)gameTime.ElapsedGameTime.TotalSeconds;
+				velocity.Y -= velocity.Y * 0.85f * (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+				if (particle.Age >= particle.MaxAge)
 				{
-					DestroyEntity(entity);
+					particle.Radius -= 0.5f;
 
-					continue;
+					if (particle.Radius <= 0)
+					{
+						DestroyEntity(entity);
+
+						continue;
+					}
+				}
+
+				particle.Color = particle.IsBlue ? DetermineParticleColorFromAge(particle, "blue") : DetermineParticleColorFromAge(particle, "red");
+			}
+		}
+
+		private Microsoft.Xna.Framework.Color DetermineParticleColorFromAge(Particle particle, string bias)
+		{
+			if (bias == "red")
+			{
+				if (particle.Age > 0.5)
+				{
+					return new Microsoft.Xna.Framework.Color(Pico8Color.Color5.R, Pico8Color.Color5.G, Pico8Color.Color5.B, Pico8Color.Color5.A);
+				}
+
+				if (particle.Age > 0.4)
+				{
+					return new Microsoft.Xna.Framework.Color(Pico8Color.Color2.R, Pico8Color.Color2.G, Pico8Color.Color2.B, Pico8Color.Color2.A);
+				}
+
+				if (particle.Age > 0.33)
+				{
+					return new Microsoft.Xna.Framework.Color(Pico8Color.Color8.R, Pico8Color.Color8.G, Pico8Color.Color8.B, Pico8Color.Color8.A);
+				}
+
+				if (particle.Age > 0.233)
+				{
+					return new Microsoft.Xna.Framework.Color(Pico8Color.Color9.R, Pico8Color.Color9.G, Pico8Color.Color9.B, Pico8Color.Color9.A);
+				}
+
+				if (particle.Age > 0.166)
+				{
+					return new Microsoft.Xna.Framework.Color(Pico8Color.Color10.R, Pico8Color.Color10.G, Pico8Color.Color10.B, Pico8Color.Color10.A);
+				}
+			}
+			else if (bias == "blue")
+			{
+				if (particle.Age > 0.5)
+				{
+					return new Microsoft.Xna.Framework.Color(Pico8Color.Color1.R, Pico8Color.Color1.G, Pico8Color.Color1.B, Pico8Color.Color1.A);
+				}
+
+				if (particle.Age > 0.4)
+				{
+					return new Microsoft.Xna.Framework.Color(Pico8Color.Color1.R, Pico8Color.Color1.G, Pico8Color.Color1.B, Pico8Color.Color1.A);
+				}
+
+				if (particle.Age > 0.33)
+				{
+					return new Microsoft.Xna.Framework.Color(Pico8Color.Color13.R, Pico8Color.Color13.G, Pico8Color.Color13.B, Pico8Color.Color13.A);
+				}
+
+				if (particle.Age > 0.233)
+				{
+					return new Microsoft.Xna.Framework.Color(Pico8Color.Color12.R, Pico8Color.Color12.G, Pico8Color.Color12.B, Pico8Color.Color12.A);
+				}
+
+				if (particle.Age > 0.166)
+				{
+					return new Microsoft.Xna.Framework.Color(Pico8Color.Color6.R, Pico8Color.Color6.G, Pico8Color.Color6.B, Pico8Color.Color6.A);
 				}
 			}
 
-			particle.Color = particle.IsBlue ? DetermineParticleColorFromAge(particle, "blue") : DetermineParticleColorFromAge(particle, "red");
+			return new Microsoft.Xna.Framework.Color(Pico8Color.Color7.R, Pico8Color.Color7.G, Pico8Color.Color7.B, Pico8Color.Color7.A);
 		}
-	}
-
-	private Microsoft.Xna.Framework.Color DetermineParticleColorFromAge(Particle particle, string bias)
-	{
-		if (bias == "red")
-		{
-			if (particle.Age > 0.5)
-			{
-				return new Microsoft.Xna.Framework.Color(Pico8Color.Color5.R, Pico8Color.Color5.G, Pico8Color.Color5.B, Pico8Color.Color5.A);
-			}
-
-			if (particle.Age > 0.4)
-			{
-				return new Microsoft.Xna.Framework.Color(Pico8Color.Color2.R, Pico8Color.Color2.G, Pico8Color.Color2.B, Pico8Color.Color2.A);
-			}
-
-			if (particle.Age > 0.33)
-			{
-				return new Microsoft.Xna.Framework.Color(Pico8Color.Color8.R, Pico8Color.Color8.G, Pico8Color.Color8.B, Pico8Color.Color8.A);
-			}
-
-			if (particle.Age > 0.233)
-			{
-				return new Microsoft.Xna.Framework.Color(Pico8Color.Color9.R, Pico8Color.Color9.G, Pico8Color.Color9.B, Pico8Color.Color9.A);
-			}
-
-			if (particle.Age > 0.166)
-			{
-				return new Microsoft.Xna.Framework.Color(Pico8Color.Color10.R, Pico8Color.Color10.G, Pico8Color.Color10.B, Pico8Color.Color10.A);
-			}
-		}
-		else if (bias == "blue")
-		{
-			if (particle.Age > 0.5)
-			{
-				return new Microsoft.Xna.Framework.Color(Pico8Color.Color1.R, Pico8Color.Color1.G, Pico8Color.Color1.B, Pico8Color.Color1.A);
-			}
-
-			if (particle.Age > 0.4)
-			{
-				return new Microsoft.Xna.Framework.Color(Pico8Color.Color1.R, Pico8Color.Color1.G, Pico8Color.Color1.B, Pico8Color.Color1.A);
-			}
-
-			if (particle.Age > 0.33)
-			{
-				return new Microsoft.Xna.Framework.Color(Pico8Color.Color13.R, Pico8Color.Color13.G, Pico8Color.Color13.B, Pico8Color.Color13.A);
-			}
-
-			if (particle.Age > 0.233)
-			{
-				return new Microsoft.Xna.Framework.Color(Pico8Color.Color12.R, Pico8Color.Color12.G, Pico8Color.Color12.B, Pico8Color.Color12.A);
-			}
-
-			if (particle.Age > 0.166)
-			{
-				return new Microsoft.Xna.Framework.Color(Pico8Color.Color6.R, Pico8Color.Color6.G, Pico8Color.Color6.B, Pico8Color.Color6.A);
-			}
-		}
-
-		return new Microsoft.Xna.Framework.Color(Pico8Color.Color7.R, Pico8Color.Color7.G, Pico8Color.Color7.B, Pico8Color.Color7.A);
 	}
 }

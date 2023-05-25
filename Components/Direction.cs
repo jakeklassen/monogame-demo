@@ -1,37 +1,38 @@
 using System;
 
-namespace CherryBomb.Components;
-
-public class Direction
+namespace Components
 {
-	public int X { get; set; }
-	public int Y { get; set; }
-
-	public Direction()
+	public class Direction
 	{
-		X = 0;
-		Y = 0;
-	}
+		public int X { get; set; }
+		public int Y { get; set; }
 
-	public Direction(int x, int y)
-	{
-		X = x;
-		Y = y;
-	}
+		public Direction()
+		{
+			X = 0;
+			Y = 0;
+		}
 
-	public Direction(Direction direction)
-	{
-		X = direction.X;
-		Y = direction.Y;
-	}
+		public Direction(int x, int y)
+		{
+			X = x;
+			Y = y;
+		}
 
-	public static Direction Random()
-	{
-		var random = new Random();
+		public Direction(Direction direction)
+		{
+			X = direction.X;
+			Y = direction.Y;
+		}
 
-		return new Direction(
-			x: 1 * Math.Sign(random.NextSingle() * 2 - 1),
-			y: 1 * Math.Sign(random.NextSingle() * 2 - 1)
-		);
+		public static Direction Random()
+		{
+			Random random = new();
+
+			return new Direction(
+				x: 1 * Math.Sign((random.NextSingle() * 2) - 1),
+				y: 1 * Math.Sign((random.NextSingle() * 2) - 1)
+			);
+		}
 	}
 }

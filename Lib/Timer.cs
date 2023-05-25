@@ -1,29 +1,30 @@
-namespace CherryBomb;
-
-public class Timer
+namespace Lib
 {
-	public float Duration { get; private set; } = 0;
-	public float Elapsed { get; private set; } = 0;
-	public bool IsExpired { get; private set; } = false;
-
-	public Timer(float duration)
+	public class Timer
 	{
-		Duration = duration;
-	}
+		public float Duration { get; private set; } = 0;
+		public float Elapsed { get; private set; } = 0;
+		public bool IsExpired { get; private set; } = false;
 
-	public void Update(float dt)
-	{
-		Elapsed += dt;
-
-		if (Elapsed >= Duration)
+		public Timer(float duration)
 		{
-			IsExpired = true;
+			Duration = duration;
 		}
-	}
 
-	public void Reset()
-	{
-		Elapsed = 0;
-		IsExpired = false;
+		public void Update(float dt)
+		{
+			Elapsed += dt;
+
+			if (Elapsed >= Duration)
+			{
+				IsExpired = true;
+			}
+		}
+
+		public void Reset()
+		{
+			Elapsed = 0;
+			IsExpired = false;
+		}
 	}
 }

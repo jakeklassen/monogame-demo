@@ -1,33 +1,34 @@
 using System;
 
-using CherryBomb.Components;
+using Components;
 
 using Microsoft.Xna.Framework;
 
 using MonoGame.Extended.Entities;
 
-namespace CherryBomb.EntityFactories;
-
-static class ExplosionFactory
+namespace EntityFactories
 {
-	public static void CreateExplosion(
-		Func<Entity> createEntityFn,
-		int count,
-		Func<Direction> directionFn,
-		Func<Particle> particleFn,
-		Func<Vector2> positionFn,
-		Func<Velocity> velocityFn
-	)
+	public static class ExplosionFactory
 	{
-		for (var i = 0; i < count; i++)
+		public static void CreateExplosion(
+			Func<Entity> createEntityFn,
+			int count,
+			Func<Direction> directionFn,
+			Func<Particle> particleFn,
+			Func<Vector2> positionFn,
+			Func<Velocity> velocityFn
+		)
 		{
-			var explosion = createEntityFn();
+			for (int i = 0; i < count; i++)
+			{
+				var explosion = createEntityFn();
 
-			explosion.Attach(directionFn());
-			explosion.Attach(particleFn());
-			explosion.Attach(new Transform(positionFn(), 0f, new Vector2(1f, 1f)));
-			explosion.Attach(velocityFn());
+				explosion.Attach(directionFn());
+				explosion.Attach(particleFn());
+				explosion.Attach(new Transform(positionFn(), 0f, new Vector2(1f, 1f)));
+				explosion.Attach(velocityFn());
+			}
+
 		}
-
 	}
 }

@@ -1,17 +1,18 @@
 using Microsoft.Xna.Framework;
 
-namespace CherryBomb.Components;
-
-public class Transform
+namespace Components
 {
-	public Vector2 Position { get; set; }
-	public float Rotation { get; set; }
-	public Vector2 Scale { get; set; }
-
-	public Transform(Vector2 position, float rotation, Vector2 scale)
+	public class Transform
 	{
-		Position = position;
-		Rotation = rotation;
-		Scale = scale;
+		public Vector2 Position { get; set; }
+		public float Rotation { get; set; }
+		public Vector2 Scale { get; set; }
+
+		public Transform(Vector2 position, float rotation, Vector2 scale)
+		{
+			Position = position;
+			Rotation = rotation;
+			Scale = scale;
+		}
 	}
 }
