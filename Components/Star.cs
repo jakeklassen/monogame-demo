@@ -1,11 +1,11 @@
-using Components;
+namespace CherryBomb.Components;
 
 public class Star
 {
-  public Color Color { get; set; }
+	public Color Color { get; set; }
 
-  public Star(Color color)
-  {
-    Color = color;
-  }
+	public Star(Color color)
+	{
+		Color = color;
+	}
 }

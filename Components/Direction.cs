@@ -1,36 +1,37 @@
 using System;
-using Microsoft.Xna.Framework;
+
+namespace CherryBomb.Components;
 
 public class Direction
 {
-  public int X { get; set; }
-  public int Y { get; set; }
+	public int X { get; set; }
+	public int Y { get; set; }
 
-  public Direction()
-  {
-    X = 0;
-    Y = 0;
-  }
+	public Direction()
+	{
+		X = 0;
+		Y = 0;
+	}
 
-  public Direction(int x, int y)
-  {
-    X = x;
-    Y = y;
-  }
+	public Direction(int x, int y)
+	{
+		X = x;
+		Y = y;
+	}
 
-  public Direction(Direction direction)
-  {
-    X = direction.X;
-    Y = direction.Y;
-  }
+	public Direction(Direction direction)
+	{
+		X = direction.X;
+		Y = direction.Y;
+	}
 
-  public Direction Random()
-  {
-    var random = new Random();
+	public static Direction Random()
+	{
+		var random = new Random();
 
-    return new Direction(
-      x: 1 * Math.Sign(random.NextSingle() * 2 - 1),
-      y: 1 * Math.Sign(random.NextSingle() * 2 - 1)
-    );
-  }
+		return new Direction(
+			x: 1 * Math.Sign(random.NextSingle() * 2 - 1),
+			y: 1 * Math.Sign(random.NextSingle() * 2 - 1)
+		);
+	}
 }

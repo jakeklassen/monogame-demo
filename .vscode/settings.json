@@ -1,4 +1,6 @@
 {
-  "editor.formatOnSave": true,
-  "omnisharp.organizeImportsOnFormat": true,
+	"editor.formatOnSave": true,
+	"omnisharp.organizeImportsOnFormat": true,
+	"omnisharp.enableRoslynAnalyzers": true,
+	"omnisharp.enableEditorConfigSupport": true
 }

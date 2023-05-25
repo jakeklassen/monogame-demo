@@ -1,3 +1,3 @@
 ﻿
-using var game = new monogame_demo.Game1();
+using var game = new CherryBomb.Game1();
 game.Run();
