@@ -27,7 +27,6 @@ namespace CherryBomb
 		private readonly SimpleFps _fps = new();
 		private BitmapFont _font;
 
-		private Texture2D _playerTexture;
 		private Texture2D _spriteSheetTexture;
 
 		private World _world;
@@ -67,6 +66,8 @@ namespace CherryBomb
 				.AddSystem(new PlayerSystem())
 				.AddSystem(new MovementSystem())
 				.AddSystem(new DestroyOnViewportExitSystem())
+				.AddSystem(new CollisionSystem())
+				.AddSystem(new PlayerProjectileEnemyCollisionEventSystem())
 				.AddSystem(new ParticleSystem())
 				.AddSystem(new ShockwaveSystem())
 				.AddSystem(new StarfieldSystem())
@@ -79,13 +80,26 @@ namespace CherryBomb
 			{
 				var player = _world.CreateEntity();
 
+				player.Attach(new CollisionLayer(CollisionMasks.Player));
+				player.Attach(new CollisionMask(CollisionMasks.Enemy | CollisionMasks.EnemyProjectile | CollisionMasks.Pickup));
 				player.Attach(new Direction());
 				player.Attach(new Sprite(new Rectangle(16, 0, 8, 8)));
 				player.Attach(new TagPlayer());
 				player.Attach(
-					new Transform(new Vector2((TargetWidth / 2) + (_playerTexture.Width / 2), (TargetHeight / 2) + (_playerTexture.Height / 2)), 0f, Vector2.One)
+					new Transform(new Vector2((TargetWidth / 2) + 4, 100), 0f, Vector2.One)
 				);
 				player.Attach(new Velocity(60, 60));
+			}
+
+			{
+				var enemy = _world.CreateEntity();
+
+				enemy.Attach(new BoxCollider(8, 8));
+				enemy.Attach(new CollisionLayer(CollisionMasks.Enemy));
+				enemy.Attach(new CollisionMask(CollisionMasks.Player | CollisionMasks.PlayerProjectile));
+				enemy.Attach(new Sprite(new Rectangle(40, 8, 8, 8)));
+				enemy.Attach(new TagEnemy());
+				enemy.Attach(new Transform(new Vector2((TargetWidth / 2) + 4, 32), 0f, Vector2.One));
 			}
 
 			StarFactory.CreateStarfield(_world, TargetWidth, TargetHeight, 100);
@@ -98,7 +112,6 @@ namespace CherryBomb
 			_spriteBatch = new SpriteBatch(GraphicsDevice);
 
 			_font = Content.Load<BitmapFont>("Font/pico-8");
-			_playerTexture = Content.Load<Texture2D>("Graphics/player-ship");
 			_spriteSheetTexture = Content.Load<Texture2D>("Graphics/shmup");
 
 			for (int radius = 1; radius <= 32; radius++)
@@ -177,9 +190,9 @@ namespace CherryBomb
 			// spriteBatch.Draw(textureCache["circfill-5"], new Vector2(46, 110), Color.White);
 			// spriteBatch.Draw(textureCache["circfill-6"], new Vector2(60, 110), Color.White);
 
-			_spriteBatch.DrawString(_font, $"Is Fixed TimeStep: {IsFixedTimeStep}", new Vector2(2f, 25f), XnaColor.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
+			// _spriteBatch.DrawString(_font, $"Is Fixed TimeStep: {IsFixedTimeStep}", new Vector2(2f, 25f), XnaColor.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
 			_spriteBatch.DrawString(_font, $"Entity #: {_world.EntityCount}", new Vector2(2f, 32f), XnaColor.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
-			_spriteBatch.DrawString(_font, $"Vsync: {_graphics.SynchronizeWithVerticalRetrace}", new Vector2(2f, 40f), XnaColor.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
+			// _spriteBatch.DrawString(_font, $"Vsync: {_graphics.SynchronizeWithVerticalRetrace}", new Vector2(2f, 40f), XnaColor.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
 			// fps.DrawFps(spriteBatch, font, new Vector2(2f, 55f), Color.White);
 
 			_spriteBatch.End();

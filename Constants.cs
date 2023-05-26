@@ -42,4 +42,20 @@ namespace CherryBomb
 		public static readonly Color Color14 = new(0xFF, 0x77, 0xA8, 0xFF);
 		public static readonly Color Color15 = new(0xFF, 0xCC, 0xAA, 0xFF);
 	}
+
+	public class CollisionMasks
+	{
+		public const int Player = 1 << 0;
+		public const int PlayerProjectile = 1 << 1;
+		public const int Enemy = 1 << 2;
+		public const int EnemyProjectile = 1 << 3;
+		public const int Pickup = 1 << 4;
+
+		public int Value { get; set; }
+
+		public CollisionMasks(int value)
+		{
+			Value = value;
+		}
+	}
 }
