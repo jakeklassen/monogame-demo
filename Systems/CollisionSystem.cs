@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Diagnostics;
 using Components;
 
 using Microsoft.Xna.Framework;
@@ -23,7 +22,7 @@ namespace Systems
 				typeof(CollisionLayer),
 				typeof(CollisionMask),
 				typeof(Transform))
-				.Exclude(typeof(TagPlayer))
+				.Exclude(typeof(TagInactive))
 			)
 		{
 			_handledEntities = new List<int>();
@@ -39,15 +38,12 @@ namespace Systems
 
 		public override void Update(GameTime gameTime)
 		{
-			Debug.WriteLine("handled entities cleared");
 			_handledEntities.Clear();
 
 			foreach (var entityId in ActiveEntities)
 			{
 				if (_handledEntities.Contains(entityId))
 				{
-					Debug.WriteLine($"Skipping entity {entityId}");
-
 					continue;
 				}
 
@@ -55,13 +51,11 @@ namespace Systems
 				{
 					if (entityId == otherEntityId)
 					{
-						Debug.WriteLine($"Skipping entity {entityId} because it's the same as {otherEntityId}");
 						continue;
 					}
 
 					if (_handledEntities.Contains(otherEntityId))
 					{
-						Debug.WriteLine($"Skipping entity {otherEntityId} because it's already been handled");
 						continue;
 					}
 
@@ -116,25 +110,28 @@ namespace Systems
 						? otherEntity
 						: null;
 
-					var playerBullet = entity.Has<TagBullet>()
+					var playerProjectile = entity.Has<TagBullet>()
 						? entity
 						: otherEntity.Has<TagBullet>()
 						? otherEntity
 						: null;
 
-					if (playerBullet != null && enemy != null)
+					if (playerProjectile != null && enemy != null)
 					{
-						Debug.WriteLine("Player bullet hit enemy");
-
 						var eventEntity = CreateEntity();
 
-						eventEntity.Attach(new EventPlayerProjectileEnemyCollision(playerBullet.Id, enemy.Id));
+						// I HATE this but we need to somehow tag the entities as inactive
+						// otherwise we'll pick up these entities for collision again when the
+						// next frame comes around.
+						// Maybe replace with system specific tags? e.g. TagCollisionInactive
+						playerProjectile.Attach(new TagInactive());
+						enemy.Attach(new TagInactive());
+
+						eventEntity.Attach(new EventPlayerProjectileEnemyCollision(playerProjectile.Id, enemy.Id));
 					}
 
 					_handledEntities.Add(entityId);
 					_handledEntities.Add(otherEntityId);
-
-					Debug.WriteLine($"Tracked {entityId} and {otherEntityId}");
 
 					// We're done with this entity, so break out of the loop
 					break;
