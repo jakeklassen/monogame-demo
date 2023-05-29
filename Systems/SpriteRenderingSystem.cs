@@ -51,7 +51,7 @@ namespace Systems
 					sprite.CurrentFrame,
 					XnaColor.White,
 					transform.Rotation,
-					new Vector2(sprite.CurrentFrame.Width, sprite.CurrentFrame.Height),
+					Vector2.Zero,
 					1f,
 					SpriteEffects.None,
 					0f

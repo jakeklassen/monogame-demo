@@ -67,7 +67,7 @@ namespace Systems
 					bullet.Attach(new Direction(0, -1));
 					bullet.Attach(new Sprite(new Rectangle(0, 8, 6, 8)));
 					bullet.Attach(new TagBullet());
-					bullet.Attach(new Transform(transform.Position + new Vector2(-1, -8), 0f, new Vector2(1f, 1f)));
+					bullet.Attach(new Transform(transform.Position + new Vector2(1, -8), 0f, new Vector2(1f, 1f)));
 					bullet.Attach(new Velocity(0, 120));
 				}
 			}

@@ -25,17 +25,27 @@ namespace Systems
 
 		public override void Update(GameTime gameTime)
 		{
-			foreach (int entity in ActiveEntities)
+			foreach (int entityId in ActiveEntities)
 			{
-				BoxCollider boxCollider = _boxColliderMapper.Get(entity);
-				Transform transform = _transformMapper.Get(entity);
+				var entity = GetEntity(entityId);
+				var enemyState = entity.Get<EnemyState>();
+
+				if (enemyState?.Value == EnemyStateType.Flyin)
+				{
+					// Don't destroy enemies that are flying in.
+					// They start off screen.
+					continue;
+				}
+
+				BoxCollider boxCollider = _boxColliderMapper.Get(entityId);
+				Transform transform = _transformMapper.Get(entityId);
 
 				if (transform.Position.X < -boxCollider.Width ||
 						transform.Position.X > Game1.TargetWidth + boxCollider.Width ||
 						transform.Position.Y < -boxCollider.Height ||
 						transform.Position.Y > Game1.TargetHeight + boxCollider.Height)
 				{
-					DestroyEntity(entity);
+					DestroyEntity(entityId);
 				}
 			}
 		}

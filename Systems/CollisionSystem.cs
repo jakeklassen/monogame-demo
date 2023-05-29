@@ -18,10 +18,11 @@ namespace Systems
 
 		public CollisionSystem()
 			: base(
-				Aspect.All(typeof(BoxCollider),
-				typeof(CollisionLayer),
-				typeof(CollisionMask),
-				typeof(Transform))
+				Aspect.All(
+					typeof(BoxCollider),
+					typeof(CollisionLayer),
+					typeof(CollisionMask),
+					typeof(Transform))
 				.Exclude(typeof(TagInactive))
 			)
 		{

@@ -1,3 +1,5 @@
+using XnaColor = Microsoft.Xna.Framework.Color;
+
 namespace Components
 {
 	public class Color
@@ -6,6 +8,7 @@ namespace Components
 		public int G { get; set; }
 		public int B { get; set; }
 		public int A { get; set; }
+		public XnaColor XnaColor => new(R, G, B, A);
 
 		public Color(int r, int g, int b, int a)
 		{
