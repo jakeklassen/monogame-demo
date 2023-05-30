@@ -1,54 +1,37 @@
 using System;
 using System.Collections.Generic;
+using Arch.Core;
 using CherryBomb;
 using Components;
-
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-
 using MonoGame.Extended;
-using MonoGame.Extended.Entities;
-using MonoGame.Extended.Entities.Systems;
 
 namespace Systems
 {
-	public class ParticleRenderingSystem : EntityDrawSystem
+	public class ParticleRenderingSystem : SystemBase<GameTime>
 	{
-
 		private readonly SpriteBatch _spriteBatch;
-
 		private readonly OrthographicCamera _camera;
 		private readonly Dictionary<string, Texture2D> _textureCache;
+		private QueryDescription _query = new QueryDescription().WithAll<Particle, Transform>();
 
-		private ComponentMapper<Particle> _particleMapper;
-
-		private ComponentMapper<Transform> _transformMapper;
-
-		public ParticleRenderingSystem(GraphicsDevice graphicsDevice, OrthographicCamera camera, Dictionary<string, Texture2D> textureCache) : base(Aspect.All(typeof(Particle), typeof(Transform)))
+		public ParticleRenderingSystem(World world, GraphicsDevice graphicsDevice, OrthographicCamera camera, Dictionary<string, Texture2D> textureCache) : base(world)
 		{
 			_camera = camera;
 			_spriteBatch = new SpriteBatch(graphicsDevice);
 			_textureCache = textureCache;
 		}
 
-		public override void Initialize(IComponentMapperService mapperService)
-		{
-			_particleMapper = mapperService.GetMapper<Particle>();
-			_transformMapper = mapperService.GetMapper<Transform>();
-		}
-
-		public override void Draw(GameTime gameTime)
+		public override void Update(in GameTime gameTime)
 		{
 			_spriteBatch.Begin(SpriteSortMode.Immediate, null, SamplerState.PointClamp, null, null, null, _camera.GetViewMatrix());
 
-			foreach (var entity in ActiveEntities)
+			World.Query(in _query, (in Entity entity, ref Particle particle, ref Transform transform) =>
 			{
-				var particle = _particleMapper.Get(entity);
-				var transform = _transformMapper.Get(entity);
-
 				if (Math.Floor(particle.Radius) <= 0)
 				{
-					continue;
+					return;
 				}
 
 				if (particle.Spark)
@@ -60,8 +43,6 @@ namespace Systems
 				}
 				else if (particle.Shape == Components.Shape.Circle)
 				{
-
-
 					var texture = _textureCache[$"circfill-{Math.Floor(particle.Radius)}"];
 
 					_spriteBatch.Draw(
@@ -70,7 +51,7 @@ namespace Systems
 					particle.Color
 				);
 				}
-			}
+			});
 
 			_spriteBatch.End();
 		}

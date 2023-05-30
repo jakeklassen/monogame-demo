@@ -1,72 +1,55 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using Arch.Core;
 using Components;
-
 using Microsoft.Xna.Framework;
 using MonoGame.Extended;
-using MonoGame.Extended.Entities;
-using MonoGame.Extended.Entities.Systems;
 
 namespace Systems
 {
-	public class CollisionSystem : EntityUpdateSystem
+	public class CollisionSystem : SystemBase<GameTime>
 	{
-		private ComponentMapper<BoxCollider> _boxColliderMapper;
-		private ComponentMapper<CollisionLayer> _collisionLayerMapper;
-		private ComponentMapper<CollisionMask> _collisionMaskMapper;
-		private ComponentMapper<Transform> _transformMapper;
+		private readonly QueryDescription _collidables = new QueryDescription().WithAll<BoxCollider, CollisionLayer, CollisionMask, Transform>();
 		private readonly List<int> _handledEntities;
 
-		public CollisionSystem()
-			: base(
-				Aspect.All(
-					typeof(BoxCollider),
-					typeof(CollisionLayer),
-					typeof(CollisionMask),
-					typeof(Transform))
-				.Exclude(typeof(TagInactive))
-			)
+		public CollisionSystem(World world) : base(world)
 		{
 			_handledEntities = new List<int>();
 		}
 
-		public override void Initialize(IComponentMapperService mapperService)
-		{
-			_boxColliderMapper = mapperService.GetMapper<BoxCollider>();
-			_collisionLayerMapper = mapperService.GetMapper<CollisionLayer>();
-			_collisionMaskMapper = mapperService.GetMapper<CollisionMask>();
-			_transformMapper = mapperService.GetMapper<Transform>();
-		}
-
-		public override void Update(GameTime gameTime)
+		public override void Update(in GameTime gameTime)
 		{
 			_handledEntities.Clear();
 
-			foreach (var entityId in ActiveEntities)
+			var entities = new System.Span<Entity>();
+			World.GetEntities(_collidables, entities);
+
+			foreach (var entity in entities)
 			{
-				if (_handledEntities.Contains(entityId))
+				if (_handledEntities.Contains(entity.Id))
 				{
 					continue;
 				}
 
-				foreach (var otherEntityId in ActiveEntities)
+				foreach (var otherEntity in entities)
 				{
-					if (entityId == otherEntityId)
+					if (entity.Id == otherEntity.Id)
 					{
 						continue;
 					}
 
-					if (_handledEntities.Contains(otherEntityId))
+					if (_handledEntities.Contains(otherEntity.Id))
 					{
 						continue;
 					}
 
-					BoxCollider boxCollider = _boxColliderMapper.Get(entityId);
-					CollisionLayer collisionLayer = _collisionLayerMapper.Get(entityId);
-					Transform transform = _transformMapper.Get(entityId);
+					BoxCollider boxCollider = World.Get<BoxCollider>(entity);
+					CollisionLayer collisionLayer = World.Get<CollisionLayer>(entity);
+					Transform transform = World.Get<Transform>(entity);
 
-					BoxCollider otherBoxCollider = _boxColliderMapper.Get(otherEntityId);
-					CollisionMask otherCollisionMask = _collisionMaskMapper.Get(otherEntityId);
-					Transform otherTransform = _transformMapper.Get(otherEntityId);
+					BoxCollider otherBoxCollider = World.Get<BoxCollider>(otherEntity);
+					CollisionMask otherCollisionMask = World.Get<CollisionMask>(otherEntity);
+					Transform otherTransform = World.Get<Transform>(otherEntity);
 
 					// Make sure entityA's collision layer is a subset of entityB's
 					// collision mask
@@ -102,42 +85,45 @@ namespace Systems
 						continue;
 					}
 
-					var entity = GetEntity(entityId);
-					var otherEntity = GetEntity(otherEntityId);
-
-					var enemy = entity.Has<TagEnemy>()
+					Entity? enemy = World.Has<TagEnemy>(entity)
 						? entity
-						: otherEntity.Has<TagEnemy>()
+						: World.Has<TagEnemy>(otherEntity)
 						? otherEntity
 						: null;
 
-					var playerProjectile = entity.Has<TagBullet>()
+					Entity? playerProjectile = World.Has<TagBullet>(entity)
 						? entity
-						: otherEntity.Has<TagBullet>()
+						: World.Has<TagBullet>(otherEntity)
 						? otherEntity
 						: null;
 
-					if (playerProjectile != null && enemy != null)
+					if (AssertIsNotNull(enemy) && AssertIsNotNull(playerProjectile))
 					{
-						var eventEntity = CreateEntity();
+						World.Create(
+							// For some reason this is not working, I had to cast
+							new EventPlayerProjectileEnemyCollision((Entity)playerProjectile, (Entity)enemy)
+						);
 
 						// I HATE this but we need to somehow tag the entities as inactive
 						// otherwise we'll pick up these entities for collision again when the
 						// next frame comes around.
 						// Maybe replace with system specific tags? e.g. TagCollisionInactive
-						playerProjectile.Attach(new TagInactive());
-						enemy.Attach(new TagInactive());
-
-						eventEntity.Attach(new EventPlayerProjectileEnemyCollision(playerProjectile.Id, enemy.Id));
+						// World.Add(playerProjectile, new TagInactive());
+						// World.Add(enemy, new TagInactive());
 					}
 
-					_handledEntities.Add(entityId);
-					_handledEntities.Add(otherEntityId);
+					_handledEntities.Add(entity.Id);
+					_handledEntities.Add(otherEntity.Id);
 
 					// We're done with this entity, so break out of the loop
 					break;
 				}
 			}
+		}
+
+		private static bool AssertIsNotNull([NotNullWhen(true)] Entity? entity)
+		{
+			return entity is not null;
 		}
 	}
 }

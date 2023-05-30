@@ -1,8 +1,7 @@
 using System;
+using Arch.Core;
 using CherryBomb;
 using Components;
-
-using MonoGame.Extended.Entities;
 
 using Vector2 = Microsoft.Xna.Framework.Vector2;
 
@@ -15,9 +14,9 @@ namespace EntityFactories
 			var randomVelocities = new[] { 60, 30, 20 };
 			Random random = new();
 
-			var entity = world.CreateEntity();
-			entity.Attach(new Direction(0, 1));
-			entity.Attach(new Transform(position, 0f, new Vector2(1f, 1f)));
+			var entity = world.Create<Direction, Star, Transform, Velocity>();
+			world.Add(entity, new Direction(0, 1));
+			world.Add(entity, new Transform(position, 0f, new Vector2(1f, 1f)));
 
 			var star = new Star(Pico8Color.Color7);
 			var velocity = new Velocity(0f, randomVelocities[random.Next(0, randomVelocities.Length)]);
@@ -32,8 +31,8 @@ namespace EntityFactories
 				star.Color = Pico8Color.Color13;
 			}
 
-			entity.Attach(star);
-			entity.Attach(velocity);
+			world.Add(entity, star);
+			world.Add(entity, velocity);
 
 			return entity;
 		}

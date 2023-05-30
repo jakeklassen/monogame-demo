@@ -1,10 +1,11 @@
+using System.Collections.Generic;
+using Arch.Core;
 using CherryBomb;
 using Components;
 using EntityFactories;
 using Lib.Tweening;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using MonoGame.Extended.Entities;
 using MonoGame.Extended.Input;
 using MonoGame.Extended.Screens;
 using Systems;
@@ -16,11 +17,14 @@ namespace Screens
 		private new Game1 Game => (Game1)base.Game;
 		private Texture2D _spriteSheetTexture;
 		private readonly Tweener _tweener = new();
-		private World _world;
+		private readonly World _world;
+		private readonly List<SystemBase<GameTime>> _updateSystems = new();
+		private readonly List<SystemBase<GameTime>> _drawSystems = new();
 
 		public GameplayScreen(Game1 game)
 			: base(game)
 		{
+			_world = World.Create();
 		}
 
 		public override void Initialize()
@@ -33,50 +37,68 @@ namespace Screens
 			base.LoadContent();
 			_spriteSheetTexture = Game.Content.Load<Texture2D>("Graphics/shmup");
 
-			_world = new WorldBuilder()
-				.AddSystem(new NextWaveEventSystem(Game, _tweener))
-				.AddSystem(new TimeToLiveSystem())
-				.AddSystem(new BlinkSystem())
-				.AddSystem(new PlayerSystem())
-				.AddSystem(new MovementSystem())
-				.AddSystem(new DestroyOnViewportExitSystem())
-				.AddSystem(new CollisionSystem())
-				.AddSystem(new PlayerProjectileEnemyCollisionEventSystem())
-				.AddSystem(new ParticleSystem())
-				.AddSystem(new InvulnerableSystem())
-				.AddSystem(new SpriteAnimationSystem())
-				.AddSystem(new StarfieldSystem())
-				.AddSystem(new StarfieldRenderingSystem(Game.GraphicsDevice, Game.Camera))
-				.AddSystem(new SpriteRenderingSystem(Game.GraphicsDevice, Game.Camera, _spriteSheetTexture))
-				.AddSystem(new ShockwaveRenderingSystem(Game.GraphicsDevice, Game.Camera, Game.TextureCache))
-				.AddSystem(new ParticleRenderingSystem(Game.GraphicsDevice, Game.Camera, Game.TextureCache))
-				.AddSystem(new TextRenderingSystem(Game.GraphicsDevice, Game.Camera, Game.FontCache))
-				.Build();
+			_updateSystems.Add(new NextWaveEventSystem(_world, Game, _tweener));
+			_updateSystems.Add(new TimeToLiveSystem(_world));
+			_updateSystems.Add(new BlinkSystem(_world));
+			_updateSystems.Add(new PlayerSystem(_world));
+			_updateSystems.Add(new MovementSystem(_world));
+			_updateSystems.Add(new DestroyOnViewportExitSystem(_world));
+			_updateSystems.Add(new CollisionSystem(_world));
+			_updateSystems.Add(new PlayerProjectileEnemyCollisionEventSystem(_world));
+			_updateSystems.Add(new ParticleSystem(_world));
+			_updateSystems.Add(new InvulnerableSystem(_world));
+			_updateSystems.Add(new StarfieldSystem(_world));
+			_updateSystems.Add(new SpriteAnimationSystem(_world));
+			_updateSystems.Add(new ShockwaveSystem(_world));
+
+			_drawSystems.Add(new StarfieldRenderingSystem(_world, Game.GraphicsDevice, Game.Camera));
+			_drawSystems.Add(new SpriteRenderingSystem(_world, Game.GraphicsDevice, Game.Camera, _spriteSheetTexture));
+			_drawSystems.Add(new ShockwaveRenderingSystem(_world, Game.GraphicsDevice, Game.Camera, Game.TextureCache));
+			_drawSystems.Add(new ParticleRenderingSystem(_world, Game.GraphicsDevice, Game.Camera, Game.TextureCache));
+			_drawSystems.Add(new TextRenderingSystem(_world, Game.GraphicsDevice, Game.Camera, Game.FontCache));
+
+			// .AddSystem(new NextWaveEventSystem(Game, _tweener))
+			// .AddSystem(new TimeToLiveSystem())
+			// .AddSystem(new BlinkSystem())
+			// .AddSystem(new PlayerSystem())
+			// .AddSystem(new MovementSystem())
+			// .AddSystem(new DestroyOnViewportExitSystem())
+			// .AddSystem(new CollisionSystem())
+			// .AddSystem(new PlayerProjectileEnemyCollisionEventSystem())
+			// .AddSystem(new ParticleSystem())
+			// .AddSystem(new InvulnerableSystem())
+			// .AddSystem(new SpriteAnimationSystem())
+			// .AddSystem(new StarfieldSystem())
+			// .AddSystem(new StarfieldRenderingSystem(Game.GraphicsDevice, Game.Camera))
+			// .AddSystem(new SpriteRenderingSystem(Game.GraphicsDevice, Game.Camera, _spriteSheetTexture))
+			// .AddSystem(new ShockwaveRenderingSystem(Game.GraphicsDevice, Game.Camera, Game.TextureCache))
+			// .AddSystem(new ParticleRenderingSystem(Game.GraphicsDevice, Game.Camera, Game.TextureCache))
+			// .AddSystem(new TextRenderingSystem(Game.GraphicsDevice, Game.Camera, Game.FontCache))
+			// .Build();
 
 			StarFactory.CreateStarfield(_world, Game1.TargetWidth, Game1.TargetHeight, 100);
 
-			var player = _world.CreateEntity();
+			var player = _world.Create();
 
-			player.Attach(new CollisionLayer(CollisionMasks.Player));
-			player.Attach(new CollisionMask(CollisionMasks.Enemy | CollisionMasks.EnemyProjectile | CollisionMasks.Pickup));
-			player.Attach(new Direction());
-			player.Attach(new Sprite(new Rectangle(16, 0, 8, 8)));
-			player.Attach(new TagPlayer());
-			player.Attach(
+			_world.Add(player, new CollisionLayer(CollisionMasks.Player));
+			_world.Add(player, new CollisionMask(CollisionMasks.Enemy | CollisionMasks.EnemyProjectile | CollisionMasks.Pickup));
+			_world.Add(player, new Direction());
+			_world.Add(player, new Sprite(new Rectangle(16, 0, 8, 8)));
+			_world.Add(player, new TagPlayer());
+			_world.Add(player,
 				new Transform(new Vector2((Game1.TargetWidth / 2) + 4, 100), 0f, Vector2.One)
 			);
-			player.Attach(new Velocity(60, 60));
+			_world.Add(player, new Velocity(60, 60));
 
-			_world.CreateEntity().Attach(new EventNextWave());
-
-			Game.Components.Add(_world);
+			var nextWaveEvent = _world.Create();
+			_world.Add(nextWaveEvent, new EventNextWave());
 		}
 
 		public override void UnloadContent()
 		{
 			base.UnloadContent();
 
-			_world.Dispose();
+			World.Destroy(_world);
 		}
 
 		public override void Update(GameTime gameTime)
@@ -87,11 +109,19 @@ namespace Screens
 			{
 				// 
 			}
+
+			foreach (var system in _updateSystems)
+			{
+				system.Update(gameTime);
+			}
 		}
 
 		public override void Draw(GameTime gameTime)
 		{
-
+			foreach (var system in _drawSystems)
+			{
+				system.Update(gameTime);
+			}
 		}
 	}
 }

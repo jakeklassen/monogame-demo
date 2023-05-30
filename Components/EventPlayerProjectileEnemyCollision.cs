@@ -1,14 +1,16 @@
+using Arch.Core;
+
 namespace Components
 {
 	public class EventPlayerProjectileEnemyCollision
 	{
-		public int ProjectileEntityId { get; set; }
-		public int EnemyEntityId { get; set; }
+		public Entity ProjectileEntity { get; set; }
+		public Entity EnemyEntity { get; set; }
 
-		public EventPlayerProjectileEnemyCollision(int projectileEntityId, int enemyEntityId)
+		public EventPlayerProjectileEnemyCollision(Entity projectileEntity, Entity enemyEntity)
 		{
-			ProjectileEntityId = projectileEntityId;
-			EnemyEntityId = enemyEntityId;
+			ProjectileEntity = projectileEntity;
+			EnemyEntity = enemyEntity;
 		}
 	}
 }

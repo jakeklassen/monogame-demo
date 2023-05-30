@@ -1,17 +1,14 @@
 using System;
-
+using Arch.Core;
 using Components;
-
 using Microsoft.Xna.Framework;
-
-using MonoGame.Extended.Entities;
 
 namespace EntityFactories
 {
 	public static class ExplosionFactory
 	{
 		public static void CreateExplosion(
-			Func<Entity> createEntityFn,
+			World world,
 			int count,
 			Func<Direction> directionFn,
 			Func<Particle> particleFn,
@@ -21,12 +18,12 @@ namespace EntityFactories
 		{
 			for (int i = 0; i < count; i++)
 			{
-				var explosion = createEntityFn();
+				var explosion = world.Create();
 
-				explosion.Attach(directionFn());
-				explosion.Attach(particleFn());
-				explosion.Attach(new Transform(positionFn(), 0f, new Vector2(1f, 1f)));
-				explosion.Attach(velocityFn());
+				world.Add(explosion, directionFn());
+				world.Add(explosion, particleFn());
+				world.Add(explosion, new Transform(positionFn(), 0f, new Vector2(1f, 1f)));
+				world.Add(explosion, velocityFn());
 			}
 
 		}

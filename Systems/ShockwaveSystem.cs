@@ -1,38 +1,31 @@
+using Arch.Core;
 using Components;
-
 using Microsoft.Xna.Framework;
-
-using MonoGame.Extended.Entities;
-using MonoGame.Extended.Entities.Systems;
 
 namespace Systems
 {
-	public class ShockwaveSystem : EntityUpdateSystem
+	public class ShockwaveSystem : SystemBase<GameTime>
 	{
-		private ComponentMapper<Shockwave> _shockwaveMapper;
+		private GameTime _gameTime;
+		private QueryDescription _query = new QueryDescription().WithAll<Shockwave>();
 
-		public ShockwaveSystem() : base(Aspect.All(typeof(Shockwave)))
+		public ShockwaveSystem(World world) : base(world)
 		{
 		}
 
-		public override void Initialize(IComponentMapperService mapperService)
+		public override void Update(in GameTime gameTime)
 		{
-			_shockwaveMapper = mapperService.GetMapper<Shockwave>();
-		}
+			_gameTime = gameTime;
 
-		public override void Update(GameTime gameTime)
-		{
-			foreach (var entity in ActiveEntities)
+			World.Query(in _query, (in Entity entity, ref Shockwave shockwave) =>
 			{
-				var shockwave = _shockwaveMapper.Get(entity);
-
-				shockwave.Radius += shockwave.Speed * (float)gameTime.ElapsedGameTime.TotalSeconds;
+				shockwave.Radius += shockwave.Speed * (float)_gameTime.ElapsedGameTime.TotalSeconds;
 
 				if (shockwave.Radius >= shockwave.TargetRadius)
 				{
-					DestroyEntity(entity);
+					World.Destroy(entity);
 				}
-			}
+			});
 		}
 	}
 }

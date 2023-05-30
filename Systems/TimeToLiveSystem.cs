@@ -1,31 +1,32 @@
+using Arch.Core;
 using Components;
 using Microsoft.Xna.Framework;
-using MonoGame.Extended.Entities;
-using MonoGame.Extended.Entities.Systems;
 
 namespace Systems
 {
-	public class TimeToLiveSystem : EntityProcessingSystem
+	public class TimeToLiveSystem : SystemBase<GameTime>
 	{
-		public TimeToLiveSystem() : base(Aspect.All(typeof(TimeToLive)))
+		private GameTime _gameTime;
+		private readonly QueryDescription _blinkEntities = new QueryDescription().WithAll<TimeToLive>();
+
+		public TimeToLiveSystem(World world) : base(world)
 		{
 		}
 
-		public override void Initialize(IComponentMapperService mapperService)
+		public override void Update(in GameTime gameTime)
 		{
-		}
+			_gameTime = gameTime;
 
-		public override void Process(GameTime gameTime, int entityId)
-		{
-			var entity = GetEntity(entityId);
-			var ttl = entity.Get<TimeToLive>();
-
-			ttl.Value -= (float)gameTime.ElapsedGameTime.TotalSeconds;
-
-			if (ttl.Value <= 0)
+			World.Query(in _blinkEntities, (in Entity entity) =>
 			{
-				DestroyEntity(entityId);
-			}
+				var ttl = World.Get<TimeToLive>(entity);
+				ttl.Value -= (float)_gameTime.ElapsedGameTime.TotalSeconds;
+
+				if (ttl.Value <= 0)
+				{
+					World.Destroy(entity);
+				}
+			});
 		}
 	}
 }

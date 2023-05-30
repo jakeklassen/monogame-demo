@@ -1,36 +1,34 @@
+using Arch.Core;
 using Components;
 using Microsoft.Xna.Framework;
-using MonoGame.Extended.Entities;
-using MonoGame.Extended.Entities.Systems;
 
 namespace Systems
 {
-	public class BlinkSystem : EntityProcessingSystem
+	public class BlinkSystem : SystemBase<GameTime>
 	{
-		private ComponentMapper<Blink> _blinkMapper;
+		private readonly QueryDescription _blinkEntities = new QueryDescription().WithAll<Blink>();
+		private GameTime _gameTime;
 
-		public BlinkSystem() : base(Aspect.All(typeof(Blink)))
+		public BlinkSystem(World world) : base(world)
 		{
 		}
 
-		public override void Initialize(IComponentMapperService mapperService)
+		public override void Update(in GameTime gameTime)
 		{
-			_blinkMapper = mapperService.GetMapper<Blink>();
-		}
+			_gameTime = gameTime;
 
-		public override void Process(GameTime gameTime, int entityId)
-		{
-			var blink = _blinkMapper.Get(entityId);
-
-			blink.ElapsedSeconds += (float)gameTime.ElapsedGameTime.TotalSeconds;
-
-			if (blink.ElapsedSeconds >= blink.FrameRate)
+			World.Query(in _blinkEntities, (ref Blink blink) =>
 			{
-				blink.ElapsedSeconds = 0f;
-				blink.CurrentColorIndex = (blink.CurrentColorIndex + 1) % blink.ColorSequence.Length;
-			}
+				blink.ElapsedSeconds += (float)_gameTime.ElapsedGameTime.TotalSeconds;
 
-			blink.CurrentColor = blink.Colors[blink.ColorSequence[blink.CurrentColorIndex]];
+				if (blink.ElapsedSeconds >= blink.FrameRate)
+				{
+					blink.ElapsedSeconds = 0f;
+					blink.CurrentColorIndex = (blink.CurrentColorIndex + 1) % blink.ColorSequence.Length;
+				}
+
+				blink.CurrentColor = blink.Colors[blink.ColorSequence[blink.CurrentColorIndex]];
+			});
 		}
 	}
 }

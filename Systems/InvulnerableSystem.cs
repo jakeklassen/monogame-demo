@@ -1,31 +1,31 @@
+using Arch.Core;
 using Components;
 using Microsoft.Xna.Framework;
-using MonoGame.Extended.Entities;
-using MonoGame.Extended.Entities.Systems;
 
 namespace Systems
 {
-	public class InvulnerableSystem : EntityProcessingSystem
+	public class InvulnerableSystem : SystemBase<GameTime>
 	{
-		public InvulnerableSystem() : base(Aspect.All(typeof(Invulnerable)))
+		private GameTime _gameTime;
+		private readonly QueryDescription _invulnerableEntities = new QueryDescription().WithAll<Invulnerable>();
+
+		public InvulnerableSystem(World world) : base(world)
 		{
 		}
 
-		public override void Initialize(IComponentMapperService mapperService)
+		public override void Update(in GameTime gameTime)
 		{
-		}
+			_gameTime = gameTime;
 
-		public override void Process(GameTime gameTime, int entityId)
-		{
-			var entity = GetEntity(entityId);
-			var invulnerable = entity.Get<Invulnerable>();
-
-			invulnerable.Duration -= (float)gameTime.ElapsedGameTime.TotalMilliseconds;
-
-			if (invulnerable.Duration <= 0)
+			World.Query(in _invulnerableEntities, (in Entity entity, ref Invulnerable invulnerable) =>
 			{
-				entity.Detach<Invulnerable>();
-			}
+				invulnerable.Duration -= (float)_gameTime.ElapsedGameTime.TotalMilliseconds;
+
+				if (invulnerable.Duration <= 0)
+				{
+					World.Destroy(entity);
+				}
+			});
 		}
 	}
 }

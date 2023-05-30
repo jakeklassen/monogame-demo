@@ -1,59 +1,45 @@
 using System.Collections.Generic;
-using Components;
+using Arch.Core;
 
+using Components;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-
 using MonoGame.Extended;
 using MonoGame.Extended.BitmapFonts;
-using MonoGame.Extended.Entities;
-using MonoGame.Extended.Entities.Systems;
-
 using XnaColor = Microsoft.Xna.Framework.Color;
 
 namespace Systems
 {
-	public class TextRenderingSystem : EntityDrawSystem
+	public class TextRenderingSystem : SystemBase<GameTime>
 	{
+		private readonly QueryDescription _textEntities = new QueryDescription().WithAll<Text, Transform>();
 		private readonly SpriteBatch _spriteBatch;
 
 		private readonly OrthographicCamera _camera;
 
 		private readonly Dictionary<string, BitmapFont> _fontCache = new();
 
-		private ComponentMapper<Text> _textMapper;
-
-		private ComponentMapper<Transform> _transformMapper;
-
-		public TextRenderingSystem(GraphicsDevice graphicsDevice, OrthographicCamera camera, Dictionary<string, BitmapFont> fontCache)
-			: base(Aspect.All(typeof(Text), typeof(Transform)))
+		public TextRenderingSystem(World world, GraphicsDevice graphicsDevice, OrthographicCamera camera, Dictionary<string, BitmapFont> fontCache)
+			: base(world)
 		{
 			_camera = camera;
 			_fontCache = fontCache;
 			_spriteBatch = new SpriteBatch(graphicsDevice);
 		}
 
-		public override void Initialize(IComponentMapperService mapperService)
-		{
-			_textMapper = mapperService.GetMapper<Text>();
-			_transformMapper = mapperService.GetMapper<Transform>();
-		}
-
-		public override void Draw(GameTime gameTime)
+		public override void Update(in GameTime gameTime)
 		{
 			_spriteBatch.Begin(SpriteSortMode.Immediate, null, SamplerState.PointClamp, null, null, null, _camera.GetViewMatrix());
 
-			foreach (var entityId in ActiveEntities)
+			World.Query(in _textEntities, (in Entity entity) =>
 			{
-				var textEntity = GetEntity(entityId);
-				var text = _textMapper.Get(entityId);
+				var text = World.Get<Text>(entity);
+				var transform = World.Get<Transform>(entity);
 				var textColor = new XnaColor(text.Color.R, text.Color.G, text.Color.B, text.Color.A);
-				var transform = _transformMapper.Get(entityId);
 
-				var blink = textEntity.Get<Blink>();
-				textColor = blink != null
-					? blink.CurrentColor.XnaColor
-					: textColor;
+				var blink = World.Get<Blink>(entity);
+
+				textColor = blink.CurrentColor?.XnaColor ?? textColor;
 
 				var font = _fontCache[text.Font] ?? throw new System.Exception($"Font '{text.Font}' not found in cache.");
 
@@ -72,7 +58,7 @@ namespace Systems
 					SpriteEffects.None,
 					0f
 				);
-			}
+			});
 
 			_spriteBatch.End();
 		}

@@ -1,38 +1,28 @@
+using Arch.Core;
 using CherryBomb;
 using Components;
-
 using Microsoft.Xna.Framework;
-
-using MonoGame.Extended.Entities;
-using MonoGame.Extended.Entities.Systems;
 
 namespace Systems
 {
-	public class ParticleSystem : EntityUpdateSystem
+	public class ParticleSystem : SystemBase<GameTime>
 	{
-		private ComponentMapper<Particle> _particleMapper;
-		private ComponentMapper<Velocity> _velocityMapper;
+		private GameTime _gameTime;
+		private QueryDescription _particleEntities = new QueryDescription().WithAll<Particle, Velocity>();
 
-		public ParticleSystem() : base(Aspect.All(typeof(Particle), typeof(Velocity)))
+		public ParticleSystem(World world) : base(world)
 		{
 		}
 
-		public override void Initialize(IComponentMapperService mapperService)
+		public override void Update(in GameTime gameTime)
 		{
-			_particleMapper = mapperService.GetMapper<Particle>();
-			_velocityMapper = mapperService.GetMapper<Velocity>();
-		}
+			_gameTime = gameTime;
 
-		public override void Update(GameTime gameTime)
-		{
-			foreach (var entity in ActiveEntities)
+			World.Query(in _particleEntities, (in Entity entity, ref Particle particle, ref Velocity velocity) =>
 			{
-				var particle = _particleMapper.Get(entity);
-				var velocity = _velocityMapper.Get(entity);
-
-				particle.Age += (float)gameTime.ElapsedGameTime.TotalSeconds;
-				velocity.X -= velocity.X * 0.85f * (float)gameTime.ElapsedGameTime.TotalSeconds;
-				velocity.Y -= velocity.Y * 0.85f * (float)gameTime.ElapsedGameTime.TotalSeconds;
+				particle.Age += (float)_gameTime.ElapsedGameTime.TotalSeconds;
+				velocity.X -= velocity.X * 0.85f * (float)_gameTime.ElapsedGameTime.TotalSeconds;
+				velocity.Y -= velocity.Y * 0.85f * (float)_gameTime.ElapsedGameTime.TotalSeconds;
 
 				if (particle.Age >= particle.MaxAge)
 				{
@@ -40,17 +30,17 @@ namespace Systems
 
 					if (particle.Radius <= 0)
 					{
-						DestroyEntity(entity);
+						World.Destroy(entity);
 
-						continue;
+						return;
 					}
 				}
 
 				particle.Color = particle.IsBlue ? DetermineParticleColorFromAge(particle, "blue") : DetermineParticleColorFromAge(particle, "red");
-			}
+			});
 		}
 
-		private Microsoft.Xna.Framework.Color DetermineParticleColorFromAge(Particle particle, string bias)
+		private static Microsoft.Xna.Framework.Color DetermineParticleColorFromAge(Particle particle, string bias)
 		{
 			if (bias == "red")
 			{

@@ -1,51 +1,50 @@
+using Arch.Core;
 using Components;
 using Microsoft.Xna.Framework;
-using MonoGame.Extended.Entities;
-using MonoGame.Extended.Entities.Systems;
 
 namespace Systems
 {
-	public class SpriteAnimationSystem : EntityProcessingSystem
+	public class SpriteAnimationSystem : SystemBase<GameTime>
 	{
-		public SpriteAnimationSystem() : base(Aspect.All(typeof(Sprite), typeof(SpriteAnimation)))
+		private GameTime _gameTime;
+		private readonly QueryDescription _query = new QueryDescription().WithAll<Sprite, SpriteAnimation>();
+
+		public SpriteAnimationSystem(World world) : base(world)
 		{
 		}
 
-		public override void Initialize(IComponentMapperService mapperService)
+		public override void Update(in GameTime gameTime)
 		{
-		}
+			_gameTime = gameTime;
 
-		public override void Process(GameTime gameTime, int entityId)
-		{
-			var entity = GetEntity(entityId);
-			var sprite = entity.Get<Sprite>();
-			var spriteAnimation = entity.Get<SpriteAnimation>();
-
-			if (spriteAnimation.IsFinished && !spriteAnimation.Loop)
+			World.Query(in _query, (in Entity entity, ref Sprite sprite, ref SpriteAnimation spriteAnimation) =>
 			{
-				entity.Detach<SpriteAnimation>();
-
-				return;
-			}
-
-			spriteAnimation.Delta += (float)gameTime.ElapsedGameTime.TotalSeconds;
-
-			if (spriteAnimation.Delta >= spriteAnimation.FrameRate)
-			{
-				spriteAnimation.Delta = 0;
-
-				spriteAnimation.CurrentFrame =
-									(spriteAnimation.CurrentFrame + 1) %
-									spriteAnimation.FrameSequence.Length;
-
-				var frameIndex = spriteAnimation.FrameSequence[spriteAnimation.CurrentFrame];
-				sprite.CurrentFrame = spriteAnimation.Frames[frameIndex];
-
-				if (spriteAnimation.CurrentFrame == spriteAnimation.FrameSequence.Length - 1)
+				if (spriteAnimation.IsFinished && !spriteAnimation.Loop)
 				{
-					spriteAnimation.IsFinished = true;
+					World.Remove<SpriteAnimation>(entity);
+
+					return;
 				}
-			}
+
+				spriteAnimation.Delta += (float)_gameTime.ElapsedGameTime.TotalSeconds;
+
+				if (spriteAnimation.Delta >= spriteAnimation.FrameRate)
+				{
+					spriteAnimation.Delta = 0;
+
+					spriteAnimation.CurrentFrame =
+										(spriteAnimation.CurrentFrame + 1) %
+										spriteAnimation.FrameSequence.Length;
+
+					var frameIndex = spriteAnimation.FrameSequence[spriteAnimation.CurrentFrame];
+					sprite.CurrentFrame = spriteAnimation.Frames[frameIndex];
+
+					if (spriteAnimation.CurrentFrame == spriteAnimation.FrameSequence.Length - 1)
+					{
+						spriteAnimation.IsFinished = true;
+					}
+				}
+			});
 		}
 	}
 }

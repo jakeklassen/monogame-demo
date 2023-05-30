@@ -1,17 +1,13 @@
 ﻿using System.Collections.Generic;
-using Components;
-using EntityFactories;
 using Lib;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonoGame.Extended;
 using MonoGame.Extended.BitmapFonts;
-using MonoGame.Extended.Entities;
 using MonoGame.Extended.Screens;
 using MonoGame.Extended.ViewportAdapters;
 using Screens;
-using Systems;
 using XnaColor = Microsoft.Xna.Framework.Color;
 
 namespace CherryBomb
@@ -54,8 +50,6 @@ namespace CherryBomb
 
 		private Texture2D _spriteSheetTexture;
 
-		private World _world;
-
 		private bool _hasToggledVsync = false;
 		private bool _hasToggledFixedTimeStep = false;
 
@@ -96,51 +90,7 @@ namespace CherryBomb
 			var viewportAdapter = new BoxingViewportAdapter(Window, GraphicsDevice, TargetWidth, TargetHeight);
 			Camera = new OrthographicCamera(viewportAdapter);
 
-			// _world = new WorldBuilder()
-			// 	.AddSystem(new PlayerSystem())
-			// 	.AddSystem(new MovementSystem())
-			// 	.AddSystem(new DestroyOnViewportExitSystem())
-			// 	.AddSystem(new CollisionSystem())
-			// 	.AddSystem(new PlayerProjectileEnemyCollisionEventSystem())
-			// 	.AddSystem(new ParticleSystem())
-			// 	.AddSystem(new ShockwaveSystem())
-			// 	.AddSystem(new StarfieldSystem())
-			// 	.AddSystem(new StarfieldRenderingSystem(_graphics.GraphicsDevice, Camera))
-			// 	.AddSystem(new SpriteRenderingSystem(_graphics.GraphicsDevice, Camera, _spriteSheetTexture))
-			// 	.AddSystem(new ShockwaveRenderingSystem(_graphics.GraphicsDevice, Camera, TextureCache))
-			// 	.AddSystem(new ParticleRenderingSystem(_graphics.GraphicsDevice, Camera, TextureCache))
-			// 	.Build();
-
-			// {
-			// 	var player = _world.CreateEntity();
-
-			// 	player.Attach(new CollisionLayer(CollisionMasks.Player));
-			// 	player.Attach(new CollisionMask(CollisionMasks.Enemy | CollisionMasks.EnemyProjectile | CollisionMasks.Pickup));
-			// 	player.Attach(new Direction());
-			// 	player.Attach(new Sprite(new Rectangle(16, 0, 8, 8)));
-			// 	player.Attach(new TagPlayer());
-			// 	player.Attach(
-			// 		new Transform(new Vector2((TargetWidth / 2) + 4, 100), 0f, Vector2.One)
-			// 	);
-			// 	player.Attach(new Velocity(60, 60));
-			// }
-
-			// {
-			// 	var enemy = _world.CreateEntity();
-
-			// 	enemy.Attach(new BoxCollider(8, 8));
-			// 	enemy.Attach(new CollisionLayer(CollisionMasks.Enemy));
-			// 	enemy.Attach(new CollisionMask(CollisionMasks.Player | CollisionMasks.PlayerProjectile));
-			// 	enemy.Attach(new Sprite(new Rectangle(40, 8, 8, 8)));
-			// 	enemy.Attach(new TagEnemy());
-			// 	enemy.Attach(new Transform(new Vector2((TargetWidth / 2) + 4, 32), 0f, Vector2.One));
-			// }
-
-			// StarFactory.CreateStarfield(_world, TargetWidth, TargetHeight, 100);
-
-			// Components.Add(_world);
-
-			_screenManager.LoadScreen(new GameplayScreen(this));
+			_screenManager.LoadScreen(new TitleScreen(this));
 		}
 
 		protected override void LoadContent()
