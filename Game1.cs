@@ -87,7 +87,12 @@ namespace CherryBomb
 		{
 			base.Initialize();
 
-			var viewportAdapter = new BoxingViewportAdapter(Window, GraphicsDevice, TargetWidth, TargetHeight);
+			var viewportAdapter = new BoxingViewportAdapter(
+				Window,
+				GraphicsDevice,
+				TargetWidth,
+				TargetHeight
+			);
 			Camera = new OrthographicCamera(viewportAdapter);
 
 			_screenManager.LoadScreen(new TitleScreen(this));
@@ -121,7 +126,10 @@ namespace CherryBomb
 
 		protected override void Update(GameTime gameTime)
 		{
-			if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
+			if (
+				GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed
+				|| Keyboard.GetState().IsKeyDown(Keys.Escape)
+			)
 			{
 				Exit();
 			}
@@ -161,7 +169,15 @@ namespace CherryBomb
 		{
 			GraphicsDevice.Clear(XnaColor.Black);
 
-			SpriteBatch.Begin(SpriteSortMode.Immediate, null, SamplerState.PointClamp, null, null, null, Camera.GetViewMatrix());
+			SpriteBatch.Begin(
+				SpriteSortMode.Immediate,
+				null,
+				SamplerState.PointClamp,
+				null,
+				null,
+				null,
+				Camera.GetViewMatrix()
+			);
 
 			// spriteBatch.Draw(textureCache["circ-1"], new Vector2(10, 94), Color.White);
 			// spriteBatch.Draw(textureCache["circ-2"], new Vector2(16, 94), Color.White);

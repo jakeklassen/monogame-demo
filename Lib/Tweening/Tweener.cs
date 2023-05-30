@@ -8,9 +8,7 @@ namespace Lib.Tweening
 {
 	public class Tweener : IDisposable
 	{
-		public Tweener()
-		{
-		}
+		public Tweener() { }
 
 		public void Dispose()
 		{
@@ -23,9 +21,15 @@ namespace Lib.Tweening
 
 		private readonly List<Tween> _activeTweens = new();
 
-		public Tween<TMember> TweenTo<TTarget, TMember>(TTarget target, Expression<Func<TTarget, TMember>> expression, TMember toValue, float duration, float delay = 0f)
-				where TTarget : class
-				where TMember : struct
+		public Tween<TMember> TweenTo<TTarget, TMember>(
+			TTarget target,
+			Expression<Func<TTarget, TMember>> expression,
+			TMember toValue,
+			float duration,
+			float delay = 0f
+		)
+			where TTarget : class
+			where TMember : struct
 		{
 			var memberExpression = (MemberExpression)expression.Body;
 			var memberInfo = memberExpression.Member;
@@ -88,7 +92,7 @@ namespace Lib.Tweening
 		private readonly Dictionary<TweenMemberKey, TweenMember> _memberCache = new();
 
 		private TweenMember<T> GetMember<T>(object target, string memberName)
-				where T : struct
+			where T : struct
 		{
 			var key = new TweenMemberKey { Target = target, MemberName = memberName };
 
@@ -103,7 +107,7 @@ namespace Lib.Tweening
 		}
 
 		private TweenMember<T> CreateMember<T>(object target, string memberName)
-				where T : struct
+			where T : struct
 		{
 			AllocationCount++;
 
@@ -119,7 +123,9 @@ namespace Lib.Tweening
 
 			return field != null
 				? (TweenMember<T>)new TweenFieldMember<T>(target, field)
-				: throw new InvalidOperationException($"'{memberName}' is not a property or field of the target");
+				: throw new InvalidOperationException(
+					$"'{memberName}' is not a property or field of the target"
+				);
 		}
 	}
 }

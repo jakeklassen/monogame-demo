@@ -4,10 +4,10 @@ using Microsoft.Xna.Framework;
 namespace Lib.Tweening
 {
 	public class Tween<T> : Tween
-			where T : struct
+		where T : struct
 	{
 		internal Tween(object target, float duration, float delay, TweenMember<T> member, T endValue)
-				: base(target, duration, delay)
+			: base(target, duration, delay)
 		{
 			Member = member;
 			_endValue = endValue;
@@ -31,10 +31,10 @@ namespace Lib.Tweening
 
 			if (IsRelative)
 			{
-				_endValue = Iterations % 2 == 0
-					? TweenMember<T>.Subtract(_startValue, _originalEndValue)
-					: TweenMember<T>.Add(_startValue, _originalEndValue);
-
+				_endValue =
+					Iterations % 2 == 0
+						? TweenMember<T>.Subtract(_startValue, _originalEndValue)
+						: TweenMember<T>.Add(_startValue, _originalEndValue);
 			}
 
 			_range = TweenMember<T>.Subtract(_endValue, _startValue);
@@ -91,13 +91,47 @@ namespace Lib.Tweening
 		private Action<Tween> _onEnd;
 		private Action<Tween> _onRepeat;
 
-		public Tween Easing(Func<float, float> easingFunction) { _easingFunction = easingFunction; return this; }
-		public Tween OnBegin(Action<Tween> action) { _onBegin = action; return this; }
-		public Tween OnEnd(Action<Tween> action) { _onEnd = action; return this; }
-		public Tween OnRepeat(Action<Tween> action) { _onRepeat = action; return this; }
-		public Tween Pause() { IsPaused = true; return this; }
-		public Tween Relative() { IsRelative = true; return this; }
-		public Tween Resume() { IsPaused = false; return this; }
+		public Tween Easing(Func<float, float> easingFunction)
+		{
+			_easingFunction = easingFunction;
+			return this;
+		}
+
+		public Tween OnBegin(Action<Tween> action)
+		{
+			_onBegin = action;
+			return this;
+		}
+
+		public Tween OnEnd(Action<Tween> action)
+		{
+			_onEnd = action;
+			return this;
+		}
+
+		public Tween OnRepeat(Action<Tween> action)
+		{
+			_onRepeat = action;
+			return this;
+		}
+
+		public Tween Pause()
+		{
+			IsPaused = true;
+			return this;
+		}
+
+		public Tween Relative()
+		{
+			IsRelative = true;
+			return this;
+		}
+
+		public Tween Resume()
+		{
+			IsPaused = false;
+			return this;
+		}
 
 		public Tween Repeat(int count, float repeatDelay = 0f)
 		{
@@ -226,6 +260,5 @@ namespace Lib.Tweening
 				}
 			}
 		}
-
 	}
 }

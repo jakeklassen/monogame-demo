@@ -1,4 +1,3 @@
-
 namespace Components
 {
 	public class TimeToLive

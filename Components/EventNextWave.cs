@@ -1,6 +1,4 @@
 namespace Components
 {
-	public class EventNextWave
-	{
-	}
+	public class EventNextWave { }
 }

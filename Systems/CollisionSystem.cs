@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Arch.Core;
+using Arch.Core.Extensions;
 using Components;
 using Microsoft.Xna.Framework;
 using MonoGame.Extended;
@@ -9,10 +10,13 @@ namespace Systems
 {
 	public class CollisionSystem : SystemBase<GameTime>
 	{
-		private readonly QueryDescription _collidables = new QueryDescription().WithAll<BoxCollider, CollisionLayer, CollisionMask, Transform>();
+		private readonly QueryDescription _collidables = new QueryDescription()
+			.WithAll<BoxCollider, CollisionLayer, CollisionMask, Transform>()
+			.WithNone<Invulnerable>();
 		private readonly List<int> _handledEntities;
 
-		public CollisionSystem(World world) : base(world)
+		public CollisionSystem(World world)
+			: base(world)
 		{
 			_handledEntities = new List<int>();
 		}
@@ -21,7 +25,7 @@ namespace Systems
 		{
 			_handledEntities.Clear();
 
-			var entities = new System.Span<Entity>();
+			var entities = new List<Entity>();
 			World.GetEntities(_collidables, entities);
 
 			foreach (var entity in entities)
@@ -53,10 +57,7 @@ namespace Systems
 
 					// Make sure entityA's collision layer is a subset of entityB's
 					// collision mask
-					if (
-						(collisionLayer.Value & otherCollisionMask.Value) !=
-						collisionLayer.Value
-					)
+					if ((collisionLayer.Value & otherCollisionMask.Value) != collisionLayer.Value)
 					{
 						continue;
 					}
@@ -88,14 +89,14 @@ namespace Systems
 					Entity? enemy = World.Has<TagEnemy>(entity)
 						? entity
 						: World.Has<TagEnemy>(otherEntity)
-						? otherEntity
-						: null;
+							? otherEntity
+							: null;
 
 					Entity? playerProjectile = World.Has<TagBullet>(entity)
 						? entity
 						: World.Has<TagBullet>(otherEntity)
-						? otherEntity
-						: null;
+							? otherEntity
+							: null;
 
 					if (AssertIsNotNull(enemy) && AssertIsNotNull(playerProjectile))
 					{

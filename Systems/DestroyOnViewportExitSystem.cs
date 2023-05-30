@@ -7,36 +7,43 @@ namespace Systems
 {
 	public class DestroyOnViewportExitSystem : SystemBase<GameTime>
 	{
-		private readonly QueryDescription _query = new QueryDescription().WithAll<Blink>();
+		private readonly QueryDescription _query = new QueryDescription().WithAll<
+			BoxCollider,
+			Transform
+		>();
 
-		public DestroyOnViewportExitSystem(World world) : base(world)
-		{
-		}
+		public DestroyOnViewportExitSystem(World world)
+			: base(world) { }
 
 		public override void Update(in GameTime gameTime)
 		{
-			World.Query(in _query, (in Entity entity) =>
-			{
-				var enemyState = World.Get<EnemyState>(entity);
-
-				if (enemyState?.Value == EnemyStateType.Flyin)
+			World.Query(
+				in _query,
+				(in Entity entity) =>
 				{
-					// Don't destroy enemies that are flying in.
-					// They start off screen.
-					return;
-				}
+					World.TryGet<EnemyState>(entity, out var enemyState);
 
-				var boxCollider = World.Get<BoxCollider>(entity);
-				var transform = World.Get<Transform>(entity);
+					if (enemyState?.Value == EnemyStateType.Flyin)
+					{
+						// Don't destroy enemies that are flying in.
+						// They start off screen.
+						return;
+					}
 
-				if (transform.Position.X < -boxCollider.Width ||
-						transform.Position.X > Game1.TargetWidth + boxCollider.Width ||
-						transform.Position.Y < -boxCollider.Height ||
-						transform.Position.Y > Game1.TargetHeight + boxCollider.Height)
-				{
-					World.Destroy(entity);
+					var boxCollider = World.Get<BoxCollider>(entity);
+					var transform = World.Get<Transform>(entity);
+
+					if (
+						transform.Position.X < -boxCollider.Width
+						|| transform.Position.X > Game1.TargetWidth + boxCollider.Width
+						|| transform.Position.Y < -boxCollider.Height
+						|| transform.Position.Y > Game1.TargetHeight + boxCollider.Height
+					)
+					{
+						World.Destroy(entity);
+					}
 				}
-			});
+			);
 		}
 	}
 }

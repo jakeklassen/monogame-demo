@@ -25,7 +25,6 @@ namespace EntityFactories
 				world.Add(explosion, new Transform(positionFn(), 0f, new Vector2(1f, 1f)));
 				world.Add(explosion, velocityFn());
 			}
-
 		}
 	}
 }

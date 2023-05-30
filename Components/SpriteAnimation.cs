@@ -47,8 +47,7 @@ namespace Components
 
 				for (var j = 0; j < horizontalFrames; j++)
 				{
-					var sourceX =
-						animationDetails.SourceX + (j * animationDetails.FrameWidth);
+					var sourceX = animationDetails.SourceX + (j * animationDetails.FrameWidth);
 
 					frames.Add(
 						new Rectangle(

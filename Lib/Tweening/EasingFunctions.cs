@@ -112,7 +112,11 @@ namespace Lib.Tweening
 
 		public static float CircleInOut(float value)
 		{
-			return (float)(value <= .5 ? (Math.Sqrt(1 - (value * value * 4)) - 1) / -2 : (Math.Sqrt(1 - (((value * 2) - 2) * ((value * 2) - 2))) + 1) / 2);
+			return (float)(
+				value <= .5
+					? (Math.Sqrt(1 - (value * value * 4)) - 1) / -2
+					: (Math.Sqrt(1 - (((value * 2) - 2) * ((value * 2) - 2))) + 1) / 2
+			);
 		}
 
 		public static float ElasticIn(float value)
@@ -120,7 +124,9 @@ namespace Lib.Tweening
 			const int oscillations = 1;
 			const float springiness = 3f;
 			var e = (Math.Exp(springiness * value) - 1) / (Math.Exp(springiness) - 1);
-			return (float)(e * Math.Sin((MathHelper.PiOver2 + (MathHelper.TwoPi * oscillations)) * value));
+			return (float)(
+				e * Math.Sin((MathHelper.PiOver2 + (MathHelper.TwoPi * oscillations)) * value)
+			);
 		}
 
 		public static float ElasticOut(float value)
@@ -184,7 +190,6 @@ namespace Lib.Tweening
 			//small bounce
 			return 1f - (float)((bounceConst2 * Math.Pow(value - (2.625f / bounceConst1), 2)) + .984375);
 		}
-
 
 		private static float Out(float value, Func<float, float> function)
 		{

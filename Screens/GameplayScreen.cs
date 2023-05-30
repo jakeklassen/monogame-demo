@@ -52,46 +52,40 @@ namespace Screens
 			_updateSystems.Add(new ShockwaveSystem(_world));
 
 			_drawSystems.Add(new StarfieldRenderingSystem(_world, Game.GraphicsDevice, Game.Camera));
-			_drawSystems.Add(new SpriteRenderingSystem(_world, Game.GraphicsDevice, Game.Camera, _spriteSheetTexture));
-			_drawSystems.Add(new ShockwaveRenderingSystem(_world, Game.GraphicsDevice, Game.Camera, Game.TextureCache));
-			_drawSystems.Add(new ParticleRenderingSystem(_world, Game.GraphicsDevice, Game.Camera, Game.TextureCache));
-			_drawSystems.Add(new TextRenderingSystem(_world, Game.GraphicsDevice, Game.Camera, Game.FontCache));
-
-			// .AddSystem(new NextWaveEventSystem(Game, _tweener))
-			// .AddSystem(new TimeToLiveSystem())
-			// .AddSystem(new BlinkSystem())
-			// .AddSystem(new PlayerSystem())
-			// .AddSystem(new MovementSystem())
-			// .AddSystem(new DestroyOnViewportExitSystem())
-			// .AddSystem(new CollisionSystem())
-			// .AddSystem(new PlayerProjectileEnemyCollisionEventSystem())
-			// .AddSystem(new ParticleSystem())
-			// .AddSystem(new InvulnerableSystem())
-			// .AddSystem(new SpriteAnimationSystem())
-			// .AddSystem(new StarfieldSystem())
-			// .AddSystem(new StarfieldRenderingSystem(Game.GraphicsDevice, Game.Camera))
-			// .AddSystem(new SpriteRenderingSystem(Game.GraphicsDevice, Game.Camera, _spriteSheetTexture))
-			// .AddSystem(new ShockwaveRenderingSystem(Game.GraphicsDevice, Game.Camera, Game.TextureCache))
-			// .AddSystem(new ParticleRenderingSystem(Game.GraphicsDevice, Game.Camera, Game.TextureCache))
-			// .AddSystem(new TextRenderingSystem(Game.GraphicsDevice, Game.Camera, Game.FontCache))
-			// .Build();
+			_drawSystems.Add(
+				new SpriteRenderingSystem(_world, Game.GraphicsDevice, Game.Camera, _spriteSheetTexture)
+			);
+			_drawSystems.Add(
+				new ShockwaveRenderingSystem(_world, Game.GraphicsDevice, Game.Camera, Game.TextureCache)
+			);
+			_drawSystems.Add(
+				new ParticleRenderingSystem(_world, Game.GraphicsDevice, Game.Camera, Game.TextureCache)
+			);
+			_drawSystems.Add(
+				new TextRenderingSystem(_world, Game.GraphicsDevice, Game.Camera, Game.FontCache)
+			);
 
 			StarFactory.CreateStarfield(_world, Game1.TargetWidth, Game1.TargetHeight, 100);
 
 			var player = _world.Create();
 
 			_world.Add(player, new CollisionLayer(CollisionMasks.Player));
-			_world.Add(player, new CollisionMask(CollisionMasks.Enemy | CollisionMasks.EnemyProjectile | CollisionMasks.Pickup));
+			_world.Add(
+				player,
+				new CollisionMask(
+					CollisionMasks.Enemy | CollisionMasks.EnemyProjectile | CollisionMasks.Pickup
+				)
+			);
 			_world.Add(player, new Direction());
 			_world.Add(player, new Sprite(new Rectangle(16, 0, 8, 8)));
 			_world.Add(player, new TagPlayer());
-			_world.Add(player,
+			_world.Add(
+				player,
 				new Transform(new Vector2((Game1.TargetWidth / 2) + 4, 100), 0f, Vector2.One)
 			);
 			_world.Add(player, new Velocity(60, 60));
 
-			var nextWaveEvent = _world.Create();
-			_world.Add(nextWaveEvent, new EventNextWave());
+			_world.Create(new EventNextWave());
 		}
 
 		public override void UnloadContent()
@@ -107,7 +101,7 @@ namespace Screens
 
 			if (KeyboardExtended.GetState().WasAnyKeyJustDown())
 			{
-				// 
+				//
 			}
 
 			foreach (var system in _updateSystems)

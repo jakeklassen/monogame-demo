@@ -1,4 +1,3 @@
-
 // public enum Pico8Color
 // {
 //   Color0 = 0x000000,

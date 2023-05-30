@@ -6,12 +6,12 @@ using System.Reflection;
 namespace Lib.Tweening
 {
 	public sealed class TweenFieldMember<T> : TweenMember<T>
-			where T : struct
+		where T : struct
 	{
 		private readonly FieldInfo _fieldInfo;
 
 		public TweenFieldMember(object target, FieldInfo fieldInfo)
-				: base(target, CompileGetMethod(fieldInfo), CompileSetMethod(fieldInfo))
+			: base(target, CompileGetMethod(fieldInfo), CompileSetMethod(fieldInfo))
 		{
 			_fieldInfo = fieldInfo;
 		}

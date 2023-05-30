@@ -16,7 +16,7 @@ namespace Lib.Tweening
 	}
 
 	public abstract class TweenMember<T> : TweenMember
-			where T : struct
+		where T : struct
 	{
 		static TweenMember()
 		{
@@ -32,8 +32,12 @@ namespace Lib.Tweening
 		public static Func<T, T, T> Subtract { get; }
 		public static Func<T, float, T> Multiply { get; }
 
-		protected TweenMember(object target, Func<object, object> getMethod, Action<object, object> setMethod)
-				: base(target)
+		protected TweenMember(
+			object target,
+			Func<object, object> getMethod,
+			Action<object, object> setMethod
+		)
+			: base(target)
 		{
 			_getMethod = getMethod;
 			_setMethod = setMethod;

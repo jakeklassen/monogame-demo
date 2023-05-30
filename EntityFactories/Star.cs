@@ -14,7 +14,7 @@ namespace EntityFactories
 			var randomVelocities = new[] { 60, 30, 20 };
 			Random random = new();
 
-			var entity = world.Create<Direction, Star, Transform, Velocity>();
+			var entity = world.Create();
 			world.Add(entity, new Direction(0, 1));
 			world.Add(entity, new Transform(position, 0f, new Vector2(1f, 1f)));
 

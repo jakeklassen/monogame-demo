@@ -22,7 +22,15 @@ namespace Lib
 
 			if (_elapsed > MessageFrequency)
 			{
-				Message = "Fps: " + (_frames / _elapsed).ToString() + "\n\nElapsed time: " + _elapsed.ToString() + "\n\nUpdates: " + _updates.ToString() + "\n\nFrames: " + _frames.ToString();
+				Message =
+					"Fps: "
+					+ (_frames / _elapsed).ToString()
+					+ "\n\nElapsed time: "
+					+ _elapsed.ToString()
+					+ "\n\nUpdates: "
+					+ _updates.ToString()
+					+ "\n\nFrames: "
+					+ _frames.ToString();
 				_elapsed = 0;
 				_frames = 0;
 				_updates = 0;
@@ -32,9 +40,24 @@ namespace Lib
 			_updates++;
 		}
 
-		public void DrawFps(SpriteBatch spriteBatch, BitmapFont font, Vector2 fpsDisplayPosition, Color fpsTextColor)
+		public void DrawFps(
+			SpriteBatch spriteBatch,
+			BitmapFont font,
+			Vector2 fpsDisplayPosition,
+			Color fpsTextColor
+		)
 		{
-			spriteBatch.DrawString(font, Message, fpsDisplayPosition, fpsTextColor, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
+			spriteBatch.DrawString(
+				font,
+				Message,
+				fpsDisplayPosition,
+				fpsTextColor,
+				0f,
+				Vector2.Zero,
+				1f,
+				SpriteEffects.None,
+				0f
+			);
 			_frames++;
 		}
 	}

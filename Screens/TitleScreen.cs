@@ -24,9 +24,7 @@ namespace Screens
 		private readonly List<SystemBase<GameTime>> _drawSystems = new();
 
 		public TitleScreen(Game1 game)
-			: base(game)
-		{
-		}
+			: base(game) { }
 
 		public override void Initialize()
 		{
@@ -44,24 +42,29 @@ namespace Screens
 			_updateSystems.Add(new StarfieldSystem(_world));
 
 			_drawSystems.Add(new StarfieldRenderingSystem(_world, Game.GraphicsDevice, Game.Camera));
-			_drawSystems.Add(new SpriteRenderingSystem(_world, Game.GraphicsDevice, Game.Camera, _spriteSheetTexture));
-			_drawSystems.Add(new TextRenderingSystem(_world, Game.GraphicsDevice, Game.Camera, Game.FontCache));
+			_drawSystems.Add(
+				new SpriteRenderingSystem(_world, Game.GraphicsDevice, Game.Camera, _spriteSheetTexture)
+			);
+			_drawSystems.Add(
+				new TextRenderingSystem(_world, Game.GraphicsDevice, Game.Camera, Game.FontCache)
+			);
 
 			StarFactory.CreateStarfield(_world, Game1.TargetWidth, Game1.TargetHeight, 100);
 
-			var alien = _world.Create<Sprite, Transform>();
+			var alien = _world.Create();
 			_world.Add(alien, new Sprite(new Rectangle(40, 8, 8, 8)));
 
 			var transform = new Transform(new Vector2((Game1.TargetWidth / 2) - 4, 31), 0f, Vector2.One);
 			_world.Add(alien, transform);
 
-			_tweener.TweenTo(
-				target: transform,
-				expression: transform => transform.Position,
-				toValue: new Vector2(0, -7),
-				duration: 1.8f,
-				delay: 0.5f
-			)
+			_tweener
+				.TweenTo(
+					target: transform,
+					expression: transform => transform.Position,
+					toValue: new Vector2(0, -7),
+					duration: 1.8f,
+					delay: 0.5f
+				)
 				.AutoReverse()
 				.Easing(EasingFunctions.Linear)
 				.RepeatForever(0.5f)
@@ -83,18 +86,17 @@ namespace Screens
 			);
 
 			var v1Text = _world.Create();
-			_world.Add(v1Text,
-			new Text()
-			{
-				Alignment = Alignment.Left,
-				Color = Pico8Color.Color2,
-				Content = "v1",
-				Font = "pico-8"
-			});
 			_world.Add(
 				v1Text,
-				new Transform(Vector2.One, 0f, Vector2.One)
+				new Text()
+				{
+					Alignment = Alignment.Left,
+					Color = Pico8Color.Color2,
+					Content = "v1",
+					Font = "pico-8"
+				}
 			);
+			_world.Add(v1Text, new Transform(Vector2.One, 0f, Vector2.One));
 
 			var subtitle = _world.Create();
 			_world.Add(
@@ -104,15 +106,9 @@ namespace Screens
 					Color = Pico8Color.Color6,
 					Content = "Short Shwave Shmup",
 					Font = "pico-8"
-				});
-			_world.Add(
-				subtitle,
-				new Transform(
-					new Vector2(Game1.TargetWidth / 2, 45),
-					0f,
-					Vector2.One
-				)
+				}
 			);
+			_world.Add(subtitle, new Transform(new Vector2(Game1.TargetWidth / 2, 45), 0f, Vector2.One));
 
 			var pressAnyKeyToStart = _world.Create();
 			_world.Add(
@@ -130,14 +126,11 @@ namespace Screens
 					Color = Pico8Color.Color6,
 					Content = "Press Any Key To Start",
 					Font = "pico-8"
-				});
+				}
+			);
 			_world.Add(
 				pressAnyKeyToStart,
-				new Transform(
-					new Vector2(Game1.TargetWidth / 2, 90),
-					0f,
-					Vector2.One
-				)
+				new Transform(new Vector2(Game1.TargetWidth / 2, 90), 0f, Vector2.One)
 			);
 
 			var fireControls = _world.Create();
@@ -148,14 +141,11 @@ namespace Screens
 					Color = Pico8Color.Color6,
 					Content = "Z (Shoot) X (Spread Shot)",
 					Font = "pico-8"
-				});
+				}
+			);
 			_world.Add(
 				fireControls,
-				new Transform(
-					new Vector2(Game1.TargetWidth / 2, 100),
-					0f,
-					Vector2.One
-				)
+				new Transform(new Vector2(Game1.TargetWidth / 2, 100), 0f, Vector2.One)
 			);
 
 			var moveControls = _world.Create();
@@ -166,14 +156,11 @@ namespace Screens
 					Color = Pico8Color.Color6,
 					Content = "Arrow Keys (Move)",
 					Font = "pico-8"
-				});
+				}
+			);
 			_world.Add(
 				moveControls,
-				new Transform(
-					new Vector2(Game1.TargetWidth / 2, 110),
-					0f,
-					Vector2.One
-				)
+				new Transform(new Vector2(Game1.TargetWidth / 2, 110), 0f, Vector2.One)
 			);
 		}
 

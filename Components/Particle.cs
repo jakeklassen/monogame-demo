@@ -15,7 +15,15 @@ namespace Components
 		public Shape Shape { get; set; } = Shape.Circle;
 		public bool Spark { get; set; } = false;
 
-		public Particle(float age, float maxAge, Microsoft.Xna.Framework.Color color, bool isBlue, float radius, Shape shape, bool spark)
+		public Particle(
+			float age,
+			float maxAge,
+			Microsoft.Xna.Framework.Color color,
+			bool isBlue,
+			float radius,
+			Shape shape,
+			bool spark
+		)
 		{
 			Age = age;
 			MaxAge = maxAge;

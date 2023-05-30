@@ -6,12 +6,12 @@ using System.Reflection;
 namespace Lib.Tweening
 {
 	public sealed class TweenPropertyMember<T> : TweenMember<T>
-			where T : struct
+		where T : struct
 	{
 		private readonly PropertyInfo _propertyInfo;
 
 		public TweenPropertyMember(object target, PropertyInfo propertyInfo)
-				: base(target, CompileGetMethod(propertyInfo), CompileSetMethod(propertyInfo))
+			: base(target, CompileGetMethod(propertyInfo), CompileSetMethod(propertyInfo))
 		{
 			_propertyInfo = propertyInfo;
 		}
