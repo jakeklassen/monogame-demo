@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Arch.Core;
 using Components;
 using Microsoft.Xna.Framework;
@@ -27,7 +26,6 @@ namespace Systems
 					if (invulnerable.Duration <= 0)
 					{
 						World.Remove<Invulnerable>(entity);
-						Debug.WriteLine("Invulnerability expired");
 					}
 				}
 			);

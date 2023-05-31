@@ -43,7 +43,7 @@ namespace Screens
 			_updateSystems.Add(new PlayerSystem(_world));
 			_updateSystems.Add(new MovementSystem(_world));
 			_updateSystems.Add(new DestroyOnViewportExitSystem(_world));
-			_updateSystems.Add(new CollisionSystem(_world));
+			_updateSystems.Add(new CollisionSystem(_world, Game));
 			_updateSystems.Add(new PlayerProjectileEnemyCollisionEventSystem(_world));
 			_updateSystems.Add(new ParticleSystem(_world));
 			_updateSystems.Add(new InvulnerableSystem(_world));
@@ -54,6 +54,9 @@ namespace Screens
 			_drawSystems.Add(new StarfieldRenderingSystem(_world, Game.GraphicsDevice, Game.Camera));
 			_drawSystems.Add(
 				new SpriteRenderingSystem(_world, Game.GraphicsDevice, Game.Camera, _spriteSheetTexture)
+			);
+			_drawSystems.Add(
+				new FlashRenderingSystem(_world, Game.GraphicsDevice, Game.Camera, _spriteSheetTexture)
 			);
 			_drawSystems.Add(
 				new ShockwaveRenderingSystem(_world, Game.GraphicsDevice, Game.Camera, Game.TextureCache)

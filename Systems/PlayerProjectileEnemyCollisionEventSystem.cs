@@ -31,123 +31,151 @@ namespace Systems
 						new Shockwave(radius: 3, targetRadius: 6, color: Pico8Color.Color9, speed: 30),
 						new Transform(
 							position: new Vector2(
-								projectileTransform.Position.X - 4,
-								projectileTransform.Position.Y - 4
+								projectileTransform.Position.X + 2,
+								projectileTransform.Position.Y
 							),
 							rotation: 0,
 							scale: Vector2.One
 						)
 					);
 
+					World.TryGet<Flash>(collisionEvent.EnemyEntity, out var flash);
+
+					if (flash == null)
+					{
+						World.Add(
+							collisionEvent.EnemyEntity,
+							new Flash() { Color = Pico8Color.Color7, Duration = 0.1f }
+						);
+					}
+
 					var enemy = collisionEvent.EnemyEntity;
-					var enemyTransform = World.Get<Transform>(enemy);
-					var enemySprite = World.Get<Sprite>(enemy);
 
 					if (World.TryGet<Invulnerable>(enemy, out var _invulnerable))
 					{
-						// Enemy is invulnerable
+						// Enemy is invulnerable but we still want to destroy the bullet.
+						// If we don't, it's possible the enemy will lose invulnerability
+						// then get hit by the same projectile that couldn't destroy it
+						// before. It's leads to a pretty bad feel. This felt tighter.
+						World.Destroy(collisionEvent.ProjectileEntity);
+						World.Destroy(entity);
+
 						return;
 					}
 
-					var random = new Random();
+					ref var enemyHealth = ref World.Get<Health>(enemy);
+					var enemyTransform = World.Get<Transform>(enemy);
+					var enemySprite = World.Get<Sprite>(enemy);
 
-					// Initial flash
-					ExplosionFactory.CreateExplosion(
-						World,
-						count: 1,
-						() =>
-							new Direction(
-								x: 1 * Math.Sign((random.NextSingle() * 2) - 1),
-								y: 1 * Math.Sign((random.NextSingle() * 2) - 1)
-							),
-						() =>
-							new Particle(
-								age: 0,
-								maxAge: 0,
-								color: new XnaColor(
-									Pico8Color.Color7.R,
-									Pico8Color.Color7.G,
-									Pico8Color.Color7.B,
-									Pico8Color.Color7.A
+					// Enemy takes damage
+					enemyHealth.Amount -= collisionEvent.Damage;
+
+					// TODO: Need to flash enemy
+
+					if (enemyHealth.Amount <= 0)
+					{
+						// Enemy is dead
+						World.Destroy(enemy);
+
+						var random = new Random();
+
+						// Initial flash
+						ExplosionFactory.CreateExplosion(
+							World,
+							count: 1,
+							() =>
+								new Direction(
+									x: 1 * Math.Sign((random.NextSingle() * 2) - 1),
+									y: 1 * Math.Sign((random.NextSingle() * 2) - 1)
 								),
-								isBlue: false,
-								radius: 10,
-								shape: Components.Shape.Circle,
-								spark: false
-							),
-						() =>
-							new Vector2(
-								enemyTransform.Position.X + (enemySprite.CurrentFrame.Width / 2),
-								enemyTransform.Position.Y + (enemySprite.CurrentFrame.Height / 2)
-							),
-						() => new Velocity()
-					);
-
-					// Large particles
-					ExplosionFactory.CreateExplosion(
-						World,
-						count: 30,
-						() =>
-							new Direction(
-								x: 1 * Math.Sign((random.NextSingle() * 2) - 1),
-								y: 1 * Math.Sign((random.NextSingle() * 2) - 1)
-							),
-						() =>
-							new Particle(
-								age: random.NextSingle(0.06f),
-								maxAge: 0.266f + random.NextSingle(0.266f),
-								color: new XnaColor(
-									Pico8Color.Color7.R,
-									Pico8Color.Color7.G,
-									Pico8Color.Color7.B,
-									Pico8Color.Color7.A
+							() =>
+								new Particle(
+									age: 0,
+									maxAge: 0,
+									color: new XnaColor(
+										Pico8Color.Color7.R,
+										Pico8Color.Color7.G,
+										Pico8Color.Color7.B,
+										Pico8Color.Color7.A
+									),
+									isBlue: false,
+									radius: 10,
+									shape: Components.Shape.Circle,
+									spark: false
 								),
-								isBlue: false,
-								radius: 1 + random.NextSingle(4),
-								shape: Components.Shape.Circle,
-								spark: false
-							),
-						() =>
-							new Vector2(
-								enemyTransform.Position.X + (enemySprite.CurrentFrame.Width / 2),
-								enemyTransform.Position.Y + (enemySprite.CurrentFrame.Height / 2)
-							),
-						() => new Velocity(x: random.NextSingle() * 50, y: random.NextSingle() * 50)
-					);
-
-					// Sparks
-					ExplosionFactory.CreateExplosion(
-						World,
-						count: 20,
-						() =>
-							new Direction(
-								x: 1 * Math.Sign((random.NextSingle() * 2) - 1),
-								y: 1 * Math.Sign((random.NextSingle() * 2) - 1)
-							),
-						() =>
-							new Particle(
-								age: random.NextSingle(0.06f),
-								maxAge: 0.266f + random.NextSingle(0.266f),
-								color: new XnaColor(
-									Pico8Color.Color7.R,
-									Pico8Color.Color7.G,
-									Pico8Color.Color7.B,
-									Pico8Color.Color7.A
+							() =>
+								new Vector2(
+									enemyTransform.Position.X + (enemySprite.CurrentFrame.Width / 2),
+									enemyTransform.Position.Y + (enemySprite.CurrentFrame.Height / 2)
 								),
-								isBlue: true,
-								radius: 1 + random.NextSingle(4),
-								shape: Components.Shape.Circle,
-								spark: true
-							),
-						() =>
-							new Vector2(
-								enemyTransform.Position.X + (enemySprite.CurrentFrame.Width / 2),
-								enemyTransform.Position.Y + (enemySprite.CurrentFrame.Height / 2)
-							),
-						() => new Velocity(x: random.NextSingle() * 60, y: random.NextSingle() * 60)
-					);
+							() => new Velocity()
+						);
 
-					World.Destroy(enemy);
+						// Large particles
+						ExplosionFactory.CreateExplosion(
+							World,
+							count: 30,
+							() =>
+								new Direction(
+									x: 1 * Math.Sign((random.NextSingle() * 2) - 1),
+									y: 1 * Math.Sign((random.NextSingle() * 2) - 1)
+								),
+							() =>
+								new Particle(
+									age: random.NextSingle(0.06f),
+									maxAge: 0.266f + random.NextSingle(0.266f),
+									color: new XnaColor(
+										Pico8Color.Color7.R,
+										Pico8Color.Color7.G,
+										Pico8Color.Color7.B,
+										Pico8Color.Color7.A
+									),
+									isBlue: false,
+									radius: 1 + random.NextSingle(4),
+									shape: Components.Shape.Circle,
+									spark: false
+								),
+							() =>
+								new Vector2(
+									enemyTransform.Position.X + (enemySprite.CurrentFrame.Width / 2),
+									enemyTransform.Position.Y + (enemySprite.CurrentFrame.Height / 2)
+								),
+							() => new Velocity(x: random.NextSingle() * 50, y: random.NextSingle() * 50)
+						);
+
+						// Sparks
+						ExplosionFactory.CreateExplosion(
+							World,
+							count: 20,
+							() =>
+								new Direction(
+									x: 1 * Math.Sign((random.NextSingle() * 2) - 1),
+									y: 1 * Math.Sign((random.NextSingle() * 2) - 1)
+								),
+							() =>
+								new Particle(
+									age: random.NextSingle(0.06f),
+									maxAge: 0.266f + random.NextSingle(0.266f),
+									color: new XnaColor(
+										Pico8Color.Color7.R,
+										Pico8Color.Color7.G,
+										Pico8Color.Color7.B,
+										Pico8Color.Color7.A
+									),
+									isBlue: true,
+									radius: 1 + random.NextSingle(4),
+									shape: Components.Shape.Circle,
+									spark: true
+								),
+							() =>
+								new Vector2(
+									enemyTransform.Position.X + (enemySprite.CurrentFrame.Width / 2),
+									enemyTransform.Position.Y + (enemySprite.CurrentFrame.Height / 2)
+								),
+							() => new Velocity(x: random.NextSingle() * 60, y: random.NextSingle() * 60)
+						);
+					}
+
 					World.Destroy(entity);
 					World.Destroy(projectile);
 				}

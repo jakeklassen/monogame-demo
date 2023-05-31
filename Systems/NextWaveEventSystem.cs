@@ -83,10 +83,15 @@ namespace Systems
 						{
 							var enemyType = row[x];
 
+							// Empty
 							if (enemyType == 0)
 							{
 								continue;
 							}
+
+							var enemy =
+								_game.Config.Entities.Enemies.GetEnemyConfig(enemyType)
+								?? throw new System.Exception($"Enemy type {enemyType} not found!");
 
 							var destinationX = ((x + 1) * 12) - 6;
 							var destinationY = 4 + ((y + 1) * 12);
@@ -104,18 +109,19 @@ namespace Systems
 							var tweenDuration = 0.4f;
 							var tweenDelay = 2.6f + (x * 90 / 1000f);
 
-							var enemy = this.World.Create();
-							World.Add(enemy, new BoxCollider(8, 8));
-							World.Add(enemy, new CollisionLayer(CollisionMasks.Enemy));
+							var enemyEntity = this.World.Create();
+							World.Add(enemyEntity, new BoxCollider(8, 8));
+							World.Add(enemyEntity, new CollisionLayer(CollisionMasks.Enemy));
 							World.Add(
-								enemy,
+								enemyEntity,
 								new CollisionMask(CollisionMasks.Player | CollisionMasks.PlayerProjectile)
 							);
-							World.Add(enemy, new EnemyState() { Value = EnemyStateType.Flyin });
-							World.Add(enemy, new Invulnerable() { Duration = tweenDuration + tweenDelay });
-							World.Add(enemy, new Sprite(new Rectangle(40, 8, 8, 8)));
+							World.Add(enemyEntity, new EnemyState() { Value = EnemyStateType.Flyin });
+							World.Add(enemyEntity, new Health(enemy.StartingHealth));
+							World.Add(enemyEntity, new Invulnerable() { Duration = tweenDuration + tweenDelay });
+							World.Add(enemyEntity, new Sprite(new Rectangle(40, 8, 8, 8)));
 							World.Add(
-								enemy,
+								enemyEntity,
 								SpriteAnimation.Factory(
 									animationDetails: new AnimationDetails()
 									{
@@ -131,8 +137,8 @@ namespace Systems
 									loop: true
 								)
 							);
-							World.Add(enemy, new TagEnemy());
-							World.Add(enemy, transform);
+							World.Add(enemyEntity, new TagEnemy());
+							World.Add(enemyEntity, transform);
 
 							_tweener
 								.TweenTo(

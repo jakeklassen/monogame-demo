@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Microsoft.Xna.Framework;
 
 namespace CherryBomb
 {
@@ -9,6 +10,31 @@ namespace CherryBomb
 		public int StartingHealth { get; set; }
 	}
 
+	public class ProjectileConfig
+	{
+		public int Damage { get; set; }
+	}
+
+	public class Projectiles
+	{
+		public ProjectileConfig Bullet { get; set; }
+		public ProjectileConfig BigBullet { get; set; }
+		public ProjectileConfig Bomb { get; set; }
+	}
+
+	public class PlayerConfig
+	{
+		public Projectiles Projectiles =
+			new()
+			{
+				Bullet = new ProjectileConfig { Damage = 1, },
+				BigBullet = new ProjectileConfig { Damage = 3, },
+				Bomb = new ProjectileConfig { Damage = 1000, },
+			};
+
+		public Vector2 SpawnPosition { get; set; } = new Vector2(60, 110);
+	}
+
 	public class Enemies
 	{
 		public EnemyConfig Boss { get; set; }
@@ -16,11 +42,25 @@ namespace CherryBomb
 		public EnemyConfig RedFlameGuy { get; set; }
 		public EnemyConfig SpinningShip { get; set; }
 		public EnemyConfig YellowShip { get; set; }
+
+		public EnemyConfig GetEnemyConfig(int id)
+		{
+			return id switch
+			{
+				1 => GreenAlien,
+				2 => RedFlameGuy,
+				3 => SpinningShip,
+				4 => YellowShip,
+				5 => Boss,
+				_ => null
+			};
+		}
 	}
 
 	public class Entities
 	{
 		public Enemies Enemies { get; set; }
+		public PlayerConfig Player { get; set; }
 	}
 
 	public class Wave
@@ -72,6 +112,15 @@ namespace CherryBomb
 						Score = 500,
 						StartingHealth = 20
 					}
+				},
+				Player = new PlayerConfig()
+				{
+					Projectiles = new Projectiles()
+					{
+						Bullet = new ProjectileConfig() { Damage = 1 },
+						BigBullet = new ProjectileConfig() { Damage = 3 },
+						Bomb = new ProjectileConfig() { Damage = 1000 }
+					},
 				}
 			};
 

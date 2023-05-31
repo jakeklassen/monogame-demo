@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Arch.Core;
 using Arch.Core.Extensions;
+using CherryBomb;
 using Components;
 using Microsoft.Xna.Framework;
 using MonoGame.Extended;
@@ -10,15 +11,20 @@ namespace Systems
 {
 	public class CollisionSystem : SystemBase<GameTime>
 	{
-		private readonly QueryDescription _collidables = new QueryDescription()
-			.WithAll<BoxCollider, CollisionLayer, CollisionMask, Transform>()
-			.WithNone<Invulnerable>();
+		private readonly Game1 _game;
+		private readonly QueryDescription _collidables = new QueryDescription().WithAll<
+			BoxCollider,
+			CollisionLayer,
+			CollisionMask,
+			Transform
+		>();
 		private readonly List<int> _handledEntities;
 
-		public CollisionSystem(World world)
+		public CollisionSystem(World world, Game1 game)
 			: base(world)
 		{
 			_handledEntities = new List<int>();
+			_game = game;
 		}
 
 		public override void Update(in GameTime gameTime)
@@ -100,9 +106,15 @@ namespace Systems
 
 					if (AssertIsNotNull(enemy) && AssertIsNotNull(playerProjectile))
 					{
+						var damage = _game.Config.Entities.Player.Projectiles.Bullet.Damage;
+
 						World.Create(
 							// For some reason this is not working, I had to cast
-							new EventPlayerProjectileEnemyCollision((Entity)playerProjectile, (Entity)enemy)
+							new EventPlayerProjectileEnemyCollision(
+								(Entity)playerProjectile,
+								(Entity)enemy,
+								damage
+							)
 						);
 
 						// I HATE this but we need to somehow tag the entities as inactive
