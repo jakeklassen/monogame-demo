@@ -74,6 +74,8 @@ namespace Systems
 						// TODO: play wave-complete sound
 					}
 
+					Tween lastTween = null;
+
 					// TODO: Refactor this!
 					for (var y = 0; y < wave.Enemies.Length; y++)
 					{
@@ -97,8 +99,13 @@ namespace Systems
 							var destinationY = 4 + ((y + 1) * 12);
 
 							var spawnPosition = new Vector2(x: (destinationX * 1.25f) - 16, y: destinationY - 66);
-
 							var enemyDestination = new Vector2(x: destinationX, y: destinationY);
+
+							if (enemyType == 5)
+							{
+								spawnPosition = new Vector2(x: 48, y: -48);
+								enemyDestination = new Vector2(x: 48, y: 25);
+							}
 
 							var transform = new Transform(
 								position: spawnPosition,
@@ -109,8 +116,27 @@ namespace Systems
 							var tweenDuration = 0.4f;
 							var tweenDelay = 2.6f + (x * 90 / 1000f);
 
+							SpriteSheet.SpriteData spriteData = enemyType switch
+							{
+								1 => SpriteSheet.Enemies.GreenAlien,
+								2 => SpriteSheet.Enemies.RedFlameGuy,
+								3 => SpriteSheet.Enemies.SpinningShip,
+								4 => SpriteSheet.Enemies.YellowShip,
+								5 => SpriteSheet.Enemies.Boss,
+								_ => throw new System.Exception($"Enemy type {enemyType} not found!"),
+							};
+
+							var idleAnimationData = spriteData.Animations.TryGetValue(
+								"Idle",
+								out var animationData
+							)
+								? animationData
+								: throw new System.Exception(
+									$"Enemy type {enemyType} does not have an idle animation!"
+								);
+
 							var enemyEntity = this.World.Create();
-							World.Add(enemyEntity, new BoxCollider(8, 8));
+							World.Add(enemyEntity, spriteData.BoxCollider);
 							World.Add(enemyEntity, new CollisionLayer(CollisionMasks.Enemy));
 							World.Add(
 								enemyEntity,
@@ -119,19 +145,19 @@ namespace Systems
 							World.Add(enemyEntity, new EnemyState() { Value = EnemyStateType.Flyin });
 							World.Add(enemyEntity, new Health(enemy.StartingHealth));
 							World.Add(enemyEntity, new Invulnerable() { Duration = tweenDuration + tweenDelay });
-							World.Add(enemyEntity, new Sprite(new Rectangle(40, 8, 8, 8)));
+							World.Add(enemyEntity, new Sprite(spriteData.Frame));
 							World.Add(
 								enemyEntity,
 								SpriteAnimation.Factory(
 									animationDetails: new AnimationDetails()
 									{
-										Name = "green-alien-idle",
-										SourceX = 40,
-										SourceY = 8,
-										FrameHeight = 8,
-										FrameWidth = 8,
-										Width = 32,
-										Height = 8,
+										Name = "idle",
+										SourceX = idleAnimationData.SourceX,
+										SourceY = idleAnimationData.SourceY,
+										FrameHeight = idleAnimationData.FrameHeight,
+										FrameWidth = idleAnimationData.FrameWidth,
+										Width = idleAnimationData.Width,
+										Height = idleAnimationData.Height,
 									},
 									durationSeconds: 0.4f,
 									loop: true
@@ -140,7 +166,7 @@ namespace Systems
 							World.Add(enemyEntity, new TagEnemy());
 							World.Add(enemyEntity, transform);
 
-							_tweener
+							lastTween = _tweener
 								.TweenTo(
 									target: transform,
 									expression: transform => transform.Position,
@@ -151,6 +177,8 @@ namespace Systems
 								.Easing(EasingFunctions.Linear);
 						}
 					}
+
+					lastTween.OnEnd((action) => _game.State.WaveReady = true);
 
 					World.Destroy(entity);
 				}

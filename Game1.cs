@@ -8,6 +8,7 @@ using MonoGame.Extended.BitmapFonts;
 using MonoGame.Extended.Screens;
 using MonoGame.Extended.ViewportAdapters;
 using Screens;
+using MonoGame.Extended.Input.InputListeners;
 using XnaColor = Microsoft.Xna.Framework.Color;
 
 namespace CherryBomb
@@ -48,17 +49,18 @@ namespace CherryBomb
 		private readonly SimpleFps _fps = new();
 		private BitmapFont _font;
 
-		private Texture2D _spriteSheetTexture;
-
 		private bool _hasToggledVsync = false;
 		private bool _hasToggledFixedTimeStep = false;
 
+		public static Rectangle Viewport => new(0, 0, TargetWidth, TargetHeight);
 		public OrthographicCamera Camera { get; private set; }
 		public Dictionary<string, BitmapFont> FontCache { get; } = new();
 		public SpriteBatch SpriteBatch { get; private set; }
 		public Dictionary<string, Texture2D> TextureCache { get; } = new();
 		public Config Config { get; } = new();
 		public State State { get; } = new();
+		private readonly GamePadListener _gamePadListener;
+		private readonly KeyboardListener _keyboardListener;
 
 		public Game1()
 		{
@@ -80,7 +82,19 @@ namespace CherryBomb
 
 			_screenManager = new ScreenManager();
 
+			_keyboardListener = new KeyboardListener();
+			_gamePadListener = new GamePadListener();
+
+			Components.Add(new InputListenerComponent(this, _keyboardListener, _gamePadListener));
 			Components.Add(_screenManager);
+
+			_keyboardListener.KeyReleased += (sender, args) =>
+			{
+				if (args.Key == Keys.D)
+				{
+					Config.Debug = !Config.Debug;
+				}
+			};
 		}
 
 		protected override void Initialize()
@@ -103,7 +117,6 @@ namespace CherryBomb
 			SpriteBatch = new SpriteBatch(GraphicsDevice);
 
 			_font = Content.Load<BitmapFont>("Font/pico-8");
-			_spriteSheetTexture = Content.Load<Texture2D>("Graphics/shmup");
 
 			FontCache.Add("pico-8", _font);
 

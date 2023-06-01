@@ -14,11 +14,6 @@
 
 #---------------------------------- Content ---------------------------------#
 
-#begin Font/goodbye-despair.fnt
-/importer:BitmapFontImporter
-/processor:BitmapFontProcessor
-/build:Font/goodbye-despair.fnt
-
 #begin Font/goodbye-despair_0.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -31,10 +26,10 @@
 /processorParam:TextureFormat=Color
 /build:Font/goodbye-despair_0.png
 
-#begin Font/pico-8.fnt
+#begin Font/goodbye-despair.fnt
 /importer:BitmapFontImporter
 /processor:BitmapFontProcessor
-/build:Font/pico-8.fnt
+/build:Font/goodbye-despair.fnt
 
 #begin Font/pico-8_0.png
 /importer:TextureImporter
@@ -48,10 +43,10 @@
 /processorParam:TextureFormat=Color
 /build:Font/pico-8_0.png
 
-#begin Font/silkscreen.fnt
+#begin Font/pico-8.fnt
 /importer:BitmapFontImporter
 /processor:BitmapFontProcessor
-/build:Font/silkscreen.fnt
+/build:Font/pico-8.fnt
 
 #begin Font/silkscreen_0.png
 /importer:TextureImporter
@@ -64,6 +59,11 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:Font/silkscreen_0.png
+
+#begin Font/silkscreen.fnt
+/importer:BitmapFontImporter
+/processor:BitmapFontProcessor
+/build:Font/silkscreen.fnt
 
 #begin Graphics/bunny.png
 /importer:TextureImporter

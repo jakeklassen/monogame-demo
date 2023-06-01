@@ -14,6 +14,10 @@ namespace Systems
 		private readonly QueryDescription _playerProjectileEnemyCollisionEventQuery =
 			new QueryDescription().WithAll<EventPlayerProjectileEnemyCollision>();
 
+		private readonly QueryDescription _enemyQuery = new QueryDescription()
+			.WithAll<TagEnemy>()
+			.WithNone<Invulnerable>();
+
 		public PlayerProjectileEnemyCollisionEventSystem(World world)
 			: base(world) { }
 
@@ -72,9 +76,9 @@ namespace Systems
 
 					// TODO: Need to flash enemy
 
+					// Enemy is dead
 					if (enemyHealth.Amount <= 0)
 					{
-						// Enemy is dead
 						World.Destroy(enemy);
 
 						var random = new Random();
@@ -174,6 +178,12 @@ namespace Systems
 								),
 							() => new Velocity(x: random.NextSingle() * 60, y: random.NextSingle() * 60)
 						);
+
+						// If this was the last enemy, spawn the next wave
+						if (World.CountEntities(_enemyQuery) == 0)
+						{
+							World.Create(new EventNextWave());
+						}
 					}
 
 					World.Destroy(entity);

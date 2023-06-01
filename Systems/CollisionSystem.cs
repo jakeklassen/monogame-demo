@@ -73,16 +73,11 @@ namespace Systems
 					var otherX = otherTransform.Position.X + otherBoxCollider.Offset.X;
 					var otherY = otherTransform.Position.Y + otherBoxCollider.Offset.Y;
 
-					var aabb = new RectangleF(
-						x - (boxCollider.Width / 2),
-						y - (boxCollider.Height / 2),
-						boxCollider.Width,
-						boxCollider.Height
-					);
+					var aabb = new RectangleF(x, y, boxCollider.Width, boxCollider.Height);
 
 					var otherAabb = new RectangleF(
-						otherX - (otherBoxCollider.Width / 2),
-						otherY - (otherBoxCollider.Height / 2),
+						otherX,
+						otherY,
 						otherBoxCollider.Width,
 						otherBoxCollider.Height
 					);

@@ -42,6 +42,7 @@ namespace Screens
 			_updateSystems.Add(new BlinkSystem(_world));
 			_updateSystems.Add(new PlayerSystem(_world));
 			_updateSystems.Add(new MovementSystem(_world));
+			_updateSystems.Add(new BoundToViewportSystem(_world, Game1.Viewport));
 			_updateSystems.Add(new DestroyOnViewportExitSystem(_world));
 			_updateSystems.Add(new CollisionSystem(_world, Game));
 			_updateSystems.Add(new PlayerProjectileEnemyCollisionEventSystem(_world));
@@ -67,11 +68,24 @@ namespace Screens
 			_drawSystems.Add(
 				new TextRenderingSystem(_world, Game.GraphicsDevice, Game.Camera, Game.FontCache)
 			);
+			_drawSystems.Add(new DebugRenderingSystem(_world, Game, Game.GraphicsDevice, Game.Camera));
 
 			StarFactory.CreateStarfield(_world, Game1.TargetWidth, Game1.TargetHeight, 100);
 
 			var player = _world.Create();
 
+			_world.Add(player, new BoundToViewport());
+			_world.Add(
+				player,
+				new BoxCollider(
+					SpriteSheet.Player.BoxCollider.Width,
+					SpriteSheet.Player.BoxCollider.Height,
+					new Vector2(
+						SpriteSheet.Player.BoxCollider.Offset.X,
+						SpriteSheet.Player.BoxCollider.Offset.Y
+					)
+				)
+			);
 			_world.Add(player, new CollisionLayer(CollisionMasks.Player));
 			_world.Add(
 				player,
@@ -84,7 +98,7 @@ namespace Screens
 			_world.Add(player, new TagPlayer());
 			_world.Add(
 				player,
-				new Transform(new Vector2((Game1.TargetWidth / 2) + 4, 100), 0f, Vector2.One)
+				new Transform(new Vector2((Game1.TargetWidth / 2) - 4, 100), 0f, Vector2.One)
 			);
 			_world.Add(player, new Velocity(60, 60));
 

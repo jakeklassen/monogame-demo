@@ -1,4 +1,5 @@
 using Arch.Core;
+using CherryBomb;
 using Components;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -7,29 +8,37 @@ using XnaColor = Microsoft.Xna.Framework.Color;
 
 namespace Systems
 {
-	public class StarfieldRenderingSystem : SystemBase<GameTime>
+	public class DebugRenderingSystem : SystemBase<GameTime>
 	{
-		private readonly QueryDescription _starsToDraw = new QueryDescription().WithAll<
-			Star,
+		private readonly Game1 _game;
+		private readonly QueryDescription _query = new QueryDescription().WithAll<
+			BoxCollider,
 			Transform
 		>();
 		private readonly SpriteBatch _spriteBatch;
 
 		private readonly OrthographicCamera _camera;
 
-		public StarfieldRenderingSystem(
+		public DebugRenderingSystem(
 			World world,
+			Game1 game,
 			GraphicsDevice graphicsDevice,
 			OrthographicCamera camera
 		)
 			: base(world)
 		{
 			_camera = camera;
+			_game = game;
 			_spriteBatch = new SpriteBatch(graphicsDevice);
 		}
 
 		public override void Update(in GameTime gameTime)
 		{
+			if (_game.Config.Debug == false)
+			{
+				return;
+			}
+
 			_spriteBatch.Begin(
 				SpriteSortMode.Immediate,
 				null,
@@ -41,11 +50,21 @@ namespace Systems
 			);
 
 			World.Query(
-				in _starsToDraw,
-				(ref Star star, ref Transform transform) =>
+				in _query,
+				(ref BoxCollider boxCollider, ref Transform transform) =>
 				{
-					var rectangle = new RectangleF(transform.Position.X, transform.Position.Y, 1, 1);
-					var color = new XnaColor(star.Color.R, star.Color.G, star.Color.B, star.Color.A);
+					var rectangle = new RectangleF(
+						transform.Position.X + boxCollider.Offset.X,
+						transform.Position.Y + boxCollider.Offset.Y,
+						boxCollider.Width,
+						boxCollider.Height
+					);
+					var color = new XnaColor(
+						Pico8Color.Color8.R,
+						Pico8Color.Color8.G,
+						Pico8Color.Color8.B,
+						Pico8Color.Color8.A / 2
+					);
 
 					_spriteBatch.DrawRectangle(rectangle, color);
 				}
