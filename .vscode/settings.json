@@ -6,5 +6,6 @@
 	"omnisharp.autoStart": true,
 	"omnisharp.organizeImportsOnFormat": true,
 	"omnisharp.enableRoslynAnalyzers": true,
-	"omnisharp.enableEditorConfigSupport": false
+	"omnisharp.enableEditorConfigSupport": false,
+	"dotnet.defaultSolution": "monogame-demo.sln"
 }

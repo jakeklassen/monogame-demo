@@ -74,7 +74,7 @@ namespace CherryBomb
 			_graphics.HardwareModeSwitch = false;
 			_graphics.IsFullScreen = false;
 			_graphics.PreferMultiSampling = false;
-			_graphics.SynchronizeWithVerticalRetrace = true;
+			_graphics.SynchronizeWithVerticalRetrace = false;
 			_graphics.ApplyChanges();
 
 			// Disable for a better experience with higher refresh rate monitors

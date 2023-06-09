@@ -58,8 +58,8 @@ namespace Systems
 				var sprite = World.Get<Sprite>(entity);
 				var transform = World.Get<Transform>(entity);
 
-				flash.Duration -= (float)gameTime.ElapsedGameTime.TotalSeconds;
-				flash.Alpha *= (float)gameTime.ElapsedGameTime.TotalSeconds;
+				flash.Elapsed += (float)gameTime.ElapsedGameTime.TotalSeconds;
+				flash.Alpha = MathHelper.Lerp(255f, 0f, flash.Elapsed / flash.Duration);
 
 				if (flash.Duration <= 0 || flash.Alpha <= 0)
 				{

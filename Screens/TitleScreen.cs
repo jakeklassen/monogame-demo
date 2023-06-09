@@ -7,6 +7,7 @@ using EntityFactories;
 using Lib.Tweening;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using MonoGame.Extended.Input;
 using MonoGame.Extended.Screens;
 using Systems;
@@ -175,7 +176,7 @@ namespace Screens
 		{
 			_tweener.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
 
-			if (KeyboardExtended.GetState().WasAnyKeyJustDown())
+			if (KeyboardExtended.GetState().WasAnyKeyJustDown() || IsAnyButtonDown())
 			{
 				ScreenManager.LoadScreen(new GameplayScreen(Game));
 			}
@@ -192,6 +193,25 @@ namespace Screens
 			{
 				system.Update(in gameTime);
 			}
+		}
+
+		private static bool IsAnyButtonDown()
+		{
+			var currentState = GamePad.GetState(PlayerIndex.One);
+			var buttonList = new Buttons[] { Buttons.A, Buttons.B, Buttons.X, Buttons.Y, };
+			var anyButtonPressed = false;
+
+			foreach (var button in buttonList)
+			{
+				if (currentState.IsButtonDown(button))
+				{
+					anyButtonPressed = true;
+
+					break;
+				}
+			}
+
+			return anyButtonPressed;
 		}
 	}
 }
