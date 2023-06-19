@@ -25,8 +25,8 @@ namespace Systems
 				(in Entity entity, ref Particle particle, ref Velocity velocity) =>
 				{
 					particle.Age += (float)_gameTime.ElapsedGameTime.TotalSeconds;
-					velocity.X -= velocity.X * 0.85f * (float)_gameTime.ElapsedGameTime.TotalSeconds;
-					velocity.Y -= velocity.Y * 0.85f * (float)_gameTime.ElapsedGameTime.TotalSeconds;
+					velocity.X -= velocity.X * 6f * (float)_gameTime.ElapsedGameTime.TotalSeconds;
+					velocity.Y -= velocity.Y * 6f * (float)_gameTime.ElapsedGameTime.TotalSeconds;
 
 					if (particle.Age >= particle.MaxAge)
 					{

@@ -83,6 +83,19 @@ namespace Systems
 
 						var random = new Random();
 
+						// Bullet shockwave
+						World.Create(
+							new Shockwave(radius: 3, targetRadius: 25, color: Pico8Color.Color7, speed: 105),
+							new Transform(
+								position: new Vector2(
+									enemyTransform.Position.X + (enemySprite.CurrentFrame.Width / 2),
+									enemyTransform.Position.Y + (enemySprite.CurrentFrame.Height / 2)
+								),
+								rotation: 0,
+								scale: Vector2.One
+							)
+						);
+
 						// Initial flash
 						ExplosionFactory.CreateExplosion(
 							World,
@@ -144,7 +157,7 @@ namespace Systems
 									enemyTransform.Position.X + (enemySprite.CurrentFrame.Width / 2),
 									enemyTransform.Position.Y + (enemySprite.CurrentFrame.Height / 2)
 								),
-							() => new Velocity(x: random.NextSingle() * 50, y: random.NextSingle() * 50)
+							() => new Velocity(x: random.NextSingle() * 90, y: random.NextSingle() * 90)
 						);
 
 						// Sparks
@@ -176,7 +189,7 @@ namespace Systems
 									enemyTransform.Position.X + (enemySprite.CurrentFrame.Width / 2),
 									enemyTransform.Position.Y + (enemySprite.CurrentFrame.Height / 2)
 								),
-							() => new Velocity(x: random.NextSingle() * 60, y: random.NextSingle() * 60)
+							() => new Velocity(x: random.NextSingle() * 150, y: random.NextSingle() * 150)
 						);
 
 						// If this was the last enemy, spawn the next wave
