@@ -1,12 +1,7 @@
 namespace Components
 {
-	public struct Health
+	public struct Health(int amount)
 	{
-		public int Amount = 0;
-
-		public Health(int amount)
-		{
-			Amount = amount;
-		}
+		public int Amount = amount;
 	}
 }

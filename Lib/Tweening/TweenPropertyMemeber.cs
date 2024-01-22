@@ -5,16 +5,10 @@ using System.Reflection;
 
 namespace Lib.Tweening
 {
-	public sealed class TweenPropertyMember<T> : TweenMember<T>
+	public sealed class TweenPropertyMember<T>(object target, PropertyInfo propertyInfo) : TweenMember<T>(target, CompileGetMethod(propertyInfo), CompileSetMethod(propertyInfo))
 		where T : struct
 	{
-		private readonly PropertyInfo _propertyInfo;
-
-		public TweenPropertyMember(object target, PropertyInfo propertyInfo)
-			: base(target, CompileGetMethod(propertyInfo), CompileSetMethod(propertyInfo))
-		{
-			_propertyInfo = propertyInfo;
-		}
+		private readonly PropertyInfo _propertyInfo = propertyInfo;
 
 		public override Type Type => _propertyInfo.PropertyType;
 		public override string Name => _propertyInfo.Name;

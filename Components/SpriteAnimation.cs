@@ -83,7 +83,7 @@ namespace Components
 				CurrentFrame = currentFrame,
 				Delta = delta,
 				FrameRate = frameRate,
-				Frames = frames.ToArray(),
+				Frames = [.. frames],
 				FrameSequence = frameSequence,
 				IsFinished = finished,
 				Loop = loop

@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework;
 
 namespace Systems
 {
-	public class ParticleSystem : SystemBase<GameTime>
+	public class ParticleSystem(World world) : SystemBase<GameTime>(world)
 	{
 		private GameTime _gameTime;
 		private QueryDescription _particleEntities = new QueryDescription().WithAll<
@@ -13,16 +13,13 @@ namespace Systems
 			Velocity
 		>();
 
-		public ParticleSystem(World world)
-			: base(world) { }
-
 		public override void Update(in GameTime gameTime)
 		{
 			_gameTime = gameTime;
 
 			World.Query(
 				in _particleEntities,
-				(in Entity entity, ref Particle particle, ref Velocity velocity) =>
+				(Entity entity, ref Particle particle, ref Velocity velocity) =>
 				{
 					particle.Age += (float)_gameTime.ElapsedGameTime.TotalSeconds;
 					velocity.X -= velocity.X * 6f * (float)_gameTime.ElapsedGameTime.TotalSeconds;

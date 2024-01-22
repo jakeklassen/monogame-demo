@@ -1,12 +1,7 @@
 namespace Components
 {
-	public class CollisionMask
+	public class CollisionMask(int value)
 	{
-		public int Value { get; set; }
-
-		public CollisionMask(int value)
-		{
-			Value = value;
-		}
+		public int Value { get; set; } = value;
 	}
 }

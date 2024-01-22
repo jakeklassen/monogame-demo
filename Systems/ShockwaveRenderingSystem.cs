@@ -9,25 +9,17 @@ using XnaColor = Microsoft.Xna.Framework.Color;
 
 namespace Systems
 {
-	public class ShockwaveRenderingSystem : SystemBase<GameTime>
+	public class ShockwaveRenderingSystem(
+		World world,
+		GraphicsDevice graphicsDevice,
+		OrthographicCamera camera,
+		Dictionary<string, Texture2D> textureCache
+		) : SystemBase<GameTime>(world)
 	{
-		private readonly SpriteBatch _spriteBatch;
-		private readonly OrthographicCamera _camera;
-		private readonly Dictionary<string, Texture2D> _textureCache;
+		private readonly SpriteBatch _spriteBatch = new(graphicsDevice);
+		private readonly OrthographicCamera _camera = camera;
+		private readonly Dictionary<string, Texture2D> _textureCache = textureCache;
 		private QueryDescription _query = new QueryDescription().WithAll<Shockwave, Transform>();
-
-		public ShockwaveRenderingSystem(
-			World world,
-			GraphicsDevice graphicsDevice,
-			OrthographicCamera camera,
-			Dictionary<string, Texture2D> textureCache
-		)
-			: base(world)
-		{
-			_camera = camera;
-			_spriteBatch = new SpriteBatch(graphicsDevice);
-			_textureCache = textureCache;
-		}
 
 		public override void Update(in GameTime gameTime)
 		{
@@ -43,7 +35,7 @@ namespace Systems
 
 			World.Query(
 				in _query,
-				(in Entity entity, ref Shockwave shockwave, ref Transform transform) =>
+				(Entity entity, ref Shockwave shockwave, ref Transform transform) =>
 				{
 					var texture = _textureCache[$"circ-{Math.Round(shockwave.Radius)}"];
 					var shockwaveColor = new XnaColor(

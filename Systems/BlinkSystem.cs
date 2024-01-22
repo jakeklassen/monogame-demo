@@ -4,13 +4,10 @@ using Microsoft.Xna.Framework;
 
 namespace Systems
 {
-	public class BlinkSystem : SystemBase<GameTime>
+	public class BlinkSystem(World world) : SystemBase<GameTime>(world)
 	{
 		private readonly QueryDescription _blinkEntities = new QueryDescription().WithAll<Blink>();
 		private GameTime _gameTime;
-
-		public BlinkSystem(World world)
-			: base(world) { }
 
 		public override void Update(in GameTime gameTime)
 		{

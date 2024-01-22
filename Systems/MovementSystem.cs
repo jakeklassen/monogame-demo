@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework;
 
 namespace Systems
 {
-	public class MovementSystem : SystemBase<GameTime>
+	public class MovementSystem(World world) : SystemBase<GameTime>(world)
 	{
 		private readonly QueryDescription _entitiesToMove = new QueryDescription().WithAll<
 			Direction,
@@ -12,9 +12,6 @@ namespace Systems
 			Velocity
 		>();
 		private GameTime _gameTime;
-
-		public MovementSystem(World world)
-			: base(world) { }
 
 		public override void Update(in GameTime gameTime)
 		{

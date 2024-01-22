@@ -6,25 +6,18 @@ using Microsoft.Xna.Framework;
 
 namespace Systems
 {
-	public class NextWaveEventSystem : SystemBase<GameTime>
+	public class NextWaveEventSystem(World world, Game1 game, Tweener tweener) : SystemBase<GameTime>(world)
 	{
-		private readonly Game1 _game;
-		private readonly Tweener _tweener;
+		private readonly Game1 _game = game;
+		private readonly Tweener _tweener = tweener;
 		private readonly QueryDescription _eventEntities =
 			new QueryDescription().WithAll<EventNextWave>();
-
-		public NextWaveEventSystem(World world, Game1 game, Tweener tweener)
-			: base(world)
-		{
-			_game = game;
-			_tweener = tweener;
-		}
 
 		public override void Update(in GameTime gameTime)
 		{
 			World.Query(
 				in _eventEntities,
-				(in Entity entity, ref EventNextWave nextWaveEvent) =>
+				(Entity entity, ref EventNextWave nextWaveEvent) =>
 				{
 					_game.State.WaveReady = false;
 					_game.State.Wave++;
@@ -54,8 +47,8 @@ namespace Systems
 					World.Add(
 						textEntity,
 						new Blink(
-							colors: new[] { Pico8Color.Color5, Pico8Color.Color6, Pico8Color.Color7 },
-							colorSequence: new[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 1, 1, 0 },
+							colors: [Pico8Color.Color5, Pico8Color.Color6, Pico8Color.Color7],
+							colorSequence: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 1, 1, 0],
 							durationSeconds: 0.5f
 						)
 					);

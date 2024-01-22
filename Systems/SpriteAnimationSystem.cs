@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework;
 
 namespace Systems
 {
-	public class SpriteAnimationSystem : SystemBase<GameTime>
+	public class SpriteAnimationSystem(World world) : SystemBase<GameTime>(world)
 	{
 		private GameTime _gameTime;
 		private readonly QueryDescription _query = new QueryDescription().WithAll<
@@ -12,16 +12,13 @@ namespace Systems
 			SpriteAnimation
 		>();
 
-		public SpriteAnimationSystem(World world)
-			: base(world) { }
-
 		public override void Update(in GameTime gameTime)
 		{
 			_gameTime = gameTime;
 
 			World.Query(
 				in _query,
-				(in Entity entity, ref Sprite sprite, ref SpriteAnimation spriteAnimation) =>
+				(Entity entity, ref Sprite sprite, ref SpriteAnimation spriteAnimation) =>
 				{
 					if (spriteAnimation.IsFinished && !spriteAnimation.Loop)
 					{

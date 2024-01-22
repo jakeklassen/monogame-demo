@@ -5,16 +5,10 @@ using System.Reflection;
 
 namespace Lib.Tweening
 {
-	public sealed class TweenFieldMember<T> : TweenMember<T>
+	public sealed class TweenFieldMember<T>(object target, FieldInfo fieldInfo) : TweenMember<T>(target, CompileGetMethod(fieldInfo), CompileSetMethod(fieldInfo))
 		where T : struct
 	{
-		private readonly FieldInfo _fieldInfo;
-
-		public TweenFieldMember(object target, FieldInfo fieldInfo)
-			: base(target, CompileGetMethod(fieldInfo), CompileSetMethod(fieldInfo))
-		{
-			_fieldInfo = fieldInfo;
-		}
+		private readonly FieldInfo _fieldInfo = fieldInfo;
 
 		private static Func<object, object> CompileGetMethod(FieldInfo fieldInfo)
 		{

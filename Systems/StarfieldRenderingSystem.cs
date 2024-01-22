@@ -7,26 +7,19 @@ using XnaColor = Microsoft.Xna.Framework.Color;
 
 namespace Systems
 {
-	public class StarfieldRenderingSystem : SystemBase<GameTime>
+	public class StarfieldRenderingSystem(
+		World world,
+		GraphicsDevice graphicsDevice,
+		OrthographicCamera camera
+		) : SystemBase<GameTime>(world)
 	{
 		private readonly QueryDescription _starsToDraw = new QueryDescription().WithAll<
 			Star,
 			Transform
 		>();
-		private readonly SpriteBatch _spriteBatch;
+		private readonly SpriteBatch _spriteBatch = new(graphicsDevice);
 
-		private readonly OrthographicCamera _camera;
-
-		public StarfieldRenderingSystem(
-			World world,
-			GraphicsDevice graphicsDevice,
-			OrthographicCamera camera
-		)
-			: base(world)
-		{
-			_camera = camera;
-			_spriteBatch = new SpriteBatch(graphicsDevice);
-		}
+		private readonly OrthographicCamera _camera = camera;
 
 		public override void Update(in GameTime gameTime)
 		{

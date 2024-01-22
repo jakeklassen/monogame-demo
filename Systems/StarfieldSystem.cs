@@ -5,16 +5,13 @@ using Microsoft.Xna.Framework;
 
 namespace Systems
 {
-	public class StarfieldSystem : SystemBase<GameTime>
+	public class StarfieldSystem(World world) : SystemBase<GameTime>(world)
 	{
 		private readonly QueryDescription _starEntities = new QueryDescription().WithAll<
 			Star,
 			Transform
 		>();
 		private readonly Random _random = new();
-
-		public StarfieldSystem(World world)
-			: base(world) { }
 
 		public override void Update(in GameTime gameTime)
 		{

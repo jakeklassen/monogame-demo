@@ -9,7 +9,7 @@ using XnaColor = Microsoft.Xna.Framework.Color;
 
 namespace Systems
 {
-	public class PlayerProjectileEnemyCollisionEventSystem : SystemBase<GameTime>
+	public class PlayerProjectileEnemyCollisionEventSystem(World world) : SystemBase<GameTime>(world)
 	{
 		private readonly QueryDescription _playerProjectileEnemyCollisionEventQuery =
 			new QueryDescription().WithAll<EventPlayerProjectileEnemyCollision>();
@@ -18,14 +18,11 @@ namespace Systems
 			.WithAll<TagEnemy>()
 			.WithNone<Invulnerable>();
 
-		public PlayerProjectileEnemyCollisionEventSystem(World world)
-			: base(world) { }
-
 		public override void Update(in GameTime gameTime)
 		{
 			World.Query(
 				in _playerProjectileEnemyCollisionEventQuery,
-				(in Entity entity, ref EventPlayerProjectileEnemyCollision collisionEvent) =>
+				(Entity entity, ref EventPlayerProjectileEnemyCollision collisionEvent) =>
 				{
 					var projectile = collisionEvent.ProjectileEntity;
 					var projectileTransform = World.Get<Transform>(projectile);

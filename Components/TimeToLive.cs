@@ -1,12 +1,7 @@
 namespace Components
 {
-	public class TimeToLive
+	public class TimeToLive(float timeToLive)
 	{
-		public float Value { get; set; }
-
-		public TimeToLive(float timeToLive)
-		{
-			Value = timeToLive;
-		}
+		public float Value { get; set; } = timeToLive;
 	}
 }

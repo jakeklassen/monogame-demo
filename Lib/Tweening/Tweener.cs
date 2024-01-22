@@ -19,7 +19,7 @@ namespace Lib.Tweening
 
 		public long AllocationCount { get; private set; }
 
-		private readonly List<Tween> _activeTweens = new();
+		private readonly List<Tween> _activeTweens = [];
 
 		public Tween<TMember> TweenTo<TTarget, TMember>(
 			TTarget target,
@@ -89,7 +89,7 @@ namespace Lib.Tweening
 #pragma warning restore 414
 		}
 
-		private readonly Dictionary<TweenMemberKey, TweenMember> _memberCache = new();
+		private readonly Dictionary<TweenMemberKey, TweenMember> _memberCache = [];
 
 		private TweenMember<T> GetMember<T>(object target, string memberName)
 			where T : struct

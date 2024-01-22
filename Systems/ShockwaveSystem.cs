@@ -4,13 +4,10 @@ using Microsoft.Xna.Framework;
 
 namespace Systems
 {
-	public class ShockwaveSystem : SystemBase<GameTime>
+	public class ShockwaveSystem(World world) : SystemBase<GameTime>(world)
 	{
 		private GameTime _gameTime;
 		private QueryDescription _query = new QueryDescription().WithAll<Shockwave>();
-
-		public ShockwaveSystem(World world)
-			: base(world) { }
 
 		public override void Update(in GameTime gameTime)
 		{
@@ -18,7 +15,7 @@ namespace Systems
 
 			World.Query(
 				in _query,
-				(in Entity entity, ref Shockwave shockwave) =>
+				(Entity entity, ref Shockwave shockwave) =>
 				{
 					shockwave.Radius += shockwave.Speed * (float)_gameTime.ElapsedGameTime.TotalSeconds;
 

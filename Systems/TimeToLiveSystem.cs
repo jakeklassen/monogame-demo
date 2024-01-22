@@ -4,13 +4,10 @@ using Microsoft.Xna.Framework;
 
 namespace Systems
 {
-	public class TimeToLiveSystem : SystemBase<GameTime>
+	public class TimeToLiveSystem(World world) : SystemBase<GameTime>(world)
 	{
 		private GameTime _gameTime;
 		private readonly QueryDescription _query = new QueryDescription().WithAll<TimeToLive>();
-
-		public TimeToLiveSystem(World world)
-			: base(world) { }
 
 		public override void Update(in GameTime gameTime)
 		{
@@ -18,7 +15,7 @@ namespace Systems
 
 			World.Query(
 				in _query,
-				(in Entity entity) =>
+				(Entity entity) =>
 				{
 					var ttl = World.Get<TimeToLive>(entity);
 					ttl.Value -= (float)_gameTime.ElapsedGameTime.TotalSeconds;

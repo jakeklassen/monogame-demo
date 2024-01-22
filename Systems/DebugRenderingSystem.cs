@@ -8,29 +8,21 @@ using XnaColor = Microsoft.Xna.Framework.Color;
 
 namespace Systems
 {
-	public class DebugRenderingSystem : SystemBase<GameTime>
+	public class DebugRenderingSystem(
+		World world,
+		Game1 game,
+		GraphicsDevice graphicsDevice,
+		OrthographicCamera camera
+		) : SystemBase<GameTime>(world)
 	{
-		private readonly Game1 _game;
+		private readonly Game1 _game = game;
 		private readonly QueryDescription _query = new QueryDescription().WithAll<
 			BoxCollider,
 			Transform
 		>();
-		private readonly SpriteBatch _spriteBatch;
+		private readonly SpriteBatch _spriteBatch = new(graphicsDevice);
 
-		private readonly OrthographicCamera _camera;
-
-		public DebugRenderingSystem(
-			World world,
-			Game1 game,
-			GraphicsDevice graphicsDevice,
-			OrthographicCamera camera
-		)
-			: base(world)
-		{
-			_camera = camera;
-			_game = game;
-			_spriteBatch = new SpriteBatch(graphicsDevice);
-		}
+		private readonly OrthographicCamera _camera = camera;
 
 		public override void Update(in GameTime gameTime)
 		{

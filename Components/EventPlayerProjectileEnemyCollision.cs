@@ -2,21 +2,14 @@ using Arch.Core;
 
 namespace Components
 {
-	public class EventPlayerProjectileEnemyCollision
-	{
-		public Entity ProjectileEntity { get; set; }
-		public Entity EnemyEntity { get; set; }
-		public int Damage { get; set; }
-
-		public EventPlayerProjectileEnemyCollision(
-			Entity projectileEntity,
-			Entity enemyEntity,
-			int damage
+	public class EventPlayerProjectileEnemyCollision(
+		Entity projectileEntity,
+		Entity enemyEntity,
+		int damage
 		)
-		{
-			ProjectileEntity = projectileEntity;
-			EnemyEntity = enemyEntity;
-			Damage = damage;
-		}
+	{
+		public Entity ProjectileEntity { get; set; } = projectileEntity;
+		public Entity EnemyEntity { get; set; } = enemyEntity;
+		public int Damage { get; set; } = damage;
 	}
 }

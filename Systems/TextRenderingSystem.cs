@@ -10,30 +10,22 @@ using XnaColor = Microsoft.Xna.Framework.Color;
 
 namespace Systems
 {
-	public class TextRenderingSystem : SystemBase<GameTime>
+	public class TextRenderingSystem(
+		World world,
+		GraphicsDevice graphicsDevice,
+		OrthographicCamera camera,
+		Dictionary<string, BitmapFont> fontCache
+		) : SystemBase<GameTime>(world)
 	{
 		private readonly QueryDescription _textEntities = new QueryDescription().WithAll<
 			Text,
 			Transform
 		>();
-		private readonly SpriteBatch _spriteBatch;
+		private readonly SpriteBatch _spriteBatch = new(graphicsDevice);
 
-		private readonly OrthographicCamera _camera;
+		private readonly OrthographicCamera _camera = camera;
 
-		private readonly Dictionary<string, BitmapFont> _fontCache = new();
-
-		public TextRenderingSystem(
-			World world,
-			GraphicsDevice graphicsDevice,
-			OrthographicCamera camera,
-			Dictionary<string, BitmapFont> fontCache
-		)
-			: base(world)
-		{
-			_camera = camera;
-			_fontCache = fontCache;
-			_spriteBatch = new SpriteBatch(graphicsDevice);
-		}
+		private readonly Dictionary<string, BitmapFont> _fontCache = fontCache;
 
 		public override void Update(in GameTime gameTime)
 		{
@@ -49,7 +41,7 @@ namespace Systems
 
 			World.Query(
 				in _textEntities,
-				(in Entity entity, ref Text text, ref Transform transform) =>
+				(Entity entity, ref Text text, ref Transform transform) =>
 				{
 					var textColor = new XnaColor(text.Color.R, text.Color.G, text.Color.B, text.Color.A);
 

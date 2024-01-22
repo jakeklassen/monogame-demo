@@ -12,20 +12,14 @@ using Systems;
 
 namespace Screens
 {
-	public class GameplayScreen : GameScreen
+	public class GameplayScreen(Game1 game) : GameScreen(game)
 	{
 		private new Game1 Game => (Game1)base.Game;
 		private Texture2D _spriteSheetTexture;
 		private readonly Tweener _tweener = new();
-		private readonly World _world;
-		private readonly List<SystemBase<GameTime>> _updateSystems = new();
-		private readonly List<SystemBase<GameTime>> _drawSystems = new();
-
-		public GameplayScreen(Game1 game)
-			: base(game)
-		{
-			_world = World.Create();
-		}
+		private readonly World _world = World.Create();
+		private readonly List<SystemBase<GameTime>> _updateSystems = [];
+		private readonly List<SystemBase<GameTime>> _drawSystems = [];
 
 		public override void Initialize()
 		{

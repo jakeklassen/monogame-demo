@@ -5,21 +5,18 @@ using Microsoft.Xna.Framework;
 
 namespace Systems
 {
-	public class DestroyOnViewportExitSystem : SystemBase<GameTime>
+	public class DestroyOnViewportExitSystem(World world) : SystemBase<GameTime>(world)
 	{
 		private readonly QueryDescription _query = new QueryDescription().WithAll<
 			BoxCollider,
 			Transform
 		>();
 
-		public DestroyOnViewportExitSystem(World world)
-			: base(world) { }
-
 		public override void Update(in GameTime gameTime)
 		{
 			World.Query(
 				in _query,
-				(in Entity entity) =>
+				(Entity entity) =>
 				{
 					World.TryGet<EnemyState>(entity, out var enemyState);
 

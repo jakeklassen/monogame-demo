@@ -14,18 +14,15 @@ using Systems;
 
 namespace Screens
 {
-	public class TitleScreen : GameScreen
+	public class TitleScreen(Game1 game) : GameScreen(game)
 	{
 		private new Game1 Game => (Game1)base.Game;
 		private readonly Random _random = new();
 		private Texture2D _spriteSheetTexture;
 		private readonly Tweener _tweener = new();
 		private readonly World _world = World.Create();
-		private readonly List<SystemBase<GameTime>> _updateSystems = new();
-		private readonly List<SystemBase<GameTime>> _drawSystems = new();
-
-		public TitleScreen(Game1 game)
-			: base(game) { }
+		private readonly List<SystemBase<GameTime>> _updateSystems = [];
+		private readonly List<SystemBase<GameTime>> _drawSystems = [];
 
 		public override void Initialize()
 		{
@@ -115,8 +112,8 @@ namespace Screens
 			_world.Add(
 				pressAnyKeyToStart,
 				new Blink(
-					colors: new[] { Pico8Color.Color5, Pico8Color.Color6, Pico8Color.Color7 },
-					colorSequence: new[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 1, 1, 0 },
+					colors: [Pico8Color.Color5, Pico8Color.Color6, Pico8Color.Color7],
+					colorSequence: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 1, 1, 0],
 					durationSeconds: 0.5f
 				)
 			);

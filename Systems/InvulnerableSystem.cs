@@ -4,14 +4,11 @@ using Microsoft.Xna.Framework;
 
 namespace Systems
 {
-	public class InvulnerableSystem : SystemBase<GameTime>
+	public class InvulnerableSystem(World world) : SystemBase<GameTime>(world)
 	{
 		private GameTime _gameTime;
 		private readonly QueryDescription _invulnerableEntities =
 			new QueryDescription().WithAll<Invulnerable>();
-
-		public InvulnerableSystem(World world)
-			: base(world) { }
 
 		public override void Update(in GameTime gameTime)
 		{
@@ -19,7 +16,7 @@ namespace Systems
 
 			World.Query(
 				in _invulnerableEntities,
-				(in Entity entity, ref Invulnerable invulnerable) =>
+				(Entity entity, ref Invulnerable invulnerable) =>
 				{
 					invulnerable.Duration -= (float)_gameTime.ElapsedGameTime.TotalSeconds;
 

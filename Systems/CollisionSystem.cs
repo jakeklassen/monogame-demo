@@ -9,23 +9,16 @@ using MonoGame.Extended;
 
 namespace Systems
 {
-	public class CollisionSystem : SystemBase<GameTime>
+	public class CollisionSystem(World world, Game1 game) : SystemBase<GameTime>(world)
 	{
-		private readonly Game1 _game;
+		private readonly Game1 _game = game;
 		private readonly QueryDescription _collidables = new QueryDescription().WithAll<
 			BoxCollider,
 			CollisionLayer,
 			CollisionMask,
 			Transform
 		>();
-		private readonly List<int> _handledEntities;
-
-		public CollisionSystem(World world, Game1 game)
-			: base(world)
-		{
-			_handledEntities = new List<int>();
-			_game = game;
-		}
+		private readonly List<int> _handledEntities = [];
 
 		public override void Update(in GameTime gameTime)
 		{

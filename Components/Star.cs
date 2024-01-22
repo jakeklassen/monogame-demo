@@ -1,12 +1,7 @@
 namespace Components
 {
-	public class Star
+	public class Star(Color color)
 	{
-		public Color Color { get; set; }
-
-		public Star(Color color)
-		{
-			Color = color;
-		}
+		public Color Color { get; set; } = color;
 	}
 }

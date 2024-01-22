@@ -1,12 +1,7 @@
 namespace Components
 {
-	public class CollisionLayer
+	public class CollisionLayer(int value)
 	{
-		public int Value { get; set; }
-
-		public CollisionLayer(int value)
-		{
-			Value = value;
-		}
+		public int Value { get; set; } = value;
 	}
 }

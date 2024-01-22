@@ -9,29 +9,21 @@ using XnaColor = Microsoft.Xna.Framework.Color;
 
 namespace Systems
 {
-	public class SpriteRenderingSystem : SystemBase<GameTime>
+	public class SpriteRenderingSystem(
+		World world,
+		GraphicsDevice graphicsDevice,
+		OrthographicCamera camera,
+		Texture2D spriteSheetTexture
+		) : SystemBase<GameTime>(world)
 	{
 		private readonly QueryDescription _spriteQuery = new QueryDescription()
 			.WithAll<Sprite, Transform>()
 			.WithNone<Flash>();
-		private readonly SpriteBatch _spriteBatch;
+		private readonly SpriteBatch _spriteBatch = new(graphicsDevice);
 
-		private readonly OrthographicCamera _camera;
+		private readonly OrthographicCamera _camera = camera;
 
-		private readonly Texture2D _spriteSheetTexture;
-
-		public SpriteRenderingSystem(
-			World world,
-			GraphicsDevice graphicsDevice,
-			OrthographicCamera camera,
-			Texture2D spriteSheetTexture
-		)
-			: base(world)
-		{
-			_camera = camera;
-			_spriteBatch = new SpriteBatch(graphicsDevice);
-			_spriteSheetTexture = spriteSheetTexture;
-		}
+		private readonly Texture2D _spriteSheetTexture = spriteSheetTexture;
 
 		public override void Update(in GameTime gameTime)
 		{

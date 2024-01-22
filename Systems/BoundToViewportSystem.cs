@@ -4,20 +4,14 @@ using Microsoft.Xna.Framework;
 
 namespace Systems
 {
-	public class BoundToViewportSystem : SystemBase<GameTime>
+	public class BoundToViewportSystem(World world, Rectangle viewport) : SystemBase<GameTime>(world)
 	{
 		private readonly QueryDescription _query = new QueryDescription().WithAll<
 			BoundToViewport,
 			BoxCollider,
 			Transform
 		>();
-		private readonly Rectangle _viewport;
-
-		public BoundToViewportSystem(World world, Rectangle viewport)
-			: base(world)
-		{
-			_viewport = viewport;
-		}
+		private readonly Rectangle _viewport = viewport;
 
 		public override void Update(in GameTime gameTime)
 		{

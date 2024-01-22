@@ -9,25 +9,17 @@ using MonoGame.Extended;
 
 namespace Systems
 {
-	public class ParticleRenderingSystem : SystemBase<GameTime>
+	public class ParticleRenderingSystem(
+		World world,
+		GraphicsDevice graphicsDevice,
+		OrthographicCamera camera,
+		Dictionary<string, Texture2D> textureCache
+		) : SystemBase<GameTime>(world)
 	{
-		private readonly SpriteBatch _spriteBatch;
-		private readonly OrthographicCamera _camera;
-		private readonly Dictionary<string, Texture2D> _textureCache;
+		private readonly SpriteBatch _spriteBatch = new(graphicsDevice);
+		private readonly OrthographicCamera _camera = camera;
+		private readonly Dictionary<string, Texture2D> _textureCache = textureCache;
 		private QueryDescription _query = new QueryDescription().WithAll<Particle, Transform>();
-
-		public ParticleRenderingSystem(
-			World world,
-			GraphicsDevice graphicsDevice,
-			OrthographicCamera camera,
-			Dictionary<string, Texture2D> textureCache
-		)
-			: base(world)
-		{
-			_camera = camera;
-			_spriteBatch = new SpriteBatch(graphicsDevice);
-			_textureCache = textureCache;
-		}
 
 		public override void Update(in GameTime gameTime)
 		{
@@ -43,7 +35,7 @@ namespace Systems
 
 			World.Query(
 				in _query,
-				(in Entity entity, ref Particle particle, ref Transform transform) =>
+				(Entity entity, ref Particle particle, ref Transform transform) =>
 				{
 					if (Math.Floor(particle.Radius) <= 0)
 					{

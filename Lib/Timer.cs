@@ -1,15 +1,10 @@
 namespace Lib
 {
-	public class Timer
+	public class Timer(float duration)
 	{
-		public float Duration { get; private set; } = 0;
+		public float Duration { get; private set; } = duration;
 		public float Elapsed { get; private set; } = 0;
 		public bool IsExpired { get; private set; } = false;
-
-		public Timer(float duration)
-		{
-			Duration = duration;
-		}
 
 		public void Update(float dt)
 		{

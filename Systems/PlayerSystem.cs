@@ -7,20 +7,14 @@ using Microsoft.Xna.Framework.Input;
 
 namespace Systems
 {
-	public class PlayerSystem : SystemBase<GameTime>
+	public class PlayerSystem(World world) : SystemBase<GameTime>(world)
 	{
 		private readonly QueryDescription _playerEntities = new QueryDescription().WithAll<
 			Direction,
 			TagPlayer,
 			Transform
 		>();
-		private readonly Timer _bulletTimer;
-
-		public PlayerSystem(World world)
-			: base(world)
-		{
-			_bulletTimer = new Timer(0.133f);
-		}
+		private readonly Timer _bulletTimer = new(0.133f);
 
 		public override void Update(in GameTime gameTime)
 		{
@@ -28,7 +22,7 @@ namespace Systems
 
 			World.Query(
 				in _playerEntities,
-				(in Entity entity) =>
+				(Entity entity) =>
 				{
 					var direction = World.Get<Direction>(entity);
 					var transform = World.Get<Transform>(entity);
