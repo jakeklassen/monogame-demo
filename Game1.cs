@@ -77,6 +77,8 @@ namespace CherryBomb
 			_graphics.SynchronizeWithVerticalRetrace = false;
 			_graphics.ApplyChanges();
 
+			Window.AllowUserResizing = true;
+
 			// Disable for a better experience with higher refresh rate monitors
 			IsFixedTimeStep = false;
 
