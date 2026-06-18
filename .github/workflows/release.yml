@@ -12,6 +12,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    # Required for the built-in GITHUB_TOKEN to create the release.
+    permissions:
+      contents: write
+
     steps:
     - uses: actions/checkout@v4
     - name: Setup dotnet
@@ -45,4 +49,4 @@ jobs:
           artifacts/osx-arm64.zip
           artifacts/linux.zip
       env:
-        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
