@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Arch.Core;
+using CherryBomb.Lib;
 using CherryBomb.Lib.Tweening;
 using CherryBomb.Systems;
 using Microsoft.Xna.Framework;
@@ -14,6 +15,11 @@ namespace CherryBomb.Screens
 	{
 		protected new Game1 Game => (Game1)base.Game;
 		protected readonly Tweener _tweener = new();
+
+		// Per-screen scheduler for delayed/repeating callbacks (ms). Ticked below
+		// with the frame delta in seconds; used by gameplay for staggered spawns,
+		// timed delays, etc.
+		protected readonly Scheduler _scheduler = new();
 		protected readonly World _world = World.Create();
 		protected readonly List<SystemBase<GameTime>> _updateSystems = [];
 		protected readonly List<SystemBase<GameTime>> _drawSystems = [];
@@ -27,7 +33,10 @@ namespace CherryBomb.Screens
 
 		public override void Update(GameTime gameTime)
 		{
-			_tweener.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
+			var dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+			_tweener.Update(dt);
+			_scheduler.Update(dt);
 
 			foreach (var system in _updateSystems)
 			{

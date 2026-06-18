@@ -20,6 +20,8 @@ namespace CherryBomb.Screens
 			_updateSystems.Add(new BlinkSystem(_world));
 			_updateSystems.Add(new PlayerSystem(_world));
 			_updateSystems.Add(new MovementSystem(_world));
+			// After movement so children follow the parent's freshly-updated position.
+			_updateSystems.Add(new LocalTransformSystem(_world));
 			_updateSystems.Add(new BoundToViewportSystem(_world, Game1.Viewport));
 			_updateSystems.Add(new DestroyOnViewportExitSystem(_world));
 			_updateSystems.Add(new CollisionSystem(_world, Game.Config));
@@ -94,6 +96,33 @@ namespace CherryBomb.Screens
 				new Transform(new Vector2((Game1.TargetWidth / 2) - 4, 100), 0f, Vector2.One)
 			);
 			_world.Add(player, new Velocity(60, 60));
+
+			// Player thruster: a child entity parented to the player. Its position is
+			// driven each frame by LocalTransformSystem (player position + offset),
+			// so it stays attached as the player moves. Offset is one sprite-height
+			// below the player. First consumer of the Parent/LocalTransform plumbing.
+			var thruster = _world.Create();
+
+			_world.Add(thruster, new Parent(player));
+			_world.Add(thruster, new LocalTransform(new Vector2(0, 8)));
+			_world.Add(thruster, new Transform(Vector2.Zero, 0f, Vector2.One));
+			_world.Add(thruster, new Sprite(SpriteSheet.Player.Thruster.Frame));
+			_world.Add(
+				thruster,
+				SpriteAnimation.Factory(
+					new AnimationDetails
+					{
+						Name = "player-thruster",
+						SourceX = SpriteSheet.Player.Thruster.Animations["Thrust"].SourceX,
+						SourceY = SpriteSheet.Player.Thruster.Animations["Thrust"].SourceY,
+						Width = SpriteSheet.Player.Thruster.Animations["Thrust"].Width,
+						Height = SpriteSheet.Player.Thruster.Animations["Thrust"].Height,
+						FrameWidth = SpriteSheet.Player.Thruster.Animations["Thrust"].FrameWidth,
+						FrameHeight = SpriteSheet.Player.Thruster.Animations["Thrust"].FrameHeight,
+					},
+					durationSeconds: 0.1f
+				)
+			);
 
 			_world.Create(new EventNextWave());
 		}
