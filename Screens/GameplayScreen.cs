@@ -41,6 +41,10 @@ namespace CherryBomb.Screens
 			_updateSystems.Add(
 				new PlayerEnemyCollisionEventSystem(_world, Game.State, Game.Config)
 			);
+			_updateSystems.Add(new PlayerPickupCollisionEventSystem(_world, Game.State));
+			// HUD text sync (diff State -> Text content).
+			_updateSystems.Add(new ScoreSystem(_world, Game.State));
+			_updateSystems.Add(new CherryTextSystem(_world, Game.State));
 			_updateSystems.Add(new ParticleSystem(_world));
 			_updateSystems.Add(new InvulnerableSystem(_world));
 			_updateSystems.Add(new StarfieldSystem(_world));
@@ -79,6 +83,16 @@ namespace CherryBomb.Screens
 			);
 			_drawSystems.Add(
 				new TextRenderingSystem(_world, Game.SpriteBatch, Game.Camera, Game.FontCache)
+			);
+			// HUD hearts drawn on top of the world.
+			_drawSystems.Add(
+				new LivesRenderingSystem(
+					_world,
+					Game.SpriteBatch,
+					Game.Camera,
+					_spriteSheetTexture,
+					Game.State
+				)
 			);
 			_drawSystems.Add(new DebugRenderingSystem(_world, Game, Game.SpriteBatch, Game.Camera));
 
@@ -139,6 +153,49 @@ namespace CherryBomb.Screens
 					},
 					durationSeconds: 0.1f
 				)
+			);
+
+			// --- HUD entities -------------------------------------------------
+			// Score text (top area, just under the hearts). ScoreSystem keeps the
+			// content in sync with State.Score; seed it with the current value.
+			var scoreText = _world.Create();
+			_world.Add(
+				scoreText,
+				new Text()
+				{
+					Alignment = Alignment.Left,
+					Color = Pico8Color.Color7,
+					Content = $"Score:{Game.State.Score}",
+					Font = "pico-8",
+				}
+			);
+			_world.Add(scoreText, new TagScoreText());
+			_world.Add(scoreText, new Transform(new Vector2(1, 10), 0f, Vector2.One));
+
+			// Cherry icon (top-right) plus its count text. CherryTextSystem keeps the
+			// count in sync with State.Cherries.
+			var cherryIcon = _world.Create();
+			_world.Add(cherryIcon, new Sprite(SpriteSheet.Cherry.Frame));
+			_world.Add(
+				cherryIcon,
+				new Transform(new Vector2(Game1.TargetWidth - 9, 0), 0f, Vector2.One)
+			);
+
+			var cherryText = _world.Create();
+			_world.Add(
+				cherryText,
+				new Text()
+				{
+					Alignment = Alignment.Right,
+					Color = Pico8Color.Color7,
+					Content = $"{Game.State.Cherries}",
+					Font = "pico-8",
+				}
+			);
+			_world.Add(cherryText, new TagCherryText());
+			_world.Add(
+				cherryText,
+				new Transform(new Vector2(Game1.TargetWidth - 10, 1), 0f, Vector2.One)
 			);
 
 			_world.Create(new EventNextWave());

@@ -100,6 +100,11 @@ namespace CherryBomb.Systems
 						: World.Has<TagEnemyBullet>(otherEntity) ? otherEntity
 						: null;
 
+					Entity? pickup =
+						World.Has<TagPickup>(entity) ? entity
+						: World.Has<TagPickup>(otherEntity) ? otherEntity
+						: null;
+
 					if (AssertIsNotNull(enemy) && AssertIsNotNull(playerProjectile))
 					{
 						var damage = _config.Entities.Player.Projectiles.Bullet.Damage;
@@ -111,6 +116,14 @@ namespace CherryBomb.Systems
 								(Entity)enemy,
 								damage
 							)
+						);
+					}
+					else if (AssertIsNotNull(player) && AssertIsNotNull(pickup))
+					{
+						// Player collected a pickup (the cherry). Invulnerability does
+						// not block pickups, so this is handled before the damage path.
+						World.Create(
+							new EventPlayerPickupCollision((Entity)player, (Entity)pickup)
 						);
 					}
 					else if (AssertIsNotNull(player))

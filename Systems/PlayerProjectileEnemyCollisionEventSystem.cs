@@ -15,6 +15,9 @@ namespace CherryBomb.Systems
 		private readonly State _state = state;
 		private readonly Config _config = config;
 
+		// Deterministic-but-varied RNG for cherry drop rolls.
+		private readonly Random _random = new();
+
 		private readonly QueryDescription _playerProjectileEnemyCollisionEventQuery =
 			new QueryDescription().WithAll<EventPlayerProjectileEnemyCollision>();
 
@@ -85,7 +88,16 @@ namespace CherryBomb.Systems
 					// Enemy is dead
 					if (enemyHealth.Amount <= 0)
 					{
-						// Award score from the enemy's Config entry (no cherry drop — M2).
+						// Enemies killed while attacking are worth (and drop) more.
+						// Attack state arrives in M3; until then this reads as false.
+						var inAttackState =
+							World.TryGet<EnemyState>(enemy, out var enemyState)
+							&& enemyState?.Value == EnemyStateType.Attack;
+
+						var scoreMultiplier = inAttackState ? 2 : 1;
+						var cherryChance = inAttackState ? 0.2f : 0.1f;
+
+						// Award score from the enemy's Config entry, times the multiplier.
 						if (World.TryGet<EnemyType>(enemy, out var enemyType))
 						{
 							var enemyConfig = _config.Entities.Enemies.GetEnemyConfig(
@@ -94,11 +106,17 @@ namespace CherryBomb.Systems
 
 							if (enemyConfig != null)
 							{
-								_state.Score += enemyConfig.Score;
+								_state.Score += enemyConfig.Score * scoreMultiplier;
 							}
 						}
 
 						SoundSystem.Play(World, "enemy-death");
+
+						// Drop a cherry from the enemy's position before destroying it.
+						if (_random.NextSingle() < cherryChance)
+						{
+							CherryFactory.Create(World, enemyTransform.Position);
+						}
 
 						World.Destroy(enemy);
 

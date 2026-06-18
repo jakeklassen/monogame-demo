@@ -1,6 +1,7 @@
 using Arch.Core;
 using CherryBomb;
 using CherryBomb.Components;
+using CherryBomb.EntityFactories;
 using CherryBomb.Lib;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
@@ -16,8 +17,18 @@ namespace CherryBomb.Systems
 			Transform
 		>();
 
+		// The player thruster is the only Parent-attached child in gameplay; used to
+		// also flash it on spread-shot.
+		private readonly QueryDescription _thrusterEntities = new QueryDescription().WithAll<
+			Parent,
+			Sprite
+		>();
+
 		// ~7 shots/sec.
 		private readonly Timer _bulletTimer = new(0.133f);
+
+		// Edge-trigger state for the spread-shot button (X / gamepad B).
+		private bool _spreadShotHeld = false;
 
 		public override void Update(in GameTime gameTime)
 		{
@@ -96,8 +107,60 @@ namespace CherryBomb.Systems
 
 						SoundSystem.Play(World, "shoot");
 					}
+
+					// Spread-shot: X (keyboard) / B (gamepad), edge-triggered so one
+					// press fires once. Spends all cherries when available.
+					var spreadShotDown =
+						GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.B)
+						|| Keyboard.GetState().IsKeyDown(Keys.X);
+
+					if (spreadShotDown && !_spreadShotHeld)
+					{
+						if (_state.Cherries > 0)
+						{
+							var thruster = FindThruster(entity);
+
+							SpreadShotFactory.Fire(
+								World,
+								player: entity,
+								thruster: thruster,
+								count: _state.Cherries,
+								speed: 200f
+							);
+
+							SoundSystem.Play(World, "spread-shot");
+
+							_state.Cherries = 0;
+						}
+						else
+						{
+							SoundSystem.Play(World, "no-spread-shot");
+						}
+					}
+
+					_spreadShotHeld = spreadShotDown;
 				}
 			);
+		}
+
+		// Locates the player's thruster child (Parent.Entity == player). Returns the
+		// player itself as a harmless fallback if none is found.
+		private Entity FindThruster(Entity player)
+		{
+			var thruster = player;
+
+			World.Query(
+				in _thrusterEntities,
+				(Entity entity, ref Parent parent) =>
+				{
+					if (parent.Entity == player)
+					{
+						thruster = entity;
+					}
+				}
+			);
+
+			return thruster;
 		}
 	}
 }
