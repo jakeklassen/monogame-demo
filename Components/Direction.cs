@@ -1,6 +1,6 @@
 using System;
 
-namespace Components
+namespace CherryBomb.Components
 {
 	public class Direction
 	{

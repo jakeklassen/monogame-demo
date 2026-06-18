@@ -1,11 +1,11 @@
 using Arch.Core;
 using CherryBomb;
-using Components;
-using Lib;
+using CherryBomb.Components;
+using CherryBomb.Lib;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
-namespace Systems
+namespace CherryBomb.Systems
 {
 	public class PlayerSystem(World world) : SystemBase<GameTime>(world)
 	{

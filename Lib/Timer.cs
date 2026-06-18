@@ -1,4 +1,4 @@
-namespace Lib
+namespace CherryBomb.Lib
 {
 	public class Timer(float duration)
 	{

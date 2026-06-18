@@ -1,6 +1,6 @@
 using CherryBomb;
 
-namespace Components
+namespace CherryBomb.Components
 {
 	public enum Alignment
 	{

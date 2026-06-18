@@ -1,17 +1,17 @@
 using Arch.Core;
 using CherryBomb;
-using Components;
+using CherryBomb.Components;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended;
 using XnaColor = Microsoft.Xna.Framework.Color;
 
-namespace Systems
+namespace CherryBomb.Systems
 {
 	public class DebugRenderingSystem(
 		World world,
 		Game1 game,
-		GraphicsDevice graphicsDevice,
+		SpriteBatch spriteBatch,
 		OrthographicCamera camera
 	) : SystemBase<GameTime>(world)
 	{
@@ -20,7 +20,7 @@ namespace Systems
 			BoxCollider,
 			Transform
 		>();
-		private readonly SpriteBatch _spriteBatch = new(graphicsDevice);
+		private readonly SpriteBatch _spriteBatch = spriteBatch;
 
 		private readonly OrthographicCamera _camera = camera;
 

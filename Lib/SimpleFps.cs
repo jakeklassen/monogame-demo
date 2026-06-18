@@ -2,7 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended.BitmapFonts;
 
-namespace Lib
+namespace CherryBomb.Lib
 {
 	public class SimpleFps
 	{

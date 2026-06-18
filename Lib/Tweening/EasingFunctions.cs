@@ -1,7 +1,7 @@
 using System;
 using Microsoft.Xna.Framework;
 
-namespace Lib.Tweening
+namespace CherryBomb.Lib.Tweening
 {
 	public static class EasingFunctions
 	{

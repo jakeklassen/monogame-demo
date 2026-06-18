@@ -2,21 +2,21 @@ using System;
 using System.Collections.Generic;
 using Arch.Core;
 using CherryBomb;
-using Components;
+using CherryBomb.Components;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended;
 
-namespace Systems
+namespace CherryBomb.Systems
 {
 	public class ParticleRenderingSystem(
 		World world,
-		GraphicsDevice graphicsDevice,
+		SpriteBatch spriteBatch,
 		OrthographicCamera camera,
 		Dictionary<string, Texture2D> textureCache
 	) : SystemBase<GameTime>(world)
 	{
-		private readonly SpriteBatch _spriteBatch = new(graphicsDevice);
+		private readonly SpriteBatch _spriteBatch = spriteBatch;
 		private readonly OrthographicCamera _camera = camera;
 		private readonly Dictionary<string, Texture2D> _textureCache = textureCache;
 		private QueryDescription _query = new QueryDescription().WithAll<Particle, Transform>();

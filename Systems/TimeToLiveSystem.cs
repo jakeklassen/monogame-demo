@@ -1,8 +1,8 @@
 using Arch.Core;
-using Components;
+using CherryBomb.Components;
 using Microsoft.Xna.Framework;
 
-namespace Systems
+namespace CherryBomb.Systems
 {
 	public class TimeToLiveSystem(World world) : SystemBase<GameTime>(world)
 	{

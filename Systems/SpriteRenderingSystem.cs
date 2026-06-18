@@ -1,17 +1,17 @@
 using System;
 using Arch.Core;
 using Arch.Core.Extensions;
-using Components;
+using CherryBomb.Components;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended;
 using XnaColor = Microsoft.Xna.Framework.Color;
 
-namespace Systems
+namespace CherryBomb.Systems
 {
 	public class SpriteRenderingSystem(
 		World world,
-		GraphicsDevice graphicsDevice,
+		SpriteBatch spriteBatch,
 		OrthographicCamera camera,
 		Texture2D spriteSheetTexture
 	) : SystemBase<GameTime>(world)
@@ -19,7 +19,7 @@ namespace Systems
 		private readonly QueryDescription _spriteQuery = new QueryDescription()
 			.WithAll<Sprite, Transform>()
 			.WithNone<Flash>();
-		private readonly SpriteBatch _spriteBatch = new(graphicsDevice);
+		private readonly SpriteBatch _spriteBatch = spriteBatch;
 
 		private readonly OrthographicCamera _camera = camera;
 
@@ -40,7 +40,7 @@ namespace Systems
 			var entities = new Entity[World.CountEntities(in _spriteQuery)];
 			World.GetEntities(in _spriteQuery, entities, 0);
 
-			Array.Sort(entities, (a, b) => a.Id.CompareTo(b.Id));
+			Array.Sort(entities, CompareDrawOrder);
 
 			foreach (var entity in entities)
 			{
@@ -61,6 +61,16 @@ namespace Systems
 			}
 
 			_spriteBatch.End();
+		}
+
+		// Draw back-to-front by explicit Layer, falling back to entity id so order
+		// stays stable for the common case where no Layer is set.
+		private int CompareDrawOrder(Entity a, Entity b)
+		{
+			var layerA = World.Has<Layer>(a) ? World.Get<Layer>(a).Value : 0;
+			var layerB = World.Has<Layer>(b) ? World.Get<Layer>(b).Value : 0;
+
+			return layerA != layerB ? layerA.CompareTo(layerB) : a.Id.CompareTo(b.Id);
 		}
 	}
 }

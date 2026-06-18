@@ -1,7 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace Lib
+namespace CherryBomb.Lib
 {
 	public static class Pico8Extensions
 	{

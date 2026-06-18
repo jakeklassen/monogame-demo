@@ -1,17 +1,17 @@
 using System.Collections.Generic;
 using Arch.Core;
-using Components;
+using CherryBomb.Components;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended;
 using MonoGame.Extended.BitmapFonts;
 using XnaColor = Microsoft.Xna.Framework.Color;
 
-namespace Systems
+namespace CherryBomb.Systems
 {
 	public class TextRenderingSystem(
 		World world,
-		GraphicsDevice graphicsDevice,
+		SpriteBatch spriteBatch,
 		OrthographicCamera camera,
 		Dictionary<string, BitmapFont> fontCache
 	) : SystemBase<GameTime>(world)
@@ -20,7 +20,7 @@ namespace Systems
 			Text,
 			Transform
 		>();
-		private readonly SpriteBatch _spriteBatch = new(graphicsDevice);
+		private readonly SpriteBatch _spriteBatch = spriteBatch;
 
 		private readonly OrthographicCamera _camera = camera;
 

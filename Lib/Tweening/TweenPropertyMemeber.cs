@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace Lib.Tweening
+namespace CherryBomb.Lib.Tweening
 {
 	public sealed class TweenPropertyMember<T>(object target, PropertyInfo propertyInfo)
 		: TweenMember<T>(target, CompileGetMethod(propertyInfo), CompileSetMethod(propertyInfo))

@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Components;
+using CherryBomb.Components;
 using Microsoft.Xna.Framework;
 
 namespace CherryBomb

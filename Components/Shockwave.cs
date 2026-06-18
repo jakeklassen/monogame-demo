@@ -1,4 +1,4 @@
-namespace Components
+namespace CherryBomb.Components
 {
 	public class Shockwave(float radius, float targetRadius, Color color, float speed)
 	{

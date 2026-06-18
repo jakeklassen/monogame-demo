@@ -1,6 +1,6 @@
 using XnaColor = Microsoft.Xna.Framework.Color;
 
-namespace Components
+namespace CherryBomb.Components
 {
 	public class Color
 	{

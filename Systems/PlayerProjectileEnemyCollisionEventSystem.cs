@@ -1,13 +1,13 @@
 using System;
 using Arch.Core;
 using CherryBomb;
-using Components;
-using EntityFactories;
+using CherryBomb.Components;
+using CherryBomb.EntityFactories;
 using Microsoft.Xna.Framework;
 using MonoGame.Extended;
 using XnaColor = Microsoft.Xna.Framework.Color;
 
-namespace Systems
+namespace CherryBomb.Systems
 {
 	public class PlayerProjectileEnemyCollisionEventSystem(World world)
 		: SystemBase<GameTime>(world)

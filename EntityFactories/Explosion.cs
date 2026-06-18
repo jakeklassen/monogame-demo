@@ -1,9 +1,9 @@
 using System;
 using Arch.Core;
-using Components;
+using CherryBomb.Components;
 using Microsoft.Xna.Framework;
 
-namespace EntityFactories
+namespace CherryBomb.EntityFactories
 {
 	public static class ExplosionFactory
 	{

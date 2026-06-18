@@ -18,7 +18,7 @@
 //   Color15 = 0xFFCCAA
 // }
 
-using Components;
+using CherryBomb.Components;
 
 namespace CherryBomb
 {

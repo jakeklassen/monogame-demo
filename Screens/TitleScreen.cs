@@ -1,33 +1,20 @@
 using System;
-using System.Collections.Generic;
-using Arch.Core;
 using CherryBomb;
-using Components;
-using EntityFactories;
-using Lib.Tweening;
+using CherryBomb.Components;
+using CherryBomb.EntityFactories;
+using CherryBomb.Lib.Tweening;
+using CherryBomb.Systems;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonoGame.Extended.Input;
-using MonoGame.Extended.Screens;
-using Systems;
 
-namespace Screens
+namespace CherryBomb.Screens
 {
-	public class TitleScreen(Game1 game) : GameScreen(game)
+	public class TitleScreen(Game1 game) : GameScreenBase(game)
 	{
-		private new Game1 Game => (Game1)base.Game;
 		private readonly Random _random = new();
 		private Texture2D _spriteSheetTexture;
-		private readonly Tweener _tweener = new();
-		private readonly World _world = World.Create();
-		private readonly List<SystemBase<GameTime>> _updateSystems = [];
-		private readonly List<SystemBase<GameTime>> _drawSystems = [];
-
-		public override void Initialize()
-		{
-			base.Initialize();
-		}
 
 		public override void LoadContent()
 		{
@@ -39,19 +26,17 @@ namespace Screens
 			_updateSystems.Add(new MovementSystem(_world));
 			_updateSystems.Add(new StarfieldSystem(_world));
 
-			_drawSystems.Add(
-				new StarfieldRenderingSystem(_world, Game.GraphicsDevice, Game.Camera)
-			);
+			_drawSystems.Add(new StarfieldRenderingSystem(_world, Game.SpriteBatch, Game.Camera));
 			_drawSystems.Add(
 				new SpriteRenderingSystem(
 					_world,
-					Game.GraphicsDevice,
+					Game.SpriteBatch,
 					Game.Camera,
 					_spriteSheetTexture
 				)
 			);
 			_drawSystems.Add(
-				new TextRenderingSystem(_world, Game.GraphicsDevice, Game.Camera, Game.FontCache)
+				new TextRenderingSystem(_world, Game.SpriteBatch, Game.Camera, Game.FontCache)
 			);
 
 			StarFactory.CreateStarfield(_world, Game1.TargetWidth, Game1.TargetHeight, 100);
@@ -179,34 +164,15 @@ namespace Screens
 			);
 		}
 
-		public override void UnloadContent()
-		{
-			base.UnloadContent();
-
-			World.Destroy(_world);
-		}
-
 		public override void Update(GameTime gameTime)
 		{
-			_tweener.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
-
 			if (KeyboardExtended.GetState().WasAnyKeyJustDown() || IsAnyButtonDown())
 			{
 				ScreenManager.ReplaceScreen(new GameplayScreen(Game));
+				return;
 			}
 
-			foreach (var system in _updateSystems)
-			{
-				system.Update(in gameTime);
-			}
-		}
-
-		public override void Draw(GameTime gameTime)
-		{
-			foreach (var system in _drawSystems)
-			{
-				system.Update(in gameTime);
-			}
+			base.Update(gameTime);
 		}
 
 		private static bool IsAnyButtonDown()

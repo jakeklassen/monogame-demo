@@ -3,15 +3,15 @@ using System.Diagnostics.CodeAnalysis;
 using Arch.Core;
 using Arch.Core.Extensions;
 using CherryBomb;
-using Components;
+using CherryBomb.Components;
 using Microsoft.Xna.Framework;
 using MonoGame.Extended;
 
-namespace Systems
+namespace CherryBomb.Systems
 {
-	public class CollisionSystem(World world, Game1 game) : SystemBase<GameTime>(world)
+	public class CollisionSystem(World world, Config config) : SystemBase<GameTime>(world)
 	{
-		private readonly Game1 _game = game;
+		private readonly Config _config = config;
 		private readonly QueryDescription _collidables = new QueryDescription().WithAll<
 			BoxCollider,
 			CollisionLayer,
@@ -92,7 +92,7 @@ namespace Systems
 
 					if (AssertIsNotNull(enemy) && AssertIsNotNull(playerProjectile))
 					{
-						var damage = _game.Config.Entities.Player.Projectiles.Bullet.Damage;
+						var damage = _config.Entities.Player.Projectiles.Bullet.Damage;
 
 						World.Create(
 							// For some reason this is not working, I had to cast

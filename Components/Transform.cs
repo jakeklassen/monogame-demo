@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework;
 
-namespace Components
+namespace CherryBomb.Components
 {
 	public class Transform(Vector2 position, float rotation, Vector2 scale)
 	{

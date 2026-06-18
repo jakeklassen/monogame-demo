@@ -1,4 +1,4 @@
-namespace Components
+namespace CherryBomb.Components
 {
 	public struct Health(int amount)
 	{

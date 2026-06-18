@@ -1,9 +1,9 @@
 using Arch.Core;
 using CherryBomb;
-using Components;
+using CherryBomb.Components;
 using Microsoft.Xna.Framework;
 
-namespace Systems
+namespace CherryBomb.Systems
 {
 	public class ParticleSystem(World world) : SystemBase<GameTime>(world)
 	{

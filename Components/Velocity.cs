@@ -1,6 +1,6 @@
-namespace Components
+namespace CherryBomb.Components
 {
-	public class Velocity
+	public struct Velocity
 	{
 		public float X { get; set; }
 		public float Y { get; set; }

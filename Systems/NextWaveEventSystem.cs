@@ -1,15 +1,16 @@
 using Arch.Core;
 using CherryBomb;
-using Components;
-using Lib.Tweening;
+using CherryBomb.Components;
+using CherryBomb.Lib.Tweening;
 using Microsoft.Xna.Framework;
 
-namespace Systems
+namespace CherryBomb.Systems
 {
-	public class NextWaveEventSystem(World world, Game1 game, Tweener tweener)
+	public class NextWaveEventSystem(World world, State state, Config config, Tweener tweener)
 		: SystemBase<GameTime>(world)
 	{
-		private readonly Game1 _game = game;
+		private readonly State _state = state;
+		private readonly Config _config = config;
 		private readonly Tweener _tweener = tweener;
 		private readonly QueryDescription _eventEntities =
 			new QueryDescription().WithAll<EventNextWave>();
@@ -20,10 +21,10 @@ namespace Systems
 				in _eventEntities,
 				(Entity entity, ref EventNextWave nextWaveEvent) =>
 				{
-					_game.State.WaveReady = false;
-					_game.State.Wave++;
+					_state.WaveReady = false;
+					_state.Wave++;
 
-					_game.Config.Waves.TryGetValue(_game.State.Wave, out var wave);
+					_config.Waves.TryGetValue(_state.Wave, out var wave);
 
 					if (wave == null)
 					{
@@ -38,8 +39,8 @@ namespace Systems
 						Alignment = Alignment.Center,
 						Color = Pico8Color.Color6,
 						Content =
-							_game.State.Wave < _game.State.MaxWaves
-								? $"Wave {_game.State.Wave} of {_game.State.MaxWaves}"
+							_state.Wave < _state.MaxWaves
+								? $"Wave {_state.Wave} of {_state.MaxWaves}"
 								: "Final Wave!",
 						Font = "pico-8",
 					};
@@ -63,7 +64,7 @@ namespace Systems
 					);
 					World.Add(textEntity, new TimeToLive(2.6f));
 
-					if (_game.State.Wave > 1)
+					if (_state.Wave > 1)
 					{
 						// TODO: play wave-complete sound
 					}
@@ -86,7 +87,7 @@ namespace Systems
 							}
 
 							var enemy =
-								_game.Config.Entities.Enemies.GetEnemyConfig(enemyType)
+								_config.Entities.Enemies.GetEnemyConfig(enemyType)
 								?? throw new System.Exception($"Enemy type {enemyType} not found!");
 
 							var destinationX = ((x + 1) * 12) - 6;
@@ -185,7 +186,7 @@ namespace Systems
 						}
 					}
 
-					lastTween.OnEnd((action) => _game.State.WaveReady = true);
+					lastTween.OnEnd((action) => _state.WaveReady = true);
 
 					World.Destroy(entity);
 				}

@@ -1,10 +1,10 @@
 using System;
 using Arch.Core;
 using CherryBomb;
-using Components;
+using CherryBomb.Components;
 using Vector2 = Microsoft.Xna.Framework.Vector2;
 
-namespace EntityFactories
+namespace CherryBomb.EntityFactories
 {
 	public static class StarFactory
 	{

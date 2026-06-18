@@ -1,7 +1,7 @@
 using System;
 using System.Linq.Expressions;
 
-namespace Lib.Tweening
+namespace CherryBomb.Lib.Tweening
 {
 	public abstract class TweenMember(object target)
 	{

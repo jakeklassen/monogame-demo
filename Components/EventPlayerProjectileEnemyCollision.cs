@@ -1,6 +1,6 @@
 using Arch.Core;
 
-namespace Components
+namespace CherryBomb.Components
 {
 	public class EventPlayerProjectileEnemyCollision(
 		Entity projectileEntity,

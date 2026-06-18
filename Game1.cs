@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
-using Lib;
+using CherryBomb.Lib;
+using CherryBomb.Screens;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -9,7 +10,6 @@ using MonoGame.Extended.Input;
 using MonoGame.Extended.Input.InputListeners;
 using MonoGame.Extended.Screens;
 using MonoGame.Extended.ViewportAdapters;
-using Screens;
 using XnaColor = Microsoft.Xna.Framework.Color;
 
 namespace CherryBomb
@@ -112,13 +112,23 @@ namespace CherryBomb
 			);
 			Camera = new OrthographicCamera(viewportAdapter);
 
+			// Created here (before the first screen loads) so rendering systems can
+			// share this single SpriteBatch instead of each allocating their own.
+			SpriteBatch = new SpriteBatch(GraphicsDevice);
+
+			// Center the window on the primary monitor. Without this, SDL can place
+			// it at the top-left of a secondary display on multi-monitor setups.
+			var displayMode = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode;
+			Window.Position = new Point(
+				(displayMode.Width - _graphics.PreferredBackBufferWidth) / 2,
+				(displayMode.Height - _graphics.PreferredBackBufferHeight) / 2
+			);
+
 			_screenManager.ReplaceScreen(new TitleScreen(this));
 		}
 
 		protected override void LoadContent()
 		{
-			SpriteBatch = new SpriteBatch(GraphicsDevice);
-
 			_font = Content.Load<BitmapFont>("Font/pico-8");
 
 			FontCache.Add("pico-8", _font);
@@ -193,39 +203,9 @@ namespace CherryBomb
 
 		protected override void Draw(GameTime gameTime)
 		{
+			// Clear the framebuffer; the active screen's rendering systems do the
+			// actual drawing during base.Draw (via the ScreenManager component).
 			GraphicsDevice.Clear(XnaColor.Black);
-
-			SpriteBatch.Begin(
-				SpriteSortMode.Immediate,
-				null,
-				SamplerState.PointClamp,
-				null,
-				null,
-				null,
-				Camera.GetViewMatrix()
-			);
-
-			// spriteBatch.Draw(textureCache["circ-1"], new Vector2(10, 94), Color.White);
-			// spriteBatch.Draw(textureCache["circ-2"], new Vector2(16, 94), Color.White);
-			// spriteBatch.Draw(textureCache["circ-3"], new Vector2(24, 94), Color.White);
-			// spriteBatch.Draw(textureCache["circ-4"], new Vector2(34, 94), Color.White);
-			// spriteBatch.Draw(textureCache["circ-5"], new Vector2(46, 94), Color.White);
-			// spriteBatch.Draw(textureCache["circ-6"], new Vector2(60, 94) - new Vector2(6, 6), Color.White);
-			// spriteBatch.DrawRectangle(new Rectangle(60, 94, 1, 1), Color.White, 1f);
-
-			// spriteBatch.Draw(textureCache["circfill-1"], new Vector2(10, 110), Color.White);
-			// spriteBatch.Draw(textureCache["circfill-2"], new Vector2(16, 110), Color.White);
-			// spriteBatch.Draw(textureCache["circfill-3"], new Vector2(24, 110), Color.White);
-			// spriteBatch.Draw(textureCache["circfill-4"], new Vector2(34, 110), Color.White);
-			// spriteBatch.Draw(textureCache["circfill-5"], new Vector2(46, 110), Color.White);
-			// spriteBatch.Draw(textureCache["circfill-6"], new Vector2(60, 110), Color.White);
-
-			// _spriteBatch.DrawString(_font, $"Is Fixed TimeStep: {IsFixedTimeStep}", new Vector2(2f, 25f), XnaColor.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
-			// SpriteBatch.DrawString(_font, $"Entity #: {_world.EntityCount}", new Vector2(2f, 32f), XnaColor.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
-			// _spriteBatch.DrawString(_font, $"Vsync: {_graphics.SynchronizeWithVerticalRetrace}", new Vector2(2f, 40f), XnaColor.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
-			// fps.DrawFps(spriteBatch, font, new Vector2(2f, 55f), Color.White);
-
-			SpriteBatch.End();
 
 			base.Draw(gameTime);
 		}
