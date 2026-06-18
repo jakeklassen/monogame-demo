@@ -125,3 +125,117 @@
 /processorParam:TextureFormat=Color
 /build:Graphics/shmup.png
 
+#begin Audio/big-explosion.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/big-explosion.wav
+
+#begin Audio/boss-music.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/boss-music.wav
+
+#begin Audio/boss-projectile.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/boss-projectile.wav
+
+#begin Audio/enemy-death.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/enemy-death.wav
+
+#begin Audio/enemy-projectile.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/enemy-projectile.wav
+
+#begin Audio/extra-life.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/extra-life.wav
+
+#begin Audio/game-over.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/game-over.wav
+
+#begin Audio/game-start.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/game-start.wav
+
+#begin Audio/game-won-music.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/game-won-music.wav
+
+#begin Audio/no-cherry-bomb.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/no-cherry-bomb.wav
+
+#begin Audio/no-spread-shot.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/no-spread-shot.wav
+
+#begin Audio/pickup.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/pickup.wav
+
+#begin Audio/player-death.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/player-death.wav
+
+#begin Audio/player-projectile-hit.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/player-projectile-hit.wav
+
+#begin Audio/shoot.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/shoot.wav
+
+#begin Audio/spread-shot.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/spread-shot.wav
+
+#begin Audio/title-screen-music.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/title-screen-music.wav
+
+#begin Audio/wave-complete.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/wave-complete.wav
+
+#begin Audio/wave-spawn.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/wave-spawn.wav
+

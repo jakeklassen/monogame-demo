@@ -12,6 +12,7 @@ using MonoGame.Extended.Input;
 using MonoGame.Extended.Input.InputListeners;
 using MonoGame.Extended.Screens;
 using MonoGame.Extended.ViewportAdapters;
+using SoundEffect = Microsoft.Xna.Framework.Audio.SoundEffect;
 using XnaColor = Microsoft.Xna.Framework.Color;
 
 namespace CherryBomb
@@ -64,6 +65,7 @@ namespace CherryBomb
 		public Dictionary<string, BitmapFont> FontCache { get; } = new();
 		public SpriteBatch SpriteBatch { get; private set; }
 		public Dictionary<string, Texture2D> TextureCache { get; } = new();
+		public Dictionary<string, SoundEffect> SoundCache { get; } = new();
 		public Config Config { get; } = new();
 		public State State { get; } = new();
 		private readonly GamePadListener _gamePadListener;
@@ -179,6 +181,37 @@ namespace CherryBomb
 
 				var circleTexture = Pico8Extensions.Circ(GraphicsDevice, radius, XnaColor.White);
 				TextureCache.Add($"circ-{radius}", circleTexture);
+			}
+
+			// Load all audio as SoundEffect (music included; looped via
+			// SoundEffectInstance). This keeps the MGCB content build working
+			// cross-platform without the Song/ffmpeg pipeline.
+			string[] audioTracks =
+			[
+				"big-explosion",
+				"boss-music",
+				"boss-projectile",
+				"enemy-death",
+				"enemy-projectile",
+				"extra-life",
+				"game-over",
+				"game-start",
+				"game-won-music",
+				"no-cherry-bomb",
+				"no-spread-shot",
+				"pickup",
+				"player-death",
+				"player-projectile-hit",
+				"shoot",
+				"spread-shot",
+				"title-screen-music",
+				"wave-complete",
+				"wave-spawn",
+			];
+
+			foreach (var track in audioTracks)
+			{
+				SoundCache.Add(track, Content.Load<SoundEffect>($"Audio/{track}"));
 			}
 		}
 

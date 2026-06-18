@@ -15,6 +15,7 @@ namespace CherryBomb.Screens
 	{
 		private readonly Random _random = new();
 		private Texture2D _spriteSheetTexture;
+		private SoundSystem _soundSystem;
 
 		public override void LoadContent()
 		{
@@ -22,6 +23,9 @@ namespace CherryBomb.Screens
 
 			_spriteSheetTexture = Game.Content.Load<Texture2D>("Graphics/shmup");
 
+			_soundSystem = new SoundSystem(_world, Game.SoundCache);
+
+			_updateSystems.Add(_soundSystem);
 			_updateSystems.Add(new BlinkSystem(_world));
 			_updateSystems.Add(new MovementSystem(_world));
 			_updateSystems.Add(new StarfieldSystem(_world));
@@ -162,6 +166,17 @@ namespace CherryBomb.Screens
 				moveControls,
 				new Transform(new Vector2(Game1.TargetWidth / 2, 110), 0f, Vector2.One)
 			);
+
+			// Loop the title music. The SoundSystem retains the looping instance
+			// so UnloadContent can stop it on screen exit.
+			SoundSystem.Play(_world, "title-screen-music", loop: true);
+		}
+
+		public override void UnloadContent()
+		{
+			_soundSystem?.StopAll();
+
+			base.UnloadContent();
 		}
 
 		public override void Update(GameTime gameTime)
