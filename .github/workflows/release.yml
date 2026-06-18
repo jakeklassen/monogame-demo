@@ -24,21 +24,25 @@ jobs:
         echo "TAGVERSION=${TAGVERSION:1}" >> $GITHUB_ENV
     - name: Build Windows
       run: dotnet publish ${{ env.PROJECT_PATH }} -r win-x64 -c Release --self-contained --output artifacts/windows
-    - name: Build Osx
-      run: dotnet publish ${{ env.PROJECT_PATH }} -r osx-x64 -c Release --self-contained --output artifacts/osx
+    - name: Build macOS (Intel)
+      run: dotnet publish ${{ env.PROJECT_PATH }} -r osx-x64 -c Release --self-contained --output artifacts/osx-x64
+    - name: Build macOS (Apple Silicon)
+      run: dotnet publish ${{ env.PROJECT_PATH }} -r osx-arm64 -c Release --self-contained --output artifacts/osx-arm64
     - name: Build Linux
       run: dotnet publish ${{ env.PROJECT_PATH }} -r linux-x64 -c Release --self-contained --output artifacts/linux
     - name: Zip
       run: |
         zip -r artifacts/windows.zip artifacts/windows
-        zip -r artifacts/osx.zip artifacts/osx
+        zip -r artifacts/osx-x64.zip artifacts/osx-x64
+        zip -r artifacts/osx-arm64.zip artifacts/osx-arm64
         zip -r artifacts/linux.zip artifacts/linux
     - name: Release with Notes
       uses: softprops/action-gh-release@v2
       with:
         files: |
           artifacts/windows.zip
-          artifacts/osx.zip
+          artifacts/osx-x64.zip
+          artifacts/osx-arm64.zip
           artifacts/linux.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
