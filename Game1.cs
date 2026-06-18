@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using CherryBomb.Lib;
 using CherryBomb.Screens;
 using Microsoft.Xna.Framework;
@@ -44,6 +46,10 @@ namespace CherryBomb
 	{
 		public const int TargetWidth = 128;
 		public const int TargetHeight = 128;
+
+		// Window size at 100% DPI; scaled up on high-DPI monitors (4x the 128 internal
+		// resolution). See the back-buffer setup in the constructor.
+		private const int BaseWindowSize = 512;
 		private readonly GraphicsDeviceManager _graphics;
 		private readonly ScreenManager _screenManager;
 
@@ -69,8 +75,14 @@ namespace CherryBomb
 			Content.RootDirectory = "Content";
 			IsMouseVisible = true;
 
-			_graphics.PreferredBackBufferWidth = 512;
-			_graphics.PreferredBackBufferHeight = 512;
+			// Scale the window by the monitor's DPI so it stays a consistent physical
+			// size across displays. The app is per-monitor DPI aware (app.manifest),
+			// so Windows otherwise renders a fixed 512px window that looks tiny on
+			// high-DPI screens. 512 = 128 internal * 4, and Windows DPI scales come in
+			// 25% steps, so the result is always an exact multiple of 128 (crisp).
+			var windowSize = (int)Math.Round(BaseWindowSize * GetDpiScale());
+			_graphics.PreferredBackBufferWidth = windowSize;
+			_graphics.PreferredBackBufferHeight = windowSize;
 			// this is for fullscreen but like 'borderless'
 			_graphics.HardwareModeSwitch = false;
 			_graphics.IsFullScreen = false;
@@ -99,6 +111,29 @@ namespace CherryBomb
 				}
 			};
 		}
+
+		// Returns the primary monitor's DPI scale (1.0 at 96 DPI, 1.5 at 150%, etc.).
+		// Windows-only; everywhere else (e.g. the X server under WSL handles its own
+		// scaling) this is 1.0 and the window keeps its base size.
+		private static float GetDpiScale()
+		{
+			if (OperatingSystem.IsWindows())
+			{
+				try
+				{
+					return GetDpiForSystem() / 96f;
+				}
+				catch (EntryPointNotFoundException)
+				{
+					// GetDpiForSystem requires Windows 10 1607+; fall back to no scaling.
+				}
+			}
+
+			return 1f;
+		}
+
+		[DllImport("user32.dll")]
+		private static extern uint GetDpiForSystem();
 
 		protected override void Initialize()
 		{
