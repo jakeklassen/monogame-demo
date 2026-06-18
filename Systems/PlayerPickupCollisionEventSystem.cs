@@ -67,6 +67,11 @@ namespace CherryBomb.Systems
 								Content = message,
 								Font = "pico-8",
 							},
+							new Blink(
+								colors: [Pico8Color.Color7, Pico8Color.Color8],
+								colorSequence: [0, 1],
+								durationSeconds: 0.1f
+							),
 							new Direction(0, -1),
 							new Transform(
 								position: new Vector2(pickupPosition.X + 4, pickupPosition.Y + 4),

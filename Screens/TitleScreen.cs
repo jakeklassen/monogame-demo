@@ -92,8 +92,8 @@ namespace CherryBomb.Screens
 				new Text()
 				{
 					Alignment = Alignment.Left,
-					Color = Pico8Color.Color2,
-					Content = "v1",
+					Color = Pico8Color.Color1,
+					Content = "V1",
 					Font = "pico-8",
 				}
 			);
@@ -158,7 +158,7 @@ namespace CherryBomb.Screens
 				fireControls,
 				new Text()
 				{
-					Color = Pico8Color.Color6,
+					Color = Pico8Color.Color5,
 					Content = "Z (Shoot) X (Spread) B (Bomb)",
 					Font = "pico-8",
 				}
@@ -173,7 +173,7 @@ namespace CherryBomb.Screens
 				moveControls,
 				new Text()
 				{
-					Color = Pico8Color.Color6,
+					Color = Pico8Color.Color5,
 					Content = "Arrow Keys (Move)",
 					Font = "pico-8",
 				}

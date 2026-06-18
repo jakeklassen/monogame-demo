@@ -34,6 +34,10 @@ namespace CherryBomb.Systems
 					var projectile = collisionEvent.ProjectileEntity;
 					var projectileTransform = World.Get<Transform>(projectile);
 
+					// Player bullet hit an enemy: play the impact SFX for every hit
+					// (not just kills). Source: destroy-player-bullet.ts.
+					SoundSystem.Play(World, "player-projectile-hit");
+
 					// Bullet shockwave
 					World.Create(
 						new Shockwave(
@@ -98,6 +102,8 @@ namespace CherryBomb.Systems
 						var cherryChance = inAttackState ? 0.2f : 0.1f;
 
 						// Award score from the enemy's Config entry, times the multiplier.
+						var awardedScore = 0;
+
 						if (World.TryGet<EnemyType>(enemy, out var enemyType))
 						{
 							var enemyConfig = _config.Entities.Enemies.GetEnemyConfig(
@@ -106,7 +112,46 @@ namespace CherryBomb.Systems
 
 							if (enemyConfig != null)
 							{
-								_state.Score += enemyConfig.Score * scoreMultiplier;
+								awardedScore = enemyConfig.Score * scoreMultiplier;
+								_state.Score += awardedScore;
+							}
+						}
+
+						// Killing an attacking enemy shows a floating bonus-score text
+						// (drifts up, expires after 2s) and has a 50% chance to trigger
+						// another enemy attack. Source:
+						// player-projectile-enemy-collision-event-system.ts (attack branch).
+						if (inAttackState)
+						{
+							World.Create(
+								new Text()
+								{
+									Alignment = Alignment.Center,
+									Color = Pico8Color.Color7,
+									Content = $"{awardedScore}",
+									Font = "pico-8",
+								},
+								new Blink(
+									colors: [Pico8Color.Color7, Pico8Color.Color8],
+									colorSequence: [0, 1],
+									durationSeconds: 0.1f
+								),
+								new Direction(0, -1),
+								new Transform(
+									position: new Vector2(
+										enemyTransform.Position.X + 4,
+										enemyTransform.Position.Y + 4
+									),
+									rotation: 0f,
+									scale: Vector2.One
+								),
+								new Velocity(0, 15),
+								new TimeToLive(2f)
+							);
+
+							if (_random.NextSingle() < 0.5f)
+							{
+								World.Create(new EventTriggerEnemyAttack());
 							}
 						}
 

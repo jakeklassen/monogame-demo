@@ -77,9 +77,21 @@ namespace CherryBomb.Systems
 					);
 					World.Add(textEntity, new TimeToLive(2.6f));
 
+					// Wave-complete jingle on the transition into any wave after the
+					// first. Source: next-wave-event-system.ts (gameState.wave > 1).
 					if (_state.Wave > 1)
 					{
-						// TODO: play wave-complete sound
+						SoundSystem.Play(World, "wave-complete");
+					}
+
+					// Boss waves start their looping music ~500ms after spawn; every
+					// other wave plays the one-shot wave-spawn cue synchronised with the
+					// wave text destroy (2600ms). Source: next-wave-event-system.ts.
+					var isBossWave = _state.Wave == _state.MaxWaves;
+
+					if (!isBossWave)
+					{
+						_scheduler.Add(2600f, () => SoundSystem.Play(World, "wave-spawn"));
 					}
 
 					Tween lastTween = null;
@@ -126,7 +138,8 @@ namespace CherryBomb.Systems
 
 							if (enemyType == 5)
 							{
-								spawnPosition = new Vector2(x: 48, y: -48);
+								// Source: wave.ts boss branch -> spawn (48, -24) -> (48, 25).
+								spawnPosition = new Vector2(x: 48, y: -24);
 								enemyDestination = new Vector2(x: 48, y: 25);
 							}
 
@@ -136,9 +149,10 @@ namespace CherryBomb.Systems
 								scale: Vector2.One
 							);
 
-							// Boss enters on a slow 2s linear glide; formation enemies snap
-							// in over 0.4s. Source: wave.ts (enemyType === 5 branch).
-							var tweenDuration = enemyType == 5 ? 2.0f : 0.4f;
+							// Boss enters on a slow 2s linear glide; formation enemies
+							// ease in over 0.8s with OutQuart. Source: wave.ts (800ms
+							// OutQuart for formation, 2000ms Linear for the boss).
+							var tweenDuration = enemyType == 5 ? 2.0f : 0.8f;
 							var tweenDelay = 2.6f + (x * 90 / 1000f);
 
 							SpriteSheet.SpriteData spriteData = enemyType switch
@@ -232,7 +246,13 @@ namespace CherryBomb.Systems
 									duration: tweenDuration,
 									delay: tweenDelay
 								)
-								.Easing(EasingFunctions.Linear);
+								// Boss glides in linearly; formation enemies use OutQuart.
+								// Source: wave.ts Easing.Linear (boss) / Easing.OutQuart.
+								.Easing(
+									enemyType == 5
+										? EasingFunctions.Linear
+										: EasingFunctions.QuarticOut
+								);
 
 							lastEnemyState = enemyState;
 							lastTransitionsToProtect = transitionsToProtect;

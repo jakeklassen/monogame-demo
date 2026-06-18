@@ -60,7 +60,7 @@ namespace CherryBomb.Screens
 				new PlayerProjectileEnemyCollisionEventSystem(_world, Game.State, Game.Config)
 			);
 			_updateSystems.Add(
-				new PlayerEnemyCollisionEventSystem(_world, Game.State, Game.Config)
+				new PlayerEnemyCollisionEventSystem(_world, Game.State, Game.Config, _scheduler)
 			);
 			// Boss damage / hurt-flash path (kept separate from the enemy-death path
 			// so the boss is never destroyed by it) and the scripted win sequence.
@@ -210,49 +210,50 @@ namespace CherryBomb.Screens
 			);
 
 			// --- HUD entities -------------------------------------------------
-			// Score text (top area, just under the hearts). ScoreSystem keeps the
-			// content in sync with State.Score; seed it with the current value.
+			// Cherry icon (top-right). Source: gameplay-screen.ts -> (108, 1).
+			var cherryIcon = _world.Create();
+			_world.Add(cherryIcon, new Sprite(SpriteSheet.Cherry.Frame));
+			_world.Add(cherryIcon, new Transform(new Vector2(108, 1), 0f, Vector2.One));
+
+			// Score text on the SAME top row as the hearts, to their right.
+			// Source: gameplay-screen.ts -> (40, 2), Color12, left-aligned,
+			// "Score:{score}". ScoreSystem keeps the content in sync with State.Score.
 			var scoreText = _world.Create();
 			_world.Add(
 				scoreText,
 				new Text()
 				{
 					Alignment = Alignment.Left,
-					Color = Pico8Color.Color7,
+					Color = Pico8Color.Color12,
 					Content = $"Score:{Game.State.Score}",
 					Font = "pico-8",
 				}
 			);
 			_world.Add(scoreText, new TagScoreText());
-			_world.Add(scoreText, new Transform(new Vector2(1, 10), 0f, Vector2.One));
+			_world.Add(scoreText, new Transform(new Vector2(40, 2), 0f, Vector2.One));
 
-			// Cherry icon (top-right) plus its count text. CherryTextSystem keeps the
-			// count in sync with State.Cherries.
-			var cherryIcon = _world.Create();
-			_world.Add(cherryIcon, new Sprite(SpriteSheet.Cherry.Frame));
-			_world.Add(
-				cherryIcon,
-				new Transform(new Vector2(Game1.TargetWidth - 9, 0), 0f, Vector2.One)
-			);
-
+			// Cherry count text (top-right, just right of the cherry icon).
+			// Source: gameplay-screen.ts -> (118, 2), Color14, left-aligned.
+			// CherryTextSystem keeps the count in sync with State.Cherries.
 			var cherryText = _world.Create();
 			_world.Add(
 				cherryText,
 				new Text()
 				{
-					Alignment = Alignment.Right,
-					Color = Pico8Color.Color7,
+					Alignment = Alignment.Left,
+					Color = Pico8Color.Color14,
 					Content = $"{Game.State.Cherries}",
 					Font = "pico-8",
 				}
 			);
 			_world.Add(cherryText, new TagCherryText());
-			_world.Add(
-				cherryText,
-				new Transform(new Vector2(Game1.TargetWidth - 10, 1), 0f, Vector2.One)
-			);
+			_world.Add(cherryText, new Transform(new Vector2(118, 2), 0f, Vector2.One));
 
 			_world.Create(new EventNextWave());
+
+			// Play the game-start jingle when the gameplay screen begins.
+			// Source: gameplay-screen.ts initialize().
+			SoundSystem.Play(_world, "game-start");
 		}
 
 		public override void Update(GameTime gameTime)
