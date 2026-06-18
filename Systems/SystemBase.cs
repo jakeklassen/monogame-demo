@@ -13,7 +13,6 @@ namespace Systems
 	/// <param name="world">Its <see cref="World"/>.</param>
 	public abstract class SystemBase<T>(World world)
 	{
-
 		/// <summary>
 		///     The <see cref="World"/> for which this system works and must access.
 		/// </summary>

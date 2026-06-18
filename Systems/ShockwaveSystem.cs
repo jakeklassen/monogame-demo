@@ -17,7 +17,8 @@ namespace Systems
 				in _query,
 				(Entity entity, ref Shockwave shockwave) =>
 				{
-					shockwave.Radius += shockwave.Speed * (float)_gameTime.ElapsedGameTime.TotalSeconds;
+					shockwave.Radius +=
+						shockwave.Speed * (float)_gameTime.ElapsedGameTime.TotalSeconds;
 
 					if (shockwave.Radius >= shockwave.TargetRadius)
 					{

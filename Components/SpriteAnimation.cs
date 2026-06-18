@@ -86,7 +86,7 @@ namespace Components
 				Frames = [.. frames],
 				FrameSequence = frameSequence,
 				IsFinished = finished,
-				Loop = loop
+				Loop = loop,
 			};
 		}
 	}

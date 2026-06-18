@@ -6,7 +6,8 @@ using Microsoft.Xna.Framework;
 
 namespace Systems
 {
-	public class NextWaveEventSystem(World world, Game1 game, Tweener tweener) : SystemBase<GameTime>(world)
+	public class NextWaveEventSystem(World world, Game1 game, Tweener tweener)
+		: SystemBase<GameTime>(world)
 	{
 		private readonly Game1 _game = game;
 		private readonly Tweener _tweener = tweener;
@@ -91,7 +92,10 @@ namespace Systems
 							var destinationX = ((x + 1) * 12) - 6;
 							var destinationY = 4 + ((y + 1) * 12);
 
-							var spawnPosition = new Vector2(x: (destinationX * 1.25f) - 16, y: destinationY - 66);
+							var spawnPosition = new Vector2(
+								x: (destinationX * 1.25f) - 16,
+								y: destinationY - 66
+							);
 							var enemyDestination = new Vector2(x: destinationX, y: destinationY);
 
 							if (enemyType == 5)
@@ -116,7 +120,9 @@ namespace Systems
 								3 => SpriteSheet.Enemies.SpinningShip,
 								4 => SpriteSheet.Enemies.YellowShip,
 								5 => SpriteSheet.Enemies.Boss,
-								_ => throw new System.Exception($"Enemy type {enemyType} not found!"),
+								_ => throw new System.Exception(
+									$"Enemy type {enemyType} not found!"
+								),
 							};
 
 							var idleAnimationData = spriteData.Animations.TryGetValue(
@@ -133,11 +139,19 @@ namespace Systems
 							World.Add(enemyEntity, new CollisionLayer(CollisionMasks.Enemy));
 							World.Add(
 								enemyEntity,
-								new CollisionMask(CollisionMasks.Player | CollisionMasks.PlayerProjectile)
+								new CollisionMask(
+									CollisionMasks.Player | CollisionMasks.PlayerProjectile
+								)
 							);
-							World.Add(enemyEntity, new EnemyState() { Value = EnemyStateType.Flyin });
+							World.Add(
+								enemyEntity,
+								new EnemyState() { Value = EnemyStateType.Flyin }
+							);
 							World.Add(enemyEntity, new Health(enemy.StartingHealth));
-							World.Add(enemyEntity, new Invulnerable() { Duration = tweenDuration + tweenDelay });
+							World.Add(
+								enemyEntity,
+								new Invulnerable() { Duration = tweenDuration + tweenDelay }
+							);
 							World.Add(enemyEntity, new Sprite(spriteData.Frame));
 							World.Add(
 								enemyEntity,

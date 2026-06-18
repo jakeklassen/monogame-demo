@@ -13,7 +13,7 @@ namespace Systems
 		Game1 game,
 		GraphicsDevice graphicsDevice,
 		OrthographicCamera camera
-		) : SystemBase<GameTime>(world)
+	) : SystemBase<GameTime>(world)
 	{
 		private readonly Game1 _game = game;
 		private readonly QueryDescription _query = new QueryDescription().WithAll<

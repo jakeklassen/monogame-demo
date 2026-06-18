@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Arch.Core;
-
 using Components;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -15,7 +14,7 @@ namespace Systems
 		GraphicsDevice graphicsDevice,
 		OrthographicCamera camera,
 		Dictionary<string, BitmapFont> fontCache
-		) : SystemBase<GameTime>(world)
+	) : SystemBase<GameTime>(world)
 	{
 		private readonly QueryDescription _textEntities = new QueryDescription().WithAll<
 			Text,
@@ -43,7 +42,12 @@ namespace Systems
 				in _textEntities,
 				(Entity entity, ref Text text, ref Transform transform) =>
 				{
-					var textColor = new XnaColor(text.Color.R, text.Color.G, text.Color.B, text.Color.A);
+					var textColor = new XnaColor(
+						text.Color.R,
+						text.Color.G,
+						text.Color.B,
+						text.Color.A
+					);
 
 					World.TryGet<Blink>(entity, out var blink);
 

@@ -75,7 +75,11 @@ namespace Systems
 							new Direction(0, -1),
 							new Sprite(new Rectangle(0, 8, 6, 8)),
 							new TagBullet(),
-							new Transform(transform.Position + new Vector2(1, -8), 0f, new Vector2(1f, 1f)),
+							new Transform(
+								transform.Position + new Vector2(1, -8),
+								0f,
+								new Vector2(1f, 1f)
+							),
 							new Velocity(0, 120)
 						);
 					}

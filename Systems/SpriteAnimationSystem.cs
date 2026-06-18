@@ -34,12 +34,18 @@ namespace Systems
 						spriteAnimation.Delta = 0;
 
 						spriteAnimation.CurrentFrame =
-							(spriteAnimation.CurrentFrame + 1) % spriteAnimation.FrameSequence.Length;
+							(spriteAnimation.CurrentFrame + 1)
+							% spriteAnimation.FrameSequence.Length;
 
-						var frameIndex = spriteAnimation.FrameSequence[spriteAnimation.CurrentFrame];
+						var frameIndex = spriteAnimation.FrameSequence[
+							spriteAnimation.CurrentFrame
+						];
 						sprite.CurrentFrame = spriteAnimation.Frames[frameIndex];
 
-						if (spriteAnimation.CurrentFrame == spriteAnimation.FrameSequence.Length - 1)
+						if (
+							spriteAnimation.CurrentFrame
+							== spriteAnimation.FrameSequence.Length - 1
+						)
 						{
 							spriteAnimation.IsFinished = true;
 						}

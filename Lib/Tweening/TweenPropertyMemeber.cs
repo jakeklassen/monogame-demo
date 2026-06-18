@@ -5,7 +5,8 @@ using System.Reflection;
 
 namespace Lib.Tweening
 {
-	public sealed class TweenPropertyMember<T>(object target, PropertyInfo propertyInfo) : TweenMember<T>(target, CompileGetMethod(propertyInfo), CompileSetMethod(propertyInfo))
+	public sealed class TweenPropertyMember<T>(object target, PropertyInfo propertyInfo)
+		: TweenMember<T>(target, CompileGetMethod(propertyInfo), CompileSetMethod(propertyInfo))
 		where T : struct
 	{
 		private readonly PropertyInfo _propertyInfo = propertyInfo;
@@ -17,7 +18,10 @@ namespace Lib.Tweening
 		{
 			var param = Expression.Parameter(typeof(object));
 			var instance = Expression.Convert(param, propertyInfo.DeclaringType);
-			var convert = Expression.TypeAs(Expression.Property(instance, propertyInfo), typeof(object));
+			var convert = Expression.TypeAs(
+				Expression.Property(instance, propertyInfo),
+				typeof(object)
+			);
 			return Expression.Lambda<Func<object, object>>(convert, param).Compile();
 		}
 

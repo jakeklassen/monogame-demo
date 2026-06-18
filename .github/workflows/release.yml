@@ -6,30 +6,22 @@ on:
     - 'v*'
 
 env:
-  PROJECT_PATH: ~
+  PROJECT_PATH: monogame-demo.csproj
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
-
-    env:
-      MGFXC_WINE_PATH: /home/runner/.winemonogame
+    runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Setup dotnet
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '7.0.x'
+        dotnet-version: '10.0.x'
     - name: Get version from tag
       run: |
         TAGVERSION=$(git describe --tags --abbrev=0)
         echo "TAGVERSION=${TAGVERSION:1}" >> $GITHUB_ENV
-    - name: Setup Wine
-      run: |
-        sudo apt update
-        sudo apt install wine64 p7zip-full
-        wget -qO- https://raw.githubusercontent.com/MonoGame/MonoGame/master/Tools/MonoGame.Effect.Compiler/mgfxc_wine_setup.sh | sh
     - name: Build Windows
       run: dotnet publish ${{ env.PROJECT_PATH }} -r win-x64 -c Release --self-contained --output artifacts/windows
     - name: Build Osx
@@ -42,7 +34,7 @@ jobs:
         zip -r artifacts/osx.zip artifacts/osx
         zip -r artifacts/linux.zip artifacts/linux
     - name: Release with Notes
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         files: |
           artifacts/windows.zip

@@ -6,7 +6,7 @@ namespace Components
 		Entity projectileEntity,
 		Entity enemyEntity,
 		int damage
-		)
+	)
 	{
 		public Entity ProjectileEntity { get; set; } = projectileEntity;
 		public Entity EnemyEntity { get; set; } = enemyEntity;

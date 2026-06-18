@@ -142,7 +142,9 @@ namespace Lib.Tweening
 		public static float BackIn(float value)
 		{
 			const float amplitude = 1f;
-			return (float)(Math.Pow(value, 3) - (value * amplitude * Math.Sin(value * MathHelper.Pi)));
+			return (float)(
+				Math.Pow(value, 3) - (value * amplitude * Math.Sin(value * MathHelper.Pi))
+			);
 		}
 
 		public static float BackOut(float value)
@@ -179,16 +181,19 @@ namespace Lib.Tweening
 
 			if (value < 2 / bounceConst1)
 			{
-				return 1 - (float)((bounceConst2 * Math.Pow(value - (1.5f / bounceConst1), 2)) + .75);
+				return 1
+					- (float)((bounceConst2 * Math.Pow(value - (1.5f / bounceConst1), 2)) + .75);
 			}
 
 			if (value < 2.5 / bounceConst1)
 			{
-				return 1 - (float)((bounceConst2 * Math.Pow(value - (2.25f / bounceConst1), 2)) + .9375);
+				return 1
+					- (float)((bounceConst2 * Math.Pow(value - (2.25f / bounceConst1), 2)) + .9375);
 			}
 
 			//small bounce
-			return 1f - (float)((bounceConst2 * Math.Pow(value - (2.625f / bounceConst1), 2)) + .984375);
+			return 1f
+				- (float)((bounceConst2 * Math.Pow(value - (2.625f / bounceConst1), 2)) + .984375);
 		}
 
 		private static float Out(float value, Func<float, float> function)
@@ -198,7 +203,9 @@ namespace Lib.Tweening
 
 		private static float InOut(float value, Func<float, float> function)
 		{
-			return value < 0.5f ? 0.5f * function(value * 2) : 1f - (0.5f * function(2 - (value * 2)));
+			return value < 0.5f
+				? 0.5f * function(value * 2)
+				: 1f - (0.5f * function(2 - (value * 2)));
 		}
 
 		private static class Power

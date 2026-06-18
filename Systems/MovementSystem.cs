@@ -25,7 +25,9 @@ namespace Systems
 					var directionVector = new Vector2(direction.X, direction.Y);
 
 					transform.Position +=
-						velocityVector * directionVector * (float)_gameTime.ElapsedGameTime.TotalSeconds;
+						velocityVector
+						* directionVector
+						* (float)_gameTime.ElapsedGameTime.TotalSeconds;
 				}
 			);
 		}

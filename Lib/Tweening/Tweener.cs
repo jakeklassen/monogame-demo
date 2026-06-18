@@ -62,7 +62,9 @@ namespace Lib.Tweening
 
 		public Tween FindTween(object target, string memberName)
 		{
-			return _activeTweens.FirstOrDefault(t => t.Target == target && t.MemberName == memberName);
+			return _activeTweens.FirstOrDefault(t =>
+				t.Target == target && t.MemberName == memberName
+			);
 		}
 
 		public void CancelAll()

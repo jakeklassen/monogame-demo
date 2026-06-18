@@ -60,10 +60,38 @@ namespace Lib
 
 			while (x >= y)
 			{
-				FillLine(data, textureSize, (int)(radius - x), (int)(radius + y), (int)(radius - y), color);
-				FillLine(data, textureSize, (int)(radius - y), (int)(radius + x), (int)(radius - x), color);
-				FillLine(data, textureSize, (int)(radius + x), (int)(radius + y), (int)(radius - y), color);
-				FillLine(data, textureSize, (int)(radius + y), (int)(radius + x), (int)(radius - x), color);
+				FillLine(
+					data,
+					textureSize,
+					(int)(radius - x),
+					(int)(radius + y),
+					(int)(radius - y),
+					color
+				);
+				FillLine(
+					data,
+					textureSize,
+					(int)(radius - y),
+					(int)(radius + x),
+					(int)(radius - x),
+					color
+				);
+				FillLine(
+					data,
+					textureSize,
+					(int)(radius + x),
+					(int)(radius + y),
+					(int)(radius - y),
+					color
+				);
+				FillLine(
+					data,
+					textureSize,
+					(int)(radius + y),
+					(int)(radius + x),
+					(int)(radius - x),
+					color
+				);
 
 				y++;
 
@@ -82,7 +110,14 @@ namespace Lib
 			return texture;
 		}
 
-		private static void FillLine(Color[] data, int textureSize, int x1, int y1, int y2, Color color)
+		private static void FillLine(
+			Color[] data,
+			int textureSize,
+			int x1,
+			int y1,
+			int y2,
+			Color color
+		)
 		{
 			if (y1 > y2)
 			{

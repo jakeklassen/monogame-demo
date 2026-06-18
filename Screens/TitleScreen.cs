@@ -39,9 +39,16 @@ namespace Screens
 			_updateSystems.Add(new MovementSystem(_world));
 			_updateSystems.Add(new StarfieldSystem(_world));
 
-			_drawSystems.Add(new StarfieldRenderingSystem(_world, Game.GraphicsDevice, Game.Camera));
 			_drawSystems.Add(
-				new SpriteRenderingSystem(_world, Game.GraphicsDevice, Game.Camera, _spriteSheetTexture)
+				new StarfieldRenderingSystem(_world, Game.GraphicsDevice, Game.Camera)
+			);
+			_drawSystems.Add(
+				new SpriteRenderingSystem(
+					_world,
+					Game.GraphicsDevice,
+					Game.Camera,
+					_spriteSheetTexture
+				)
 			);
 			_drawSystems.Add(
 				new TextRenderingSystem(_world, Game.GraphicsDevice, Game.Camera, Game.FontCache)
@@ -52,7 +59,11 @@ namespace Screens
 			var alien = _world.Create();
 			_world.Add(alien, new Sprite(new Rectangle(40, 8, 8, 8)));
 
-			var transform = new Transform(new Vector2((Game1.TargetWidth / 2) - 4, 31), 0f, Vector2.One);
+			var transform = new Transform(
+				new Vector2((Game1.TargetWidth / 2) - 4, 31),
+				0f,
+				Vector2.One
+			);
 			_world.Add(alien, transform);
 
 			_tweener
@@ -72,7 +83,10 @@ namespace Screens
 					if (action.Target is Transform)
 					{
 						var transform = action.Target as Transform;
-						transform.Position = new Vector2(30 + _random.NextInt64(60), transform.Position.Y);
+						transform.Position = new Vector2(
+							30 + _random.NextInt64(60),
+							transform.Position.Y
+						);
 					}
 				});
 
@@ -91,7 +105,7 @@ namespace Screens
 					Alignment = Alignment.Left,
 					Color = Pico8Color.Color2,
 					Content = "v1",
-					Font = "pico-8"
+					Font = "pico-8",
 				}
 			);
 			_world.Add(v1Text, new Transform(Vector2.One, 0f, Vector2.One));
@@ -103,10 +117,13 @@ namespace Screens
 				{
 					Color = Pico8Color.Color6,
 					Content = "Short Shwave Shmup",
-					Font = "pico-8"
+					Font = "pico-8",
 				}
 			);
-			_world.Add(subtitle, new Transform(new Vector2(Game1.TargetWidth / 2, 45), 0f, Vector2.One));
+			_world.Add(
+				subtitle,
+				new Transform(new Vector2(Game1.TargetWidth / 2, 45), 0f, Vector2.One)
+			);
 
 			var pressAnyKeyToStart = _world.Create();
 			_world.Add(
@@ -123,7 +140,7 @@ namespace Screens
 				{
 					Color = Pico8Color.Color6,
 					Content = "Press Any Key To Start",
-					Font = "pico-8"
+					Font = "pico-8",
 				}
 			);
 			_world.Add(
@@ -138,7 +155,7 @@ namespace Screens
 				{
 					Color = Pico8Color.Color6,
 					Content = "Z (Shoot) X (Spread Shot)",
-					Font = "pico-8"
+					Font = "pico-8",
 				}
 			);
 			_world.Add(
@@ -153,7 +170,7 @@ namespace Screens
 				{
 					Color = Pico8Color.Color6,
 					Content = "Arrow Keys (Move)",
-					Font = "pico-8"
+					Font = "pico-8",
 				}
 			);
 			_world.Add(
@@ -175,7 +192,7 @@ namespace Screens
 
 			if (KeyboardExtended.GetState().WasAnyKeyJustDown() || IsAnyButtonDown())
 			{
-				ScreenManager.LoadScreen(new GameplayScreen(Game));
+				ScreenManager.ReplaceScreen(new GameplayScreen(Game));
 			}
 
 			foreach (var system in _updateSystems)
@@ -195,7 +212,7 @@ namespace Screens
 		private static bool IsAnyButtonDown()
 		{
 			var currentState = GamePad.GetState(PlayerIndex.One);
-			var buttonList = new Buttons[] { Buttons.A, Buttons.B, Buttons.X, Buttons.Y, };
+			var buttonList = new Buttons[] { Buttons.A, Buttons.B, Buttons.X, Buttons.Y };
 			var anyButtonPressed = false;
 
 			foreach (var button in buttonList)

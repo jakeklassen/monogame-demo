@@ -55,26 +55,38 @@ namespace CherryBomb
 		}
 
 		public static SpriteData Bullet { get; } =
-			new SpriteData { BoxCollider = new BoxCollider(6, 8), Frame = new Rectangle(0, 8, 6, 8) };
+			new SpriteData
+			{
+				BoxCollider = new BoxCollider(6, 8),
+				Frame = new Rectangle(0, 8, 6, 8),
+			};
 
 		public static SpriteData BigBullet { get; } =
-			new SpriteData { BoxCollider = new BoxCollider(8, 8), Frame = new Rectangle(8, 8, 8, 8) };
+			new SpriteData
+			{
+				BoxCollider = new BoxCollider(8, 8),
+				Frame = new Rectangle(8, 8, 8, 8),
+			};
 
 		public static SpriteData Cherry { get; } =
-			new SpriteData { BoxCollider = new BoxCollider(8, 8), Frame = new Rectangle(0, 24, 8, 8) };
+			new SpriteData
+			{
+				BoxCollider = new BoxCollider(8, 8),
+				Frame = new Rectangle(0, 24, 8, 8),
+			};
 
 		public static HeartData Heart { get; } =
 			new HeartData
 			{
 				Full = new SpriteData { Frame = new Rectangle(104, 0, 8, 8) },
-				Empty = new SpriteData { Frame = new Rectangle(112, 0, 8, 8) }
+				Empty = new SpriteData { Frame = new Rectangle(112, 0, 8, 8) },
 			};
 
 		public static PlayerData Player { get; } =
 			new PlayerData
 			{
 				BoxCollider = new BoxCollider(6, 8, new Vector2(1, 0)),
-				Idle = new SpriteData { Frame = new Rectangle(16, 0, 8, 8), },
+				Idle = new SpriteData { Frame = new Rectangle(16, 0, 8, 8) },
 				BankLeft = new SpriteData { Frame = new Rectangle(8, 0, 8, 8) },
 				BankRight = new SpriteData { Frame = new Rectangle(24, 0, 8, 8) },
 				Thruster = new SpriteData
@@ -89,13 +101,14 @@ namespace CherryBomb
 							FrameHeight = 8,
 							FrameWidth = 8,
 							Width = 40,
-							Height = 8
+							Height = 8,
 						},
-					}
-				}
+					},
+				},
 			};
 
-		public static SpriteData TitleLogo { get; } = new() { Frame = new Rectangle(32, 104, 95, 14) };
+		public static SpriteData TitleLogo { get; } =
+			new() { Frame = new Rectangle(32, 104, 95, 14) };
 
 		public static EnemiesData Enemies { get; } =
 			new EnemiesData
@@ -113,9 +126,9 @@ namespace CherryBomb
 							FrameHeight = 8,
 							FrameWidth = 8,
 							Width = 32,
-							Height = 8
+							Height = 8,
 						},
-					}
+					},
 				},
 				RedFlameGuy = new SpriteData
 				{
@@ -130,9 +143,9 @@ namespace CherryBomb
 							FrameHeight = 8,
 							FrameWidth = 8,
 							Width = 16,
-							Height = 8
+							Height = 8,
 						},
-					}
+					},
 				},
 				SpinningShip = new SpriteData
 				{
@@ -147,9 +160,9 @@ namespace CherryBomb
 							FrameHeight = 8,
 							FrameWidth = 8,
 							Width = 32,
-							Height = 8
+							Height = 8,
 						},
-					}
+					},
 				},
 				YellowShip = new SpriteData
 				{
@@ -164,9 +177,9 @@ namespace CherryBomb
 							FrameHeight = 16,
 							FrameWidth = 16,
 							Width = 32,
-							Height = 16
+							Height = 16,
 						},
-					}
+					},
 				},
 				Boss = new BossData
 				{
@@ -182,7 +195,7 @@ namespace CherryBomb
 							FrameHeight = 24,
 							FrameWidth = 32,
 							Width = 64,
-							Height = 24
+							Height = 24,
 						},
 						["Idle"] = new AnimationData
 						{
@@ -191,10 +204,10 @@ namespace CherryBomb
 							FrameHeight = 24,
 							FrameWidth = 32,
 							Width = 96,
-							Height = 24
+							Height = 24,
 						},
-					}
-				}
+					},
+				},
 			};
 
 		public static SpriteData EnemyBullet { get; } =
@@ -211,9 +224,9 @@ namespace CherryBomb
 						FrameHeight = 8,
 						FrameWidth = 8,
 						Width = 24,
-						Height = 8
+						Height = 8,
 					},
-				}
+				},
 			};
 	}
 }

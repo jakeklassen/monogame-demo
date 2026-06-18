@@ -4,7 +4,8 @@ using Microsoft.Xna.Framework;
 
 namespace Systems
 {
-	public class BoundToViewportSystem(World world, Rectangle viewport) : SystemBase<GameTime>(world)
+	public class BoundToViewportSystem(World world, Rectangle viewport)
+		: SystemBase<GameTime>(world)
 	{
 		private readonly QueryDescription _query = new QueryDescription().WithAll<
 			BoundToViewport,
@@ -19,7 +20,10 @@ namespace Systems
 				in _query,
 				(ref BoxCollider boxCollider, ref Transform transform) =>
 				{
-					if (transform.Position.X + boxCollider.Offset.X > _viewport.Width - boxCollider.Width)
+					if (
+						transform.Position.X + boxCollider.Offset.X
+						> _viewport.Width - boxCollider.Width
+					)
 					{
 						transform.Position = new Vector2(
 							_viewport.Width - boxCollider.Width - boxCollider.Offset.X,
@@ -28,10 +32,16 @@ namespace Systems
 					}
 					else if (transform.Position.X + boxCollider.Offset.X < 0)
 					{
-						transform.Position = new Vector2(-boxCollider.Offset.X, transform.Position.Y);
+						transform.Position = new Vector2(
+							-boxCollider.Offset.X,
+							transform.Position.Y
+						);
 					}
 
-					if (transform.Position.Y + boxCollider.Offset.Y > _viewport.Height - boxCollider.Height)
+					if (
+						transform.Position.Y + boxCollider.Offset.Y
+						> _viewport.Height - boxCollider.Height
+					)
 					{
 						transform.Position = new Vector2(
 							transform.Position.X,
@@ -40,7 +50,10 @@ namespace Systems
 					}
 					else if (transform.Position.Y + boxCollider.Offset.Y < 0)
 					{
-						transform.Position = new Vector2(transform.Position.X, -boxCollider.Offset.Y);
+						transform.Position = new Vector2(
+							transform.Position.X,
+							-boxCollider.Offset.Y
+						);
 					}
 				}
 			);

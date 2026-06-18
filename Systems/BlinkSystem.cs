@@ -22,7 +22,8 @@ namespace Systems
 					if (blink.ElapsedSeconds >= blink.FrameRate)
 					{
 						blink.ElapsedSeconds = 0f;
-						blink.CurrentColorIndex = (blink.CurrentColorIndex + 1) % blink.ColorSequence.Length;
+						blink.CurrentColorIndex =
+							(blink.CurrentColorIndex + 1) % blink.ColorSequence.Length;
 					}
 
 					blink.CurrentColor = blink.Colors[blink.ColorSequence[blink.CurrentColorIndex]];

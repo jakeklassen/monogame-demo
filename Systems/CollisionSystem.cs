@@ -24,8 +24,8 @@ namespace Systems
 		{
 			_handledEntities.Clear();
 
-			var entities = new List<Entity>();
-			World.GetEntities(_collidables, entities);
+			var entities = new Entity[World.CountEntities(in _collidables)];
+			World.GetEntities(in _collidables, entities, 0);
 
 			foreach (var entity in entities)
 			{
@@ -80,17 +80,15 @@ namespace Systems
 						continue;
 					}
 
-					Entity? enemy = World.Has<TagEnemy>(entity)
-						? entity
-						: World.Has<TagEnemy>(otherEntity)
-							? otherEntity
-							: null;
+					Entity? enemy =
+						World.Has<TagEnemy>(entity) ? entity
+						: World.Has<TagEnemy>(otherEntity) ? otherEntity
+						: null;
 
-					Entity? playerProjectile = World.Has<TagBullet>(entity)
-						? entity
-						: World.Has<TagBullet>(otherEntity)
-							? otherEntity
-							: null;
+					Entity? playerProjectile =
+						World.Has<TagBullet>(entity) ? entity
+						: World.Has<TagBullet>(otherEntity) ? otherEntity
+						: null;
 
 					if (AssertIsNotNull(enemy) && AssertIsNotNull(playerProjectile))
 					{

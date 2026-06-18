@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using System;
 using Arch.Core;
 using Arch.Core.Extensions;
 using Components;
@@ -14,7 +14,7 @@ namespace Systems
 		GraphicsDevice graphicsDevice,
 		OrthographicCamera camera,
 		Texture2D spriteSheetTexture
-		) : SystemBase<GameTime>(world)
+	) : SystemBase<GameTime>(world)
 	{
 		private readonly QueryDescription _spriteQuery = new QueryDescription()
 			.WithAll<Sprite, Transform>()
@@ -37,10 +37,10 @@ namespace Systems
 				_camera.GetViewMatrix()
 			);
 
-			var entities = new List<Entity>();
-			World.GetEntities(in _spriteQuery, entities);
+			var entities = new Entity[World.CountEntities(in _spriteQuery)];
+			World.GetEntities(in _spriteQuery, entities, 0);
 
-			entities.Sort((a, b) => a.Id.CompareTo(b.Id));
+			Array.Sort(entities, (a, b) => a.Id.CompareTo(b.Id));
 
 			foreach (var entity in entities)
 			{

@@ -2,7 +2,7 @@ namespace Components
 {
 	public enum Shape
 	{
-		Circle
+		Circle,
 	}
 
 	public class Particle(
@@ -13,7 +13,7 @@ namespace Components
 		float radius,
 		Shape shape,
 		bool spark
-		)
+	)
 	{
 		public float Age { get; set; } = age;
 		public float MaxAge { get; set; } = maxAge;

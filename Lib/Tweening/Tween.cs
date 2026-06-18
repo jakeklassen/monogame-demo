@@ -6,7 +6,13 @@ namespace Lib.Tweening
 	public class Tween<T> : Tween
 		where T : struct
 	{
-		internal Tween(object target, float duration, float delay, TweenMember<T> member, T endValue)
+		internal Tween(
+			object target,
+			float duration,
+			float delay,
+			TweenMember<T> member,
+			T endValue
+		)
 			: base(target, duration, delay)
 		{
 			Member = member;

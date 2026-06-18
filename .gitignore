@@ -404,3 +404,6 @@ FodyWeavers.xsd
 # End of https://www.toptal.com/developers/gitignore/api/csharp,monogame
 
 .mono/
+
+# MonoGame content build statistics artifact
+.mgstats

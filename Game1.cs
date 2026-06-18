@@ -5,10 +5,11 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonoGame.Extended;
 using MonoGame.Extended.BitmapFonts;
+using MonoGame.Extended.Input;
+using MonoGame.Extended.Input.InputListeners;
 using MonoGame.Extended.Screens;
 using MonoGame.Extended.ViewportAdapters;
 using Screens;
-using MonoGame.Extended.Input.InputListeners;
 using XnaColor = Microsoft.Xna.Framework.Color;
 
 namespace CherryBomb
@@ -111,7 +112,7 @@ namespace CherryBomb
 			);
 			Camera = new OrthographicCamera(viewportAdapter);
 
-			_screenManager.LoadScreen(new TitleScreen(this));
+			_screenManager.ReplaceScreen(new TitleScreen(this));
 		}
 
 		protected override void LoadContent()
@@ -124,7 +125,11 @@ namespace CherryBomb
 
 			for (int radius = 1; radius <= 32; radius++)
 			{
-				var filedCircleTexture = Pico8Extensions.CircFill(GraphicsDevice, radius, XnaColor.White);
+				var filedCircleTexture = Pico8Extensions.CircFill(
+					GraphicsDevice,
+					radius,
+					XnaColor.White
+				);
 				TextureCache.Add($"circfill-{radius}", filedCircleTexture);
 
 				var circleTexture = Pico8Extensions.Circ(GraphicsDevice, radius, XnaColor.White);
@@ -141,6 +146,11 @@ namespace CherryBomb
 
 		protected override void Update(GameTime gameTime)
 		{
+			// MonoGame.Extended 6.0 requires advancing the extended input state once
+			// per frame; otherwise WasAnyKeyJustDown/WasKeyPressed never see transitions.
+			// Must run before base.Update so the active screen reads a fresh snapshot.
+			KeyboardExtended.Update();
+
 			if (
 				GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed
 				|| Keyboard.GetState().IsKeyDown(Keys.Escape)
@@ -165,7 +175,8 @@ namespace CherryBomb
 			if (Keyboard.GetState().IsKeyDown(Keys.V) && _hasToggledVsync == false)
 			{
 				_hasToggledVsync = true;
-				_graphics.SynchronizeWithVerticalRetrace = !_graphics.SynchronizeWithVerticalRetrace;
+				_graphics.SynchronizeWithVerticalRetrace =
+					!_graphics.SynchronizeWithVerticalRetrace;
 
 				_graphics.ApplyChanges();
 			}

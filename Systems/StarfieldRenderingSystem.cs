@@ -11,7 +11,7 @@ namespace Systems
 		World world,
 		GraphicsDevice graphicsDevice,
 		OrthographicCamera camera
-		) : SystemBase<GameTime>(world)
+	) : SystemBase<GameTime>(world)
 	{
 		private readonly QueryDescription _starsToDraw = new QueryDescription().WithAll<
 			Star,
@@ -37,8 +37,18 @@ namespace Systems
 				in _starsToDraw,
 				(ref Star star, ref Transform transform) =>
 				{
-					var rectangle = new RectangleF(transform.Position.X, transform.Position.Y, 1, 1);
-					var color = new XnaColor(star.Color.R, star.Color.G, star.Color.B, star.Color.A);
+					var rectangle = new RectangleF(
+						transform.Position.X,
+						transform.Position.Y,
+						1,
+						1
+					);
+					var color = new XnaColor(
+						star.Color.R,
+						star.Color.G,
+						star.Color.B,
+						star.Color.A
+					);
 
 					_spriteBatch.DrawRectangle(rectangle, color);
 				}

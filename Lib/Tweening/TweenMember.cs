@@ -14,7 +14,7 @@ namespace Lib.Tweening
 		object target,
 		Func<object, object> getMethod,
 		Action<object, object> setMethod
-		) : TweenMember(target)
+	) : TweenMember(target)
 		where T : struct
 	{
 		static TweenMember()
@@ -24,7 +24,9 @@ namespace Lib.Tweening
 			var c = Expression.Parameter(typeof(float));
 			Add = Expression.Lambda<Func<T, T, T>>(Expression.Add(a, b), a, b).Compile();
 			Subtract = Expression.Lambda<Func<T, T, T>>(Expression.Subtract(a, b), a, b).Compile();
-			Multiply = Expression.Lambda<Func<T, float, T>>(Expression.Multiply(a, c), a, c).Compile();
+			Multiply = Expression
+				.Lambda<Func<T, float, T>>(Expression.Multiply(a, c), a, c)
+				.Compile();
 		}
 
 		public static Func<T, T, T> Add { get; }

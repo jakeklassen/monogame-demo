@@ -6,7 +6,7 @@ namespace Components
 	{
 		Left,
 		Center,
-		Right
+		Right,
 	}
 
 	public class Text

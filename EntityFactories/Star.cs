@@ -2,7 +2,6 @@ using System;
 using Arch.Core;
 using CherryBomb;
 using Components;
-
 using Vector2 = Microsoft.Xna.Framework.Vector2;
 
 namespace EntityFactories
@@ -19,7 +18,10 @@ namespace EntityFactories
 			world.Add(entity, new Transform(position, 0f, new Vector2(1f, 1f)));
 
 			var star = new Star(Pico8Color.Color7);
-			var velocity = new Velocity(0f, randomVelocities[random.Next(0, randomVelocities.Length)]);
+			var velocity = new Velocity(
+				0f,
+				randomVelocities[random.Next(0, randomVelocities.Length)]
+			);
 
 			// Adjust star color based on velocity
 			if (velocity.Y < 30)

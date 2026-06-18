@@ -46,23 +46,47 @@ namespace Screens
 			_updateSystems.Add(new SpriteAnimationSystem(_world));
 			_updateSystems.Add(new ShockwaveSystem(_world));
 
-			_drawSystems.Add(new StarfieldRenderingSystem(_world, Game.GraphicsDevice, Game.Camera));
 			_drawSystems.Add(
-				new SpriteRenderingSystem(_world, Game.GraphicsDevice, Game.Camera, _spriteSheetTexture)
+				new StarfieldRenderingSystem(_world, Game.GraphicsDevice, Game.Camera)
 			);
 			_drawSystems.Add(
-				new FlashRenderingSystem(_world, Game.GraphicsDevice, Game.Camera, _spriteSheetTexture)
+				new SpriteRenderingSystem(
+					_world,
+					Game.GraphicsDevice,
+					Game.Camera,
+					_spriteSheetTexture
+				)
 			);
 			_drawSystems.Add(
-				new ShockwaveRenderingSystem(_world, Game.GraphicsDevice, Game.Camera, Game.TextureCache)
+				new FlashRenderingSystem(
+					_world,
+					Game.GraphicsDevice,
+					Game.Camera,
+					_spriteSheetTexture
+				)
 			);
 			_drawSystems.Add(
-				new ParticleRenderingSystem(_world, Game.GraphicsDevice, Game.Camera, Game.TextureCache)
+				new ShockwaveRenderingSystem(
+					_world,
+					Game.GraphicsDevice,
+					Game.Camera,
+					Game.TextureCache
+				)
+			);
+			_drawSystems.Add(
+				new ParticleRenderingSystem(
+					_world,
+					Game.GraphicsDevice,
+					Game.Camera,
+					Game.TextureCache
+				)
 			);
 			_drawSystems.Add(
 				new TextRenderingSystem(_world, Game.GraphicsDevice, Game.Camera, Game.FontCache)
 			);
-			_drawSystems.Add(new DebugRenderingSystem(_world, Game, Game.GraphicsDevice, Game.Camera));
+			_drawSystems.Add(
+				new DebugRenderingSystem(_world, Game, Game.GraphicsDevice, Game.Camera)
+			);
 
 			StarFactory.CreateStarfield(_world, Game1.TargetWidth, Game1.TargetHeight, 100);
 

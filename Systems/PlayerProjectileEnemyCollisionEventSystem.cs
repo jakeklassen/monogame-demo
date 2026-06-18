@@ -9,7 +9,8 @@ using XnaColor = Microsoft.Xna.Framework.Color;
 
 namespace Systems
 {
-	public class PlayerProjectileEnemyCollisionEventSystem(World world) : SystemBase<GameTime>(world)
+	public class PlayerProjectileEnemyCollisionEventSystem(World world)
+		: SystemBase<GameTime>(world)
 	{
 		private readonly QueryDescription _playerProjectileEnemyCollisionEventQuery =
 			new QueryDescription().WithAll<EventPlayerProjectileEnemyCollision>();
@@ -29,7 +30,12 @@ namespace Systems
 
 					// Bullet shockwave
 					World.Create(
-						new Shockwave(radius: 3, targetRadius: 6, color: Pico8Color.Color9, speed: 30),
+						new Shockwave(
+							radius: 3,
+							targetRadius: 6,
+							color: Pico8Color.Color9,
+							speed: 30
+						),
 						new Transform(
 							position: new Vector2(
 								projectileTransform.Position.X + 2,
@@ -82,11 +88,18 @@ namespace Systems
 
 						// Bullet shockwave
 						World.Create(
-							new Shockwave(radius: 3, targetRadius: 25, color: Pico8Color.Color7, speed: 105),
+							new Shockwave(
+								radius: 3,
+								targetRadius: 25,
+								color: Pico8Color.Color7,
+								speed: 105
+							),
 							new Transform(
 								position: new Vector2(
-									enemyTransform.Position.X + (enemySprite.CurrentFrame.Width / 2),
-									enemyTransform.Position.Y + (enemySprite.CurrentFrame.Height / 2)
+									enemyTransform.Position.X
+										+ (enemySprite.CurrentFrame.Width / 2),
+									enemyTransform.Position.Y
+										+ (enemySprite.CurrentFrame.Height / 2)
 								),
 								rotation: 0,
 								scale: Vector2.One
@@ -119,8 +132,10 @@ namespace Systems
 								),
 							() =>
 								new Vector2(
-									enemyTransform.Position.X + (enemySprite.CurrentFrame.Width / 2),
-									enemyTransform.Position.Y + (enemySprite.CurrentFrame.Height / 2)
+									enemyTransform.Position.X
+										+ (enemySprite.CurrentFrame.Width / 2),
+									enemyTransform.Position.Y
+										+ (enemySprite.CurrentFrame.Height / 2)
 								),
 							() => new Velocity()
 						);
@@ -151,10 +166,16 @@ namespace Systems
 								),
 							() =>
 								new Vector2(
-									enemyTransform.Position.X + (enemySprite.CurrentFrame.Width / 2),
-									enemyTransform.Position.Y + (enemySprite.CurrentFrame.Height / 2)
+									enemyTransform.Position.X
+										+ (enemySprite.CurrentFrame.Width / 2),
+									enemyTransform.Position.Y
+										+ (enemySprite.CurrentFrame.Height / 2)
 								),
-							() => new Velocity(x: random.NextSingle() * 90, y: random.NextSingle() * 90)
+							() =>
+								new Velocity(
+									x: random.NextSingle() * 90,
+									y: random.NextSingle() * 90
+								)
 						);
 
 						// Sparks
@@ -183,10 +204,16 @@ namespace Systems
 								),
 							() =>
 								new Vector2(
-									enemyTransform.Position.X + (enemySprite.CurrentFrame.Width / 2),
-									enemyTransform.Position.Y + (enemySprite.CurrentFrame.Height / 2)
+									enemyTransform.Position.X
+										+ (enemySprite.CurrentFrame.Width / 2),
+									enemyTransform.Position.Y
+										+ (enemySprite.CurrentFrame.Height / 2)
 								),
-							() => new Velocity(x: random.NextSingle() * 150, y: random.NextSingle() * 150)
+							() =>
+								new Velocity(
+									x: random.NextSingle() * 150,
+									y: random.NextSingle() * 150
+								)
 						);
 
 						// If this was the last enemy, spawn the next wave

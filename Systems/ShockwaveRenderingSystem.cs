@@ -14,7 +14,7 @@ namespace Systems
 		GraphicsDevice graphicsDevice,
 		OrthographicCamera camera,
 		Dictionary<string, Texture2D> textureCache
-		) : SystemBase<GameTime>(world)
+	) : SystemBase<GameTime>(world)
 	{
 		private readonly SpriteBatch _spriteBatch = new(graphicsDevice);
 		private readonly OrthographicCamera _camera = camera;
@@ -48,7 +48,10 @@ namespace Systems
 					_spriteBatch.Draw(
 						texture,
 						transform.Position
-							- new Vector2(MathF.Round(shockwave.Radius), MathF.Round(shockwave.Radius)),
+							- new Vector2(
+								MathF.Round(shockwave.Radius),
+								MathF.Round(shockwave.Radius)
+							),
 						shockwaveColor
 					);
 				}

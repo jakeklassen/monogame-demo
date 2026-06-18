@@ -5,7 +5,8 @@ using System.Reflection;
 
 namespace Lib.Tweening
 {
-	public sealed class TweenFieldMember<T>(object target, FieldInfo fieldInfo) : TweenMember<T>(target, CompileGetMethod(fieldInfo), CompileSetMethod(fieldInfo))
+	public sealed class TweenFieldMember<T>(object target, FieldInfo fieldInfo)
+		: TweenMember<T>(target, CompileGetMethod(fieldInfo), CompileSetMethod(fieldInfo))
 		where T : struct
 	{
 		private readonly FieldInfo _fieldInfo = fieldInfo;
@@ -26,8 +27,14 @@ namespace Lib.Tweening
 
 			var self = Expression.Parameter(typeof(object));
 			var value = Expression.Parameter(typeof(object));
-			var fieldExp = Expression.Field(Expression.Convert(self, fieldInfo.DeclaringType), fieldInfo);
-			var assignExp = Expression.Assign(fieldExp, Expression.Convert(value, fieldInfo.FieldType));
+			var fieldExp = Expression.Field(
+				Expression.Convert(self, fieldInfo.DeclaringType),
+				fieldInfo
+			);
+			var assignExp = Expression.Assign(
+				fieldExp,
+				Expression.Convert(value, fieldInfo.FieldType)
+			);
 
 			return Expression.Lambda<Action<object, object>>(assignExp, self, value).Compile();
 		}
