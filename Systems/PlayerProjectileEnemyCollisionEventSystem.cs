@@ -9,9 +9,12 @@ using XnaColor = Microsoft.Xna.Framework.Color;
 
 namespace CherryBomb.Systems
 {
-	public class PlayerProjectileEnemyCollisionEventSystem(World world)
+	public class PlayerProjectileEnemyCollisionEventSystem(World world, State state, Config config)
 		: SystemBase<GameTime>(world)
 	{
+		private readonly State _state = state;
+		private readonly Config _config = config;
+
 		private readonly QueryDescription _playerProjectileEnemyCollisionEventQuery =
 			new QueryDescription().WithAll<EventPlayerProjectileEnemyCollision>();
 
@@ -82,6 +85,21 @@ namespace CherryBomb.Systems
 					// Enemy is dead
 					if (enemyHealth.Amount <= 0)
 					{
+						// Award score from the enemy's Config entry (no cherry drop — M2).
+						if (World.TryGet<EnemyType>(enemy, out var enemyType))
+						{
+							var enemyConfig = _config.Entities.Enemies.GetEnemyConfig(
+								enemyType.Value
+							);
+
+							if (enemyConfig != null)
+							{
+								_state.Score += enemyConfig.Score;
+							}
+						}
+
+						SoundSystem.Play(World, "enemy-death");
+
 						World.Destroy(enemy);
 
 						var random = new Random();

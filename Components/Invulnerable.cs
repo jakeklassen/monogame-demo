@@ -16,5 +16,10 @@ namespace CherryBomb.Components
 	public class Invulnerable
 	{
 		public float Duration { get; set; }
+
+		// Total time (seconds) the invulnerability lasts, captured when granted so the
+		// opacity blink can restore full opacity when the window ends. Defaults to
+		// Duration via the setter on InvulnerableSystem's first tick when zero.
+		public float ElapsedSeconds { get; set; }
 	}
 }

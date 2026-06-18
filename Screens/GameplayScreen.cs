@@ -9,28 +9,45 @@ namespace CherryBomb.Screens
 	public class GameplayScreen(Game1 game) : GameScreenBase(game)
 	{
 		private Texture2D _spriteSheetTexture;
+		private SoundSystem _soundSystem;
 
 		public override void LoadContent()
 		{
 			base.LoadContent();
 			_spriteSheetTexture = Game.Content.Load<Texture2D>("Graphics/shmup");
 
+			// Start each run from a clean slate: full lives, score 0, not game-over.
+			Game.State.Reset();
+
+			_soundSystem = new SoundSystem(_world, Game.SoundCache);
+
 			_updateSystems.Add(new NextWaveEventSystem(_world, Game.State, Game.Config, _tweener));
 			_updateSystems.Add(new TimeToLiveSystem(_world));
 			_updateSystems.Add(new BlinkSystem(_world));
-			_updateSystems.Add(new PlayerSystem(_world));
+			// Input / fire.
+			_updateSystems.Add(new PlayerSystem(_world, Game.State));
+			_updateSystems.Add(new TriggerEnemyFireSystem(_world, Game.State, Game.Config));
+			// Movement.
 			_updateSystems.Add(new MovementSystem(_world));
 			// After movement so children follow the parent's freshly-updated position.
 			_updateSystems.Add(new LocalTransformSystem(_world));
 			_updateSystems.Add(new BoundToViewportSystem(_world, Game1.Viewport));
 			_updateSystems.Add(new DestroyOnViewportExitSystem(_world));
+			// Collision detection then the collision-event handlers.
 			_updateSystems.Add(new CollisionSystem(_world, Game.Config));
-			_updateSystems.Add(new PlayerProjectileEnemyCollisionEventSystem(_world));
+			_updateSystems.Add(
+				new PlayerProjectileEnemyCollisionEventSystem(_world, Game.State, Game.Config)
+			);
+			_updateSystems.Add(
+				new PlayerEnemyCollisionEventSystem(_world, Game.State, Game.Config)
+			);
 			_updateSystems.Add(new ParticleSystem(_world));
 			_updateSystems.Add(new InvulnerableSystem(_world));
 			_updateSystems.Add(new StarfieldSystem(_world));
 			_updateSystems.Add(new SpriteAnimationSystem(_world));
 			_updateSystems.Add(new ShockwaveSystem(_world));
+			// Consume sound events emitted this frame.
+			_updateSystems.Add(_soundSystem);
 
 			_drawSystems.Add(new StarfieldRenderingSystem(_world, Game.SpriteBatch, Game.Camera));
 			_drawSystems.Add(
@@ -125,6 +142,13 @@ namespace CherryBomb.Screens
 			);
 
 			_world.Create(new EventNextWave());
+		}
+
+		public override void UnloadContent()
+		{
+			_soundSystem?.StopAll();
+
+			base.UnloadContent();
 		}
 	}
 }

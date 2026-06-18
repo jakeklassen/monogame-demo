@@ -17,6 +17,12 @@ namespace CherryBomb.Systems
 
 		public override void Update(in GameTime gameTime)
 		{
+			// Stop spawning new waves once the game is over.
+			if (_state.GameOver)
+			{
+				return;
+			}
+
 			World.Query(
 				in _eventEntities,
 				(Entity entity, ref EventNextWave nextWaveEvent) =>
@@ -171,6 +177,7 @@ namespace CherryBomb.Systems
 									loop: true
 								)
 							);
+							World.Add(enemyEntity, new EnemyType(enemyType));
 							World.Add(enemyEntity, new TagEnemy());
 							World.Add(enemyEntity, transform);
 

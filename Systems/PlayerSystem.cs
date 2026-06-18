@@ -7,17 +7,25 @@ using Microsoft.Xna.Framework.Input;
 
 namespace CherryBomb.Systems
 {
-	public class PlayerSystem(World world) : SystemBase<GameTime>(world)
+	public class PlayerSystem(World world, State state) : SystemBase<GameTime>(world)
 	{
+		private readonly State _state = state;
 		private readonly QueryDescription _playerEntities = new QueryDescription().WithAll<
 			Direction,
 			TagPlayer,
 			Transform
 		>();
+
+		// ~7 shots/sec.
 		private readonly Timer _bulletTimer = new(0.133f);
 
 		public override void Update(in GameTime gameTime)
 		{
+			if (_state.GameOver)
+			{
+				return;
+			}
+
 			_bulletTimer.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
 
 			World.Query(
@@ -62,18 +70,21 @@ namespace CherryBomb.Systems
 
 					if (
 						(
-							GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.X)
-							|| Keyboard.GetState().IsKeyDown(Keys.X)
+							GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.A)
+							|| Keyboard.GetState().IsKeyDown(Keys.Z)
 						) && _bulletTimer.IsExpired
 					)
 					{
 						_bulletTimer.Reset();
 						World.Create(
-							new BoxCollider(6, 8),
+							new BoxCollider(
+								SpriteSheet.Bullet.BoxCollider.Width,
+								SpriteSheet.Bullet.BoxCollider.Height
+							),
 							new CollisionLayer(CollisionMasks.PlayerProjectile),
 							new CollisionMask(CollisionMasks.Enemy),
 							new Direction(0, -1),
-							new Sprite(new Rectangle(0, 8, 6, 8)),
+							new Sprite(SpriteSheet.Bullet.Frame),
 							new TagBullet(),
 							new Transform(
 								transform.Position + new Vector2(1, -8),
@@ -82,6 +93,8 @@ namespace CherryBomb.Systems
 							),
 							new Velocity(0, 120)
 						);
+
+						SoundSystem.Play(World, "shoot");
 					}
 				}
 			);

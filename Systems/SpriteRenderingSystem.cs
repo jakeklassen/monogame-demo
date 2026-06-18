@@ -51,7 +51,7 @@ namespace CherryBomb.Systems
 					_spriteSheetTexture,
 					transform.Position,
 					sprite.CurrentFrame,
-					XnaColor.White,
+					XnaColor.White * sprite.Opacity,
 					transform.Rotation,
 					Vector2.Zero,
 					1f,

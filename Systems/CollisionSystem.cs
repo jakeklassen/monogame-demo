@@ -80,6 +80,11 @@ namespace CherryBomb.Systems
 						continue;
 					}
 
+					Entity? player =
+						World.Has<TagPlayer>(entity) ? entity
+						: World.Has<TagPlayer>(otherEntity) ? otherEntity
+						: null;
+
 					Entity? enemy =
 						World.Has<TagEnemy>(entity) ? entity
 						: World.Has<TagEnemy>(otherEntity) ? otherEntity
@@ -88,6 +93,11 @@ namespace CherryBomb.Systems
 					Entity? playerProjectile =
 						World.Has<TagBullet>(entity) ? entity
 						: World.Has<TagBullet>(otherEntity) ? otherEntity
+						: null;
+
+					Entity? enemyBullet =
+						World.Has<TagEnemyBullet>(entity) ? entity
+						: World.Has<TagEnemyBullet>(otherEntity) ? otherEntity
 						: null;
 
 					if (AssertIsNotNull(enemy) && AssertIsNotNull(playerProjectile))
@@ -102,13 +112,27 @@ namespace CherryBomb.Systems
 								damage
 							)
 						);
+					}
+					else if (AssertIsNotNull(player))
+					{
+						// The player only takes damage when not already invulnerable.
+						// This is where the skip-while-invulnerable rule lives.
+						if (!World.Has<Invulnerable>((Entity)player))
+						{
+							// Touching an enemy bullet or an enemy itself both hurt.
+							Entity? damageSource =
+								enemyBullet ?? (AssertIsNotNull(enemy) ? enemy : null);
 
-						// I HATE this but we need to somehow tag the entities as inactive
-						// otherwise we'll pick up these entities for collision again when the
-						// next frame comes around.
-						// Maybe replace with system specific tags? e.g. TagCollisionInactive
-						// World.Add(playerProjectile, new TagInactive());
-						// World.Add(enemy, new TagInactive());
+							if (AssertIsNotNull(damageSource))
+							{
+								World.Create(
+									new EventPlayerEnemyCollision(
+										(Entity)player,
+										(Entity)damageSource
+									)
+								);
+							}
+						}
 					}
 
 					_handledEntities.Add(entity.Id);
