@@ -76,6 +76,11 @@ namespace CherryBomb.Systems
 					}
 
 					Tween lastTween = null;
+					// The enemy whose fly-in tween finishes last; its OnEnd is reused
+					// below to flip WaveReady, so we transition it to protect there too
+					// (a tween only holds a single OnEnd delegate).
+					EnemyState lastEnemyState = null;
+					var lastTransitionsToProtect = false;
 
 					// TODO: Refactor this!
 					for (var y = 0; y < wave.Enemies.Length; y++)
@@ -150,10 +155,8 @@ namespace CherryBomb.Systems
 									CollisionMasks.Player | CollisionMasks.PlayerProjectile
 								)
 							);
-							World.Add(
-								enemyEntity,
-								new EnemyState() { Value = EnemyStateType.Flyin }
-							);
+							var enemyState = new EnemyState() { Value = EnemyStateType.Flyin };
+							World.Add(enemyEntity, enemyState);
 							World.Add(enemyEntity, new Health(enemy.StartingHealth));
 							World.Add(
 								enemyEntity,
@@ -181,6 +184,10 @@ namespace CherryBomb.Systems
 							World.Add(enemyEntity, new TagEnemy());
 							World.Add(enemyEntity, transform);
 
+							// The boss keeps its own flow (M4); only formation enemies
+							// transition into the protect state once they reach formation.
+							var transitionsToProtect = enemyType != 5;
+
 							lastTween = _tweener
 								.TweenTo(
 									target: transform,
@@ -190,10 +197,31 @@ namespace CherryBomb.Systems
 									delay: tweenDelay
 								)
 								.Easing(EasingFunctions.Linear);
+
+							lastEnemyState = enemyState;
+							lastTransitionsToProtect = transitionsToProtect;
+
+							if (transitionsToProtect)
+							{
+								// In formation: eligible to be picked for attack/fire.
+								lastTween.OnEnd(_ => enemyState.Value = EnemyStateType.Protect);
+							}
 						}
 					}
 
-					lastTween.OnEnd((action) => _state.WaveReady = true);
+					// Reusing lastTween's OnEnd (overwrites the per-enemy protect handler
+					// above for that one enemy), so re-apply its protect transition here.
+					lastTween.OnEnd(
+						(action) =>
+						{
+							if (lastTransitionsToProtect && lastEnemyState != null)
+							{
+								lastEnemyState.Value = EnemyStateType.Protect;
+							}
+
+							_state.WaveReady = true;
+						}
+					);
 
 					World.Destroy(entity);
 				}

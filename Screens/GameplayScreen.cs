@@ -26,9 +26,18 @@ namespace CherryBomb.Screens
 			_updateSystems.Add(new BlinkSystem(_world));
 			// Input / fire.
 			_updateSystems.Add(new PlayerSystem(_world, Game.State));
-			_updateSystems.Add(new TriggerEnemyFireSystem(_world, Game.State, Game.Config));
+			// Enemy AI: cadence emits attack/fire events, then the handlers select
+			// enemies and switch them into attack runs / make them fire.
+			_updateSystems.Add(new EnemyPickSystem(_world, Game.State, Game.Config));
+			_updateSystems.Add(new TriggerEnemyAttackEventSystem(_world, _scheduler));
+			_updateSystems.Add(new TriggerEnemyFireEventSystem(_world));
+			// Per-type attack behaviour: tweak velocity/direction before movement.
+			_updateSystems.Add(new LateralHunterSystem(_world));
+			_updateSystems.Add(new YellowShipSystem(_world));
 			// Movement.
 			_updateSystems.Add(new MovementSystem(_world));
+			// Horizontal weave for attacking enemies; owns X so it runs after movement.
+			_updateSystems.Add(new SwaySystem(_world));
 			// After movement so children follow the parent's freshly-updated position.
 			_updateSystems.Add(new LocalTransformSystem(_world));
 			_updateSystems.Add(new BoundToViewportSystem(_world, Game1.Viewport));
