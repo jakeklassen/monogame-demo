@@ -25,6 +25,18 @@ namespace CherryBomb.EntityFactories
 			world.Add(cherry, new CollisionMask(CollisionMasks.Player));
 			world.Add(cherry, new Direction(0, 1));
 			world.Add(cherry, new Sprite(SpriteSheet.Cherry.Frame));
+			// Animated 1px outline (cherry Color7 <-> Color14 @100ms) so the pickup
+			// reads clearly against the playfield. Rendered behind the sprite by
+			// SpriteOutlineRenderingSystem. Source: M2 cherry + sprite-outline-*.
+			world.Add(cherry, new SpriteOutline() { Color = Pico8Color.Color7 });
+			world.Add(
+				cherry,
+				new SpriteOutlineAnimation(
+					colors: [Pico8Color.Color7, Pico8Color.Color14],
+					colorSequence: [0, 1],
+					durationSeconds: 0.2f
+				)
+			);
 			world.Add(cherry, new TagPickup());
 			world.Add(cherry, new Transform(position, 0f, Vector2.One));
 			world.Add(cherry, new Velocity(0, 30));

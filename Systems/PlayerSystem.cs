@@ -30,6 +30,9 @@ namespace CherryBomb.Systems
 		// Edge-trigger state for the spread-shot button (X / gamepad B).
 		private bool _spreadShotHeld = false;
 
+		// Edge-trigger state for the cherry-bomb button (B / gamepad X).
+		private bool _bombHeld = false;
+
 		public override void Update(in GameTime gameTime)
 		{
 			if (_state.GameOver)
@@ -105,6 +108,10 @@ namespace CherryBomb.Systems
 							new Velocity(0, 120)
 						);
 
+						// Muzzle flash: a small white circle tracked to the player's
+						// gun via Parent/LocalTransform, shrinking ~0.5px/frame.
+						SpawnMuzzleFlash(entity);
+
 						SoundSystem.Play(World, "shoot");
 					}
 
@@ -139,7 +146,42 @@ namespace CherryBomb.Systems
 					}
 
 					_spreadShotHeld = spreadShotDown;
+
+					// Cherry-bomb (screen clear): B (keyboard) / X (gamepad),
+					// edge-triggered. Emits EventTriggerBomb only while unlocked;
+					// BombSystem applies the WaveReady gate and re-locks on use.
+					// A locked attempt plays the rejection SFX.
+					var bombDown =
+						GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.X)
+						|| Keyboard.GetState().IsKeyDown(Keys.B);
+
+					if (bombDown && !_bombHeld)
+					{
+						if (!_state.BombLocked)
+						{
+							World.Create(new EventTriggerBomb());
+						}
+						else
+						{
+							SoundSystem.Play(World, "no-cherry-bomb");
+						}
+					}
+
+					_bombHeld = bombDown;
 				}
+			);
+		}
+
+		// Spawns a muzzle-flash entity tracked to the player's gun via the
+		// Parent/LocalTransform pattern. LocalTransformSystem keeps it positioned at
+		// the player's position + offset; MuzzleFlashSystem shrinks and removes it.
+		private void SpawnMuzzleFlash(Entity player)
+		{
+			World.Create(
+				new MuzzleFlash(size: 2f, durationMs: 100f),
+				new Parent(player),
+				new LocalTransform(new Vector2(4, -1)),
+				new Transform(Vector2.Zero, 0f, Vector2.One)
 			);
 		}
 

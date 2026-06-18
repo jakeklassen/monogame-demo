@@ -46,6 +46,10 @@ namespace CherryBomb.Systems
 
 					SoundSystem.Play(World, "player-death");
 
+					// Camera shake on every hit (mirrors spread-shot's shake, longer
+					// and stronger). Consumed by CameraShakeSystem. Source: M5 spec.
+					World.Create(new EventTriggerCameraShake(strength: 6, durationMs: 400));
+
 					_state.Lives--;
 
 					if (_state.Lives <= 0)

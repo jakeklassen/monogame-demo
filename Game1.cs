@@ -68,6 +68,11 @@ namespace CherryBomb
 		public Dictionary<string, SoundEffect> SoundCache { get; } = new();
 		public Config Config { get; } = new();
 		public State State { get; } = new();
+
+		// A snapshot of the last gameplay frame, captured at the moment a
+		// game-over/won transition fires and drawn as the backdrop on the
+		// GameOver/GameWon screens. Owned/disposed by those screens.
+		public Texture2D FrozenFrame { get; set; }
 		private readonly GamePadListener _gamePadListener;
 		private readonly KeyboardListener _keyboardListener;
 

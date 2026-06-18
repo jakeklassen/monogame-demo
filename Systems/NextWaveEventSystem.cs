@@ -273,6 +273,11 @@ namespace CherryBomb.Systems
 							}
 
 							_state.WaveReady = true;
+
+							// Wave is in formation: re-arm the cherry-bomb. It locks
+							// again the moment it is used (BombSystem) and starts each
+							// run locked (State.Reset). Source: bomb-system.ts.
+							_state.BombLocked = false;
 						}
 					);
 

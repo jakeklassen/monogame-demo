@@ -1,8 +1,10 @@
+using Arch.Core;
 using CherryBomb.Components;
 using CherryBomb.EntityFactories;
 using CherryBomb.Systems;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using XnaColor = Microsoft.Xna.Framework.Color;
 
 namespace CherryBomb.Screens
 {
@@ -10,6 +12,11 @@ namespace CherryBomb.Screens
 	{
 		private Texture2D _spriteSheetTexture;
 		private SoundSystem _soundSystem;
+
+		private readonly QueryDescription _gameOverQuery =
+			new QueryDescription().WithAll<EventGameOver>();
+		private readonly QueryDescription _gameWonQuery =
+			new QueryDescription().WithAll<EventGameWon>();
 
 		public override void LoadContent()
 		{
@@ -69,11 +76,29 @@ namespace CherryBomb.Screens
 			_updateSystems.Add(new InvulnerableSystem(_world));
 			_updateSystems.Add(new StarfieldSystem(_world));
 			_updateSystems.Add(new SpriteAnimationSystem(_world));
+			_updateSystems.Add(new SpriteOutlineAnimationSystem(_world));
 			_updateSystems.Add(new ShockwaveSystem(_world));
+			// Cherry-bomb: input emits EventTriggerBomb (PlayerSystem); this consumes
+			// it and ripple-spawns bomb projectiles via the scheduler.
+			_updateSystems.Add(new BombSystem(_world, Game.State, _scheduler));
+			// Muzzle flash shrink + lifetime.
+			_updateSystems.Add(new MuzzleFlashSystem(_world));
 			// Consume sound events emitted this frame.
 			_updateSystems.Add(_soundSystem);
+			// Camera shake last: jitters the shared camera right before Draw so all
+			// camera-matrix rendering shakes together (non-accumulating).
+			_updateSystems.Add(new CameraShakeSystem(_world, Game.Camera));
 
 			_drawSystems.Add(new StarfieldRenderingSystem(_world, Game.SpriteBatch, Game.Camera));
+			// Sprite outlines draw behind the sprites they wrap (cherry pickup).
+			_drawSystems.Add(
+				new SpriteOutlineRenderingSystem(
+					_world,
+					Game.SpriteBatch,
+					Game.Camera,
+					_spriteSheetTexture
+				)
+			);
 			_drawSystems.Add(
 				new SpriteRenderingSystem(
 					_world,
@@ -95,6 +120,15 @@ namespace CherryBomb.Screens
 			);
 			_drawSystems.Add(
 				new ParticleRenderingSystem(
+					_world,
+					Game.SpriteBatch,
+					Game.Camera,
+					Game.TextureCache
+				)
+			);
+			// Muzzle flash FX overlay, on top of the world but under HUD text.
+			_drawSystems.Add(
+				new MuzzleFlashRenderingSystem(
 					_world,
 					Game.SpriteBatch,
 					Game.Camera,
@@ -219,6 +253,47 @@ namespace CherryBomb.Screens
 			);
 
 			_world.Create(new EventNextWave());
+		}
+
+		public override void Update(GameTime gameTime)
+		{
+			base.Update(gameTime);
+
+			// M1 emits EventGameOver (out of lives) and M4 emits EventGameWon (boss
+			// death sequence) but neither had a consumer until now. Detect either,
+			// freeze the current frame for the backdrop, and swap screens.
+			if (_world.CountEntities(_gameOverQuery) > 0)
+			{
+				CaptureFrozenFrame();
+				ScreenManager.ReplaceScreen(new GameOverScreen(Game));
+
+				return;
+			}
+
+			if (_world.CountEntities(_gameWonQuery) > 0)
+			{
+				CaptureFrozenFrame();
+				ScreenManager.ReplaceScreen(new GameWonScreen(Game));
+			}
+		}
+
+		// Snapshots the back buffer (the last drawn gameplay frame) into a texture so
+		// the GameOver/GameWon screen can draw a frozen-frame backdrop. Stored on Game1.
+		private void CaptureFrozenFrame()
+		{
+			var device = Game.GraphicsDevice;
+			var width = device.PresentationParameters.BackBufferWidth;
+			var height = device.PresentationParameters.BackBufferHeight;
+
+			var data = new XnaColor[width * height];
+			device.GetBackBufferData(data);
+
+			Game.FrozenFrame?.Dispose();
+
+			var snapshot = new Texture2D(device, width, height);
+			snapshot.SetData(data);
+
+			Game.FrozenFrame = snapshot;
 		}
 
 		public override void UnloadContent()

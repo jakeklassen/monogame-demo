@@ -137,13 +137,29 @@ namespace CherryBomb.Screens
 				new Transform(new Vector2(Game1.TargetWidth / 2, 90), 0f, Vector2.One)
 			);
 
+			// Highscore (persisted across runs; updated on game-over/won).
+			var highscoreText = _world.Create();
+			_world.Add(
+				highscoreText,
+				new Text()
+				{
+					Color = Pico8Color.Color12,
+					Content = $"highscore: {Lib.Highscore.Load()}",
+					Font = "pico-8",
+				}
+			);
+			_world.Add(
+				highscoreText,
+				new Transform(new Vector2(Game1.TargetWidth / 2, 55), 0f, Vector2.One)
+			);
+
 			var fireControls = _world.Create();
 			_world.Add(
 				fireControls,
 				new Text()
 				{
 					Color = Pico8Color.Color6,
-					Content = "Z (Shoot) X (Spread Shot)",
+					Content = "Z (Shoot) X (Spread) B (Bomb)",
 					Font = "pico-8",
 				}
 			);

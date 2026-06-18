@@ -102,6 +102,14 @@ namespace CherryBomb.Systems
 						: World.Has<TagBigBullet>(otherEntity) ? otherEntity
 						: null;
 
+					// Cherry-bomb projectiles are player projectiles dealing the (huge)
+					// Bomb damage; tracked separately so they route through the bomb
+					// damage path below.
+					Entity? bomb =
+						World.Has<TagBomb>(entity) ? entity
+						: World.Has<TagBomb>(otherEntity) ? otherEntity
+						: null;
+
 					Entity? boss =
 						World.Has<TagBoss>(entity) ? entity
 						: World.Has<TagBoss>(otherEntity) ? otherEntity
@@ -134,6 +142,18 @@ namespace CherryBomb.Systems
 							new EventPlayerProjectileBossCollision(
 								(Entity)projectile,
 								(Entity)boss,
+								damage
+							)
+						);
+					}
+					else if (AssertIsNotNull(enemy) && AssertIsNotNull(bomb))
+					{
+						var damage = _config.Entities.Player.Projectiles.Bomb.Damage;
+
+						World.Create(
+							new EventPlayerProjectileEnemyCollision(
+								(Entity)bomb,
+								(Entity)enemy,
 								damage
 							)
 						);
