@@ -98,6 +98,7 @@ namespace CherryBomb
 			_graphics.ApplyChanges();
 
 			Window.AllowUserResizing = true;
+			Window.Title = "Cherry Bomb";
 
 			// Disable for a better experience with higher refresh rate monitors
 			IsFixedTimeStep = false;
