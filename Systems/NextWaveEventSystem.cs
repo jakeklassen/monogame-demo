@@ -1,17 +1,24 @@
 using Arch.Core;
 using CherryBomb;
 using CherryBomb.Components;
+using CherryBomb.Lib;
 using CherryBomb.Lib.Tweening;
 using Microsoft.Xna.Framework;
 
 namespace CherryBomb.Systems
 {
-	public class NextWaveEventSystem(World world, State state, Config config, Tweener tweener)
-		: SystemBase<GameTime>(world)
+	public class NextWaveEventSystem(
+		World world,
+		State state,
+		Config config,
+		Tweener tweener,
+		Scheduler scheduler
+	) : SystemBase<GameTime>(world)
 	{
 		private readonly State _state = state;
 		private readonly Config _config = config;
 		private readonly Tweener _tweener = tweener;
+		private readonly Scheduler _scheduler = scheduler;
 		private readonly QueryDescription _eventEntities =
 			new QueryDescription().WithAll<EventNextWave>();
 
@@ -82,6 +89,13 @@ namespace CherryBomb.Systems
 					EnemyState lastEnemyState = null;
 					var lastTransitionsToProtect = false;
 
+					// Captured when the wave contains the boss (wave 9). The boss is
+					// the last enemy to finish flying in, so its tween's OnEnd (reused
+					// below) flips it into BossReady and zeroes its motion, handing
+					// control to BossSystem. Source: wave-ready-check-system.ts.
+					Entity bossEntity = default;
+					EnemyState bossEnemyState = null;
+
 					// TODO: Refactor this!
 					for (var y = 0; y < wave.Enemies.Length; y++)
 					{
@@ -122,7 +136,9 @@ namespace CherryBomb.Systems
 								scale: Vector2.One
 							);
 
-							var tweenDuration = 0.4f;
+							// Boss enters on a slow 2s linear glide; formation enemies snap
+							// in over 0.4s. Source: wave.ts (enemyType === 5 branch).
+							var tweenDuration = enemyType == 5 ? 2.0f : 0.4f;
 							var tweenDelay = 2.6f + (x * 90 / 1000f);
 
 							SpriteSheet.SpriteData spriteData = enemyType switch
@@ -184,6 +200,26 @@ namespace CherryBomb.Systems
 							World.Add(enemyEntity, new TagEnemy());
 							World.Add(enemyEntity, transform);
 
+							// The boss flies straight down and runs its own 4-phase
+							// flow (M4). Tag it so the boss-specific systems pick it up
+							// instead of the generic attack / fire / death paths, and
+							// give it the Direction/Velocity that BossSystem drives.
+							if (enemyType == 5)
+							{
+								World.Add(enemyEntity, new TagBoss());
+								World.Add(enemyEntity, new Direction(0, 0));
+								World.Add(enemyEntity, new Velocity(0f, 0f));
+
+								bossEntity = enemyEntity;
+								bossEnemyState = enemyState;
+
+								// Kick off the looping boss music shortly after spawn.
+								_scheduler.Add(
+									500f,
+									() => SoundSystem.Play(World, "boss-music", loop: true)
+								);
+							}
+
 							// The boss keeps its own flow (M4); only formation enemies
 							// transition into the protect state once they reach formation.
 							var transitionsToProtect = enemyType != 5;
@@ -217,6 +253,23 @@ namespace CherryBomb.Systems
 							if (lastTransitionsToProtect && lastEnemyState != null)
 							{
 								lastEnemyState.Value = EnemyStateType.Protect;
+							}
+
+							// Boss reached formation (y=25): hand it to BossSystem.
+							// Zero its motion and remove its entry invulnerability so
+							// player projectiles start landing. Source:
+							// wave-ready-check-system.ts (tagBoss branch).
+							if (bossEnemyState != null && World.IsAlive(bossEntity))
+							{
+								bossEnemyState.Value = EnemyStateType.BossReady;
+
+								World.Set(bossEntity, new Direction(0, 0));
+								World.Set(bossEntity, new Velocity(0f, 0f));
+
+								if (World.Has<Invulnerable>(bossEntity))
+								{
+									World.Remove<Invulnerable>(bossEntity);
+								}
 							}
 
 							_state.WaveReady = true;

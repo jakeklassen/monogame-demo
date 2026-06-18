@@ -95,6 +95,18 @@ namespace CherryBomb.Systems
 						: World.Has<TagBullet>(otherEntity) ? otherEntity
 						: null;
 
+					// Big (spread) bullets are player projectiles too; tracked
+					// separately so the boss can take their heavier damage.
+					Entity? bigBullet =
+						World.Has<TagBigBullet>(entity) ? entity
+						: World.Has<TagBigBullet>(otherEntity) ? otherEntity
+						: null;
+
+					Entity? boss =
+						World.Has<TagBoss>(entity) ? entity
+						: World.Has<TagBoss>(otherEntity) ? otherEntity
+						: null;
+
 					Entity? enemyBullet =
 						World.Has<TagEnemyBullet>(entity) ? entity
 						: World.Has<TagEnemyBullet>(otherEntity) ? otherEntity
@@ -105,7 +117,28 @@ namespace CherryBomb.Systems
 						: World.Has<TagPickup>(otherEntity) ? otherEntity
 						: null;
 
-					if (AssertIsNotNull(enemy) && AssertIsNotNull(playerProjectile))
+					// Boss takes player-projectile damage through its own event so the
+					// generic enemy-death path never destroys it. Big (spread) bullets
+					// deal more than the small bullet.
+					if (
+						AssertIsNotNull(boss)
+						&& (AssertIsNotNull(playerProjectile) || AssertIsNotNull(bigBullet))
+					)
+					{
+						var projectile = playerProjectile ?? bigBullet;
+						var damage = AssertIsNotNull(bigBullet)
+							? _config.Entities.Player.Projectiles.BigBullet.Damage
+							: _config.Entities.Player.Projectiles.Bullet.Damage;
+
+						World.Create(
+							new EventPlayerProjectileBossCollision(
+								(Entity)projectile,
+								(Entity)boss,
+								damage
+							)
+						);
+					}
+					else if (AssertIsNotNull(enemy) && AssertIsNotNull(playerProjectile))
 					{
 						var damage = _config.Entities.Player.Projectiles.Bullet.Damage;
 

@@ -21,7 +21,9 @@ namespace CherryBomb.Screens
 
 			_soundSystem = new SoundSystem(_world, Game.SoundCache);
 
-			_updateSystems.Add(new NextWaveEventSystem(_world, Game.State, Game.Config, _tweener));
+			_updateSystems.Add(
+				new NextWaveEventSystem(_world, Game.State, Game.Config, _tweener, _scheduler)
+			);
 			_updateSystems.Add(new TimeToLiveSystem(_world));
 			_updateSystems.Add(new BlinkSystem(_world));
 			// Input / fire.
@@ -34,6 +36,9 @@ namespace CherryBomb.Screens
 			// Per-type attack behaviour: tweak velocity/direction before movement.
 			_updateSystems.Add(new LateralHunterSystem(_world));
 			_updateSystems.Add(new YellowShipSystem(_world));
+			// Boss (wave 9) 4-phase attack cycle: sets direction/velocity + fires,
+			// so it must run before MovementSystem applies the motion.
+			_updateSystems.Add(new BossSystem(_world));
 			// Movement.
 			_updateSystems.Add(new MovementSystem(_world));
 			// Horizontal weave for attacking enemies; owns X so it runs after movement.
@@ -49,6 +54,12 @@ namespace CherryBomb.Screens
 			);
 			_updateSystems.Add(
 				new PlayerEnemyCollisionEventSystem(_world, Game.State, Game.Config)
+			);
+			// Boss damage / hurt-flash path (kept separate from the enemy-death path
+			// so the boss is never destroyed by it) and the scripted win sequence.
+			_updateSystems.Add(new PlayerProjectileBossCollisionEventSystem(_world));
+			_updateSystems.Add(
+				new DestroyBossEventSystem(_world, Game.State, Game.Config, _scheduler)
 			);
 			_updateSystems.Add(new PlayerPickupCollisionEventSystem(_world, Game.State));
 			// HUD text sync (diff State -> Text content).
