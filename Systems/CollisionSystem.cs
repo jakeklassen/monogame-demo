@@ -158,14 +158,21 @@ namespace CherryBomb.Systems
 							)
 						);
 					}
-					else if (AssertIsNotNull(enemy) && AssertIsNotNull(playerProjectile))
+					else if (
+						AssertIsNotNull(enemy)
+						&& (AssertIsNotNull(playerProjectile) || AssertIsNotNull(bigBullet))
+					)
 					{
-						var damage = _config.Entities.Player.Projectiles.Bullet.Damage;
+						// Both small bullets and big (spread) bullets damage enemies;
+						// the spread bullet deals the heavier BigBullet damage.
+						var projectile = playerProjectile ?? bigBullet;
+						var damage = AssertIsNotNull(bigBullet)
+							? _config.Entities.Player.Projectiles.BigBullet.Damage
+							: _config.Entities.Player.Projectiles.Bullet.Damage;
 
 						World.Create(
-							// For some reason this is not working, I had to cast
 							new EventPlayerProjectileEnemyCollision(
-								(Entity)playerProjectile,
+								(Entity)projectile,
 								(Entity)enemy,
 								damage
 							)
