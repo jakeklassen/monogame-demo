@@ -80,7 +80,7 @@ namespace CherryBomb.Android
 				return;
 			}
 
-#pragma warning disable CA1422 // SystemUiVisibility is the broadly-compatible path (API 21+).
+#pragma warning disable CA1422, CS0618 // SystemUiVisibility is the broadly-compatible immersive path (API 21+).
 			Window.DecorView.SystemUiVisibility = (StatusBarVisibility)(
 				SystemUiFlags.LayoutStable
 				| SystemUiFlags.LayoutHideNavigation
@@ -89,7 +89,7 @@ namespace CherryBomb.Android
 				| SystemUiFlags.Fullscreen
 				| SystemUiFlags.ImmersiveSticky
 			);
-#pragma warning restore CA1422
+#pragma warning restore CA1422, CS0618
 		}
 	}
 }

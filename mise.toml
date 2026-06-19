@@ -1,2 +1,13 @@
 [tools]
 dotnet = "10.0.301"
+# Full JDK for the Android (Shield) build — provides jar/keytool/jarsigner and
+# exports JAVA_HOME, which the .NET Android build picks up automatically.
+java = "temurin-21"
+
+[env]
+# Android SDK location for the platforms/Android head. Installed once via:
+#   dotnet build platforms/Android/CherryBomb.Android.csproj -t:InstallAndroidDependencies \
+#     -p:AndroidSdkDirectory=$HOME/android-sdk -p:AcceptAndroidSDKLicenses=True
+# With this set (and JAVA_HOME from mise), `dotnet build platforms/Android/...`
+# needs no extra -p: flags.
+ANDROID_HOME = "{{env.HOME}}/android-sdk"
