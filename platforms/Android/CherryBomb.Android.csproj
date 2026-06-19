@@ -33,6 +33,14 @@
 		<MonoGameExtendedPipelineReferencePath>$(MSBuildThisFileDirectory)..\..\pipeline-references</MonoGameExtendedPipelineReferencePath>
 	</PropertyGroup>
 
+	<!-- Release: full ahead-of-time compilation for max runtime speed on the
+	     Shield (no interpreter/JIT on the game loop). Requires the Android NDK.
+	     Bigger APK + slower builds; Debug stays JIT for fast iteration. -->
+	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
+		<RunAOTCompilation>true</RunAOTCompilation>
+		<AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
+	</PropertyGroup>
+
 	<!--
 		Source-linking. Disable the default *.cs glob and instead include the shared
 		game source from the repo root, EXCLUDING the desktop entry point (Program.cs),
