@@ -1,0 +1,72 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<!--
+		Android head for CherryBomb. ADDITIVE: it shares the SAME source and content
+		as the desktop project (monogame-demo.csproj) via source-linking instead of
+		duplicating any code. The desktop project is untouched and remains the source
+		of truth for the game logic.
+
+		Targets NVIDIA Shield / Shield Pro (Android TV, arm64). Controller-first; no
+		touch UI.
+	-->
+	<PropertyGroup>
+		<TargetFramework>net10.0-android</TargetFramework>
+		<RuntimeIdentifiers>android-arm64;android-arm;android-x64</RuntimeIdentifiers>
+		<OutputType>Exe</OutputType>
+		<Nullable>disable</Nullable>
+		<LangVersion>latest</LangVersion>
+		<ImplicitUsings>disable</ImplicitUsings>
+		<RootNamespace>CherryBomb</RootNamespace>
+		<AssemblyName>CherryBomb.Android</AssemblyName>
+		<ApplicationId>com.jakeklassen.cherrybomb</ApplicationId>
+		<ApplicationVersion>1</ApplicationVersion>
+		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+		<SupportedOSPlatformVersion>21</SupportedOSPlatformVersion>
+		<AndroidManifest>AndroidManifest.xml</AndroidManifest>
+		<!-- Build the shared Content.mgcb for Android (overrides the .mgcb's
+		     hardcoded /platform:DesktopGL via the content-builder task). -->
+		<MonoGamePlatform>Android</MonoGamePlatform>
+		<MonoGameExtendedPipelineReferencePath>$(MSBuildThisFileDirectory)..\..\pipeline-references</MonoGameExtendedPipelineReferencePath>
+	</PropertyGroup>
+
+	<!--
+		Source-linking. Disable the default *.cs glob and instead include the shared
+		game source from the repo root, EXCLUDING the desktop entry point (Program.cs),
+		build output (bin/obj), and this platforms/ folder (which has the Android-only
+		MainActivity). The Android head's own .cs files (MainActivity.cs) are added
+		explicitly below.
+	-->
+	<PropertyGroup>
+		<EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+		<SharedRoot>$(MSBuildThisFileDirectory)..\..\</SharedRoot>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Compile
+			Include="$(SharedRoot)**\*.cs"
+			Exclude="$(SharedRoot)Program.cs;$(SharedRoot)bin\**\*.cs;$(SharedRoot)obj\**\*.cs;$(SharedRoot)platforms\**\*.cs;$(SharedRoot)**\bin\**\*.cs;$(SharedRoot)**\obj\**\*.cs"
+		/>
+		<!-- Android-only entry point. -->
+		<Compile Include="MainActivity.cs" />
+	</ItemGroup>
+
+	<!--
+		Shared content: the SAME Content.mgcb the desktop head uses. The content
+		builder task compiles it for the MonoGamePlatform (Android) set above and
+		copies the .xnb assets into the APK's assets/ folder.
+	-->
+	<ItemGroup>
+		<MonoGameContentReference Include="..\..\Content\Content.mgcb" />
+	</ItemGroup>
+
+	<!-- Resources/** (icon vector drawable, splash theme) are picked up by the
+	     Android SDK's default AndroidResource glob. EnableDefaultCompileItems=false
+	     only turns off the *.cs Compile glob, not the resource globs, so no explicit
+	     AndroidResource items are needed here (declaring them would double-include). -->
+
+	<ItemGroup>
+		<PackageReference Include="MonoGame.Framework.Android" Version="3.8.4.1" />
+		<PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.4.1" />
+		<PackageReference Include="MonoGame.Extended" Version="6.0.0" />
+		<PackageReference Include="Arch" Version="2.1.0" />
+	</ItemGroup>
+</Project>

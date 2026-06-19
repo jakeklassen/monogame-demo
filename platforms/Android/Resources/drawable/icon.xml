@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+	App / TV-banner icon for CherryBomb. A vector drawable (supported natively on
+	the min SDK 21 target) so no binary asset is needed: a dark square with a red
+	"cherry bomb" disc and a small green stem. Placeholder art; replace with a real
+	icon/banner before shipping.
+-->
+<vector
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:width="108dp"
+	android:height="108dp"
+	android:viewportWidth="108"
+	android:viewportHeight="108"
+>
+	<path android:fillColor="#1D2B53" android:pathData="M0,0 L108,0 L108,108 L0,108 Z" />
+	<path
+		android:fillColor="#FF004D"
+		android:pathData="M54,72 m-26,0 a26,26 0 1,0 52,0 a26,26 0 1,0 -52,0 Z"
+	/>
+	<path
+		android:strokeColor="#00E436"
+		android:strokeWidth="5"
+		android:strokeLineCap="round"
+		android:pathData="M54,46 C58,34 70,30 78,24"
+	/>
+	<path
+		android:fillColor="#FFF1E8"
+		android:pathData="M44,62 m-6,0 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0 Z"
+	/>
+</vector>

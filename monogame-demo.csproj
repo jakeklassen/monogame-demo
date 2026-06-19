@@ -22,6 +22,15 @@
 		<None Remove="Icon.bmp" />
 	</ItemGroup>
 
+	<!-- The Android head lives under platforms/ and source-links the shared game
+	     code. Keep its Android-only sources (MainActivity.cs etc.) out of this
+	     Desktop project, whose default recursive *.cs glob would otherwise pick
+	     them up. Desktop behavior is unchanged; this only excludes a new folder. -->
+	<ItemGroup>
+		<Compile Remove="platforms/**/*.cs" />
+		<None Remove="platforms/**/*" />
+	</ItemGroup>
+
 	<ItemGroup>
 		<EmbeddedResource Include="Icon.ico" />
 		<EmbeddedResource Include="Icon.bmp" />

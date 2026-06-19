@@ -52,15 +52,26 @@ namespace CherryBomb.Systems
 					direction.X = 0;
 					direction.Y = 0;
 
+					var gamePad = GamePad.GetState(PlayerIndex.One);
+
+					// Left analog stick (Y is up-positive on the stick; the game uses
+					// down-positive, so it is inverted below). The Shield's primary
+					// input is the stick, so it is read alongside the DPad. A small
+					// dead-zone keeps stick drift from nudging the ship.
+					const float stickDeadZone = 0.5f;
+					var stick = gamePad.ThumbSticks.Left;
+
 					if (
-						GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.DPadLeft)
+						gamePad.IsButtonDown(Buttons.DPadLeft)
+						|| stick.X < -stickDeadZone
 						|| Keyboard.GetState().IsKeyDown(Keys.Left)
 					)
 					{
 						direction.X = -1;
 					}
 					else if (
-						GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.DPadRight)
+						gamePad.IsButtonDown(Buttons.DPadRight)
+						|| stick.X > stickDeadZone
 						|| Keyboard.GetState().IsKeyDown(Keys.Right)
 					)
 					{
@@ -68,14 +79,16 @@ namespace CherryBomb.Systems
 					}
 
 					if (
-						GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.DPadUp)
+						gamePad.IsButtonDown(Buttons.DPadUp)
+						|| stick.Y > stickDeadZone
 						|| Keyboard.GetState().IsKeyDown(Keys.Up)
 					)
 					{
 						direction.Y = -1;
 					}
 					else if (
-						GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.DPadDown)
+						gamePad.IsButtonDown(Buttons.DPadDown)
+						|| stick.Y < -stickDeadZone
 						|| Keyboard.GetState().IsKeyDown(Keys.Down)
 					)
 					{

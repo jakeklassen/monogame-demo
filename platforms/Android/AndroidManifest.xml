@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	package="com.jakeklassen.cherrybomb"
+	android:versionCode="1"
+	android:versionName="1.0"
+>
+	<uses-sdk android:minSdkVersion="21" android:targetSdkVersion="34" />
+
+	<!--
+		Android TV (NVIDIA Shield) feature declarations.
+
+		- leanback: marks this as a TV app. required=false so it can ALSO install on
+		  phones/tablets, but its presence + the LEANBACK_LAUNCHER intent below are
+		  what make it show up on the Shield's TV home screen.
+		- touchscreen required=false: TVs have no touchscreen; without this Google
+		  Play would filter the app off TV devices.
+		- gamepad required=false: the game is controller-first; declared (non-required
+		  so it still installs without a pad attached).
+	-->
+	<uses-feature android:name="android.software.leanback" android:required="false" />
+	<uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+	<uses-feature android:name="android.hardware.gamepad" android:required="false" />
+
+	<application
+		android:label="Cherry Bomb"
+		android:icon="@drawable/icon"
+		android:banner="@drawable/icon"
+		android:isGame="true"
+		android:hardwareAccelerated="true"
+		android:allowBackup="true"
+	>
+		<!--
+			The launcher Activity. It declares BOTH categories:
+			- LAUNCHER: standard app drawer (phones/tablets).
+			- LEANBACK_LAUNCHER: REQUIRED for the app to appear on the Android TV /
+			  Shield home screen. Without it the app installs but is invisible on TV.
+			The actual [Activity(...)] attributes live on MainActivity.cs; the
+			MonoGame/Xamarin.Android build merges them into this manifest.
+		-->
+	</application>
+</manifest>

@@ -159,7 +159,7 @@ namespace CherryBomb.Screens
 				new Text()
 				{
 					Color = Pico8Color.Color5,
-					Content = "Z (Shoot) X (Spread) B (Bomb)",
+					Content = "A:Shoot B:Spread X:Bomb",
 					Font = "pico-8",
 				}
 			);
@@ -174,7 +174,7 @@ namespace CherryBomb.Screens
 				new Text()
 				{
 					Color = Pico8Color.Color5,
-					Content = "Arrow Keys (Move)",
+					Content = "DPad / Stick (Move)",
 					Font = "pico-8",
 				}
 			);
