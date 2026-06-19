@@ -22,6 +22,11 @@
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
 		<SupportedOSPlatformVersion>21</SupportedOSPlatformVersion>
 		<AndroidManifest>AndroidManifest.xml</AndroidManifest>
+		<!-- Embed the .NET assemblies in the APK so it is self-contained and can be
+		     SIDELOADED (adb install) standalone. Without this, Debug builds use Fast
+		     Deployment (assemblies pushed separately by `dotnet run`/-t:Install), and a
+		     hand-installed APK aborts at launch: "No assemblies found ... Exiting...". -->
+		<EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
 		<!-- Build the shared Content.mgcb for Android (overrides the .mgcb's
 		     hardcoded /platform:DesktopGL via the content-builder task). -->
 		<MonoGamePlatform>Android</MonoGamePlatform>

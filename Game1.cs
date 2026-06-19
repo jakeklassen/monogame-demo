@@ -62,6 +62,7 @@ namespace CherryBomb
 
 		public static Rectangle Viewport => new(0, 0, TargetWidth, TargetHeight);
 		public OrthographicCamera Camera { get; private set; }
+		private BoxingViewportAdapter _viewportAdapter;
 		public Dictionary<string, BitmapFont> FontCache { get; } = new();
 		public SpriteBatch SpriteBatch { get; private set; }
 		public Dictionary<string, Texture2D> TextureCache { get; } = new();
@@ -167,13 +168,13 @@ namespace CherryBomb
 		{
 			base.Initialize();
 
-			var viewportAdapter = new BoxingViewportAdapter(
+			_viewportAdapter = new BoxingViewportAdapter(
 				Window,
 				GraphicsDevice,
 				TargetWidth,
 				TargetHeight
 			);
-			Camera = new OrthographicCamera(viewportAdapter);
+			Camera = new OrthographicCamera(_viewportAdapter);
 
 			// Created here (before the first screen loads) so rendering systems can
 			// share this single SpriteBatch instead of each allocating their own.
@@ -301,6 +302,13 @@ namespace CherryBomb
 
 		protected override void Draw(GameTime gameTime)
 		{
+			// Re-apply the boxing viewport every frame. On Android the surface is
+			// sized after Initialize, and the adapter's own ClientSizeChanged reset
+			// doesn't take effect, leaving a full-screen viewport that stretches the
+			// 128x128 view to 16:9. Reset() is idempotent and cheap, so doing it here
+			// keeps the letterbox/pillarbox correct on every platform and on resize.
+			_viewportAdapter.Reset();
+
 			// Clear the framebuffer; the active screen's rendering systems do the
 			// actual drawing during base.Draw (via the ScreenManager component).
 			GraphicsDevice.Clear(XnaColor.Black);
