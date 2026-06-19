@@ -4,6 +4,8 @@ using CherryBomb.EntityFactories;
 using CherryBomb.Systems;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
+using MonoGame.Extended.Input;
 using XnaColor = Microsoft.Xna.Framework.Color;
 
 namespace CherryBomb.Screens
@@ -268,6 +270,8 @@ namespace CherryBomb.Screens
 		{
 			base.Update(gameTime);
 
+			HandleDebugWaveJump();
+
 			// M1 emits EventGameOver (out of lives) and M4 emits EventGameWon (boss
 			// death sequence) but neither had a consumer until now. Detect either,
 			// freeze the current frame for the backdrop, and swap screens.
@@ -283,6 +287,66 @@ namespace CherryBomb.Screens
 			{
 				CaptureFrozenFrame();
 				ScreenManager.ReplaceScreen(new GameWonScreen(Game));
+			}
+		}
+
+		// Debug/dev: top-row number keys 1-9 jump straight to that wave at any time.
+		private void HandleDebugWaveJump()
+		{
+			var keyboard = KeyboardExtended.GetState();
+
+			for (var wave = 1; wave <= Game.State.MaxWaves; wave++)
+			{
+				if (keyboard.WasKeyPressed((Keys)((int)Keys.D0 + wave)))
+				{
+					JumpToWave(wave);
+					break;
+				}
+			}
+		}
+
+		// Clears the combat field (keeping the player, thruster, HUD, and starfield)
+		// and spawns the requested wave. NextWaveEventSystem increments State.Wave, so
+		// we set it to wave-1 and emit EventNextWave.
+		private void JumpToWave(int wave)
+		{
+			DestroyAllWith<TagEnemy>();
+			DestroyAllWith<TagBoss>();
+			DestroyAllWith<TagEnemyBullet>();
+			DestroyAllWith<TagBullet>();
+			DestroyAllWith<TagBigBullet>();
+			DestroyAllWith<TagBomb>();
+			DestroyAllWith<TagPickup>();
+			DestroyAllWith<Particle>();
+			DestroyAllWith<Shockwave>();
+
+			// Stop any looping track (e.g. boss music) before respawning.
+			_soundSystem?.StopAll();
+
+			Game.State.Wave = wave - 1;
+			Game.State.WaveReady = false;
+			Game.State.BombLocked = true;
+			Game.State.GameOver = false;
+
+			_world.Create(new EventNextWave());
+		}
+
+		private void DestroyAllWith<T>()
+		{
+			var query = new QueryDescription().WithAll<T>();
+			var count = _world.CountEntities(in query);
+
+			if (count == 0)
+			{
+				return;
+			}
+
+			var entities = new Entity[count];
+			_world.GetEntities(in query, entities, 0);
+
+			foreach (var entity in entities)
+			{
+				_world.Destroy(entity);
 			}
 		}
 
