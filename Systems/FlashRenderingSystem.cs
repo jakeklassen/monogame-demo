@@ -65,7 +65,15 @@ namespace CherryBomb.Systems
 				}
 
 				var mask = GetMask(sprite.CurrentFrame);
-				var tint = new XnaColor(flash.Color.R, flash.Color.G, flash.Color.B, flash.Alpha);
+				// Cast Alpha to int so this binds Color(int,int,int,int) (0-255), not
+				// the (float,float,float,float) 0-1 overload — which clamped any channel
+				// >1 to 255 and turned the red boss flash (255,0,77) into magenta.
+				var tint = new XnaColor(
+					flash.Color.R,
+					flash.Color.G,
+					flash.Color.B,
+					(int)flash.Alpha
+				);
 
 				_spriteBatch.Draw(
 					mask,
