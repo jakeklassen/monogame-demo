@@ -111,6 +111,14 @@ namespace CherryBomb.Screens
 				new FlashRenderingSystem(_world, Game.SpriteBatch, Game.Camera, _spriteSheetTexture)
 			);
 			_drawSystems.Add(
+				new PaletteSwapRenderingSystem(
+					_world,
+					Game.SpriteBatch,
+					Game.Camera,
+					_spriteSheetTexture
+				)
+			);
+			_drawSystems.Add(
 				new ShockwaveRenderingSystem(
 					_world,
 					Game.SpriteBatch,

@@ -47,21 +47,28 @@ namespace CherryBomb.Systems
 				_hurtTimer += dt;
 			}
 
-			// Revert to idle once the hurt window elapses.
+			// Revert to idle + drop the palette swap once the hurt window elapses.
+			// Materialize the boss first so the structural Remove<PaletteSwap> isn't
+			// done mid-query.
 			if (_hurtTimer >= HurtDurationSeconds && !_disableHurt)
 			{
-				World.Query(
-					in _bossQuery,
-					(Entity boss) =>
-					{
-						var animation = World.Get<SpriteAnimation>(boss);
+				var bosses = new Entity[World.CountEntities(in _bossQuery)];
+				World.GetEntities(in _bossQuery, bosses, 0);
 
-						if (animation.AnimationDetails.Name != "boss-idle")
-						{
-							SetBossAnimation(boss, "boss-idle", "Idle");
-						}
+				foreach (var boss in bosses)
+				{
+					var animation = World.Get<SpriteAnimation>(boss);
+
+					if (animation.AnimationDetails.Name != "boss-idle")
+					{
+						SetBossAnimation(boss, "boss-idle", "Idle");
 					}
-				);
+
+					if (World.Has<PaletteSwap>(boss))
+					{
+						World.Remove<PaletteSwap>(boss);
+					}
+				}
 			}
 
 			World.Query(
@@ -118,7 +125,9 @@ namespace CherryBomb.Systems
 
 					_hurtTimer = 0f;
 
-					// Swap to the hurt frame + a brief red flash (palette-swap stand-in).
+					// Swap to the hurt frame + the palette swap (green -> red/pink),
+					// matching the TS source's sprite.paletteSwaps. PaletteSwap routes
+					// the boss through PaletteSwapRenderingSystem for the hurt window.
 					if (World.Has<SpriteAnimation>(boss))
 					{
 						SetBossAnimation(boss, "boss-hurt", "Hurt");
@@ -130,16 +139,9 @@ namespace CherryBomb.Systems
 						sprite.CurrentFrame = SpriteSheet.Enemies.Boss.HurtFrame;
 					}
 
-					if (!World.Has<Flash>(boss))
+					if (!World.Has<PaletteSwap>(boss))
 					{
-						World.Add(
-							boss,
-							new Flash()
-							{
-								Color = Pico8Color.Color8,
-								Duration = HurtDurationSeconds,
-							}
-						);
+						World.Add(boss, new PaletteSwap());
 					}
 
 					ref var health = ref World.Get<Health>(boss);

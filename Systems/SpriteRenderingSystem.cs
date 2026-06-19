@@ -18,7 +18,7 @@ namespace CherryBomb.Systems
 	{
 		private readonly QueryDescription _spriteQuery = new QueryDescription()
 			.WithAll<Sprite, Transform>()
-			.WithNone<Flash>();
+			.WithNone<Flash, PaletteSwap>();
 		private readonly SpriteBatch _spriteBatch = spriteBatch;
 
 		private readonly OrthographicCamera _camera = camera;
