@@ -5,7 +5,7 @@ namespace CherryBomb.Components
 		Circle,
 	}
 
-	public class Particle(
+	public struct Particle(
 		float age,
 		float maxAge,
 		Microsoft.Xna.Framework.Color color,
