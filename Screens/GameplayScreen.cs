@@ -210,6 +210,13 @@ namespace CherryBomb.Screens
 		{
 			var font = Game.FontCache["pico-8"];
 			var sb = Game.SpriteBatch;
+			var pp = Game.GraphicsDevice.PresentationParameters;
+
+			// The readout is drawn straight to the backbuffer (after the scene present),
+			// so scale it by the same fill ratio the scene uses — it stays a constant
+			// physical size as the window grows, instead of a fixed pixel size that
+			// shrinks on big displays.
+			float fill = pp.BackBufferHeight / (float)Constants.WindowHeight;
 
 			sb.Begin(
 				SpriteSortMode.Deferred,
@@ -218,11 +225,19 @@ namespace CherryBomb.Screens
 				null,
 				null,
 				null,
-				Matrix.CreateScale(3f * Game.DpiScale)
+				Matrix.CreateScale(3f * fill)
 			);
 			DrawToggle(sb, font, "O SMOOTHING", _smoothing, 2f);
 			DrawToggle(sb, font, "I INTERP", _interpolation, 10f);
 			DrawToggle(sb, font, "P SUBPIXEL", _subpixel, 18f);
+			// Diagnostic: the real DPI / display / window numbers, so window sizing
+			// can be verified against the actual hardware.
+			sb.DrawString(
+				font,
+				$"DPI {Game.DpiScale:0.00} DISP {Game.DisplaySize.X}x{Game.DisplaySize.Y} WIN {pp.BackBufferWidth}x{pp.BackBufferHeight}",
+				new Vector2(2f, 26f),
+				Palette.White
+			);
 			sb.End();
 		}
 

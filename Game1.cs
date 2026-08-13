@@ -25,6 +25,10 @@ namespace CherryBomb
 		private readonly SimpleFps _fps = new();
 		private BitmapFont _font;
 
+		// Re-entrancy guard: ApplyChanges inside the resize handler re-fires
+		// ClientSizeChanged.
+		private bool _resizing;
+
 		public Dictionary<string, BitmapFont> FontCache { get; } = new();
 		public SpriteBatch SpriteBatch { get; private set; }
 		public Dictionary<string, Texture2D> TextureCache { get; } = new();
@@ -41,11 +45,12 @@ namespace CherryBomb
 
 		private const uint TimerResolutionMs = 1;
 
-		// Windows display scaling (1.0 at 96 DPI, 1.5 at 150%, …). The app is
-		// DPI-aware, so a fixed 1024×768 window renders at true pixels and looks
-		// tiny on a high-DPI screen — we size the window by this factor and
-		// bilinear-upscale the native scene to fill it. 1.0 off Windows.
+		// Windows display scaling as reported by the OS (1.0 at 96 DPI, 1.5 at 150%).
+		// Informational / diagnostic only now — window sizing is display-relative.
 		public float DpiScale { get; private set; } = 1f;
+
+		// The primary display size, for the on-screen diagnostic readout.
+		public Point DisplaySize { get; private set; }
 
 		[DllImport("user32.dll")]
 		private static extern uint GetDpiForSystem();
@@ -67,6 +72,25 @@ namespace CherryBomb
 			return 1f;
 		}
 
+		// Initial window size: ~85% of the display height at the native 4:3 aspect,
+		// so it's comfortably large on any monitor. Falls back to the native size if
+		// the display mode isn't queryable yet.
+		private (int, int) ComputeWindowSize()
+		{
+			try
+			{
+				var dm = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode;
+				DisplaySize = new Point(dm.Width, dm.Height);
+				int h = (int)MathF.Round(dm.Height * 0.85f);
+				int w = (int)MathF.Round(h * (float)Constants.WindowWidth / Constants.WindowHeight);
+				return (w, h);
+			}
+			catch
+			{
+				return (Constants.WindowWidth, Constants.WindowHeight);
+			}
+		}
+
 		public Game1()
 		{
 			if (OperatingSystem.IsWindows())
@@ -80,22 +104,23 @@ namespace CherryBomb
 
 			if (IsDesktop)
 			{
-				// Size the window by the display's DPI scale so it isn't tiny on a
-				// high-DPI screen (the native 1024×768 scene is bilinear-upscaled to
-				// fill this larger backbuffer in the renderer's present pass).
+				// Size the window RELATIVE TO THE DISPLAY (~85% of its height, native
+				// 4:3), not to a fixed pixel size — so it's comfortably large on any
+				// monitor regardless of DPI scaling. The native 1024×768 scene is
+				// bilinear-upscaled to fill this backbuffer in the renderer's present.
 				DpiScale = QueryDpiScale();
-				_graphics.PreferredBackBufferWidth = (int)
-					MathF.Round(Constants.WindowWidth * DpiScale);
-				_graphics.PreferredBackBufferHeight = (int)
-					MathF.Round(Constants.WindowHeight * DpiScale);
+				var (winW, winH) = ComputeWindowSize();
+				_graphics.PreferredBackBufferWidth = winW;
+				_graphics.PreferredBackBufferHeight = winH;
 				_graphics.HardwareModeSwitch = false;
 				_graphics.IsFullScreen = false;
 				_graphics.PreferMultiSampling = false;
 				_graphics.SynchronizeWithVerticalRetrace = true;
 				_graphics.ApplyChanges();
 
-				Window.AllowUserResizing = false;
+				Window.AllowUserResizing = true;
 				Window.Title = "Space Drift";
+				Window.ClientSizeChanged += OnClientSizeChanged;
 			}
 			else
 			{
@@ -111,6 +136,25 @@ namespace CherryBomb
 
 			_screenManager = new ScreenManager();
 			Components.Add(_screenManager);
+		}
+
+		// User dragged the window edge: match the backbuffer to the new client
+		// size so the scene target's bilinear present fills it (no stretch/letterbox).
+		private void OnClientSizeChanged(object sender, EventArgs e)
+		{
+			if (_resizing)
+				return;
+
+			int w = Math.Max(320, Window.ClientBounds.Width);
+			int h = Math.Max(240, Window.ClientBounds.Height);
+			if (w == _graphics.PreferredBackBufferWidth && h == _graphics.PreferredBackBufferHeight)
+				return;
+
+			_resizing = true;
+			_graphics.PreferredBackBufferWidth = w;
+			_graphics.PreferredBackBufferHeight = h;
+			_graphics.ApplyChanges();
+			_resizing = false;
 		}
 
 		// True on the desktop heads (Windows/Linux/macOS). False on Android.
