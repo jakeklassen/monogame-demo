@@ -1,11 +1,9 @@
 using Microsoft.Xna.Framework;
 
-namespace CherryBomb
+namespace SpaceDrift
 {
-	// Ported from space-drift/constants.ts. All tunable game data lives here so
-	// later phases (combat, enemies, planets, homing) have the numbers on hand.
-	// NOTE: the namespace stays CherryBomb for this phase (a later phase renames
-	// the whole project to SpaceDrift).
+	// Ported from space-drift/constants.ts. All tunable game data lives here:
+	// resolution, ship handling, shooting, homing, enemies, planets, minimap, HUD.
 	public static class Constants
 	{
 		// ── Resolution & render pipeline ────────────────────────────────────────

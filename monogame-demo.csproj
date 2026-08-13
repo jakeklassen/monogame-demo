@@ -6,6 +6,9 @@
 		<RollForward>Major</RollForward>
 		<PublishReadyToRun>false</PublishReadyToRun>
 		<TieredCompilation>false</TieredCompilation>
+		<!-- Game is "Space Drift"; the repo dir / csproj filename stay monogame-demo. -->
+		<AssemblyName>SpaceDrift</AssemblyName>
+		<RootNamespace>SpaceDrift</RootNamespace>
 	</PropertyGroup>
 
 	<PropertyGroup>

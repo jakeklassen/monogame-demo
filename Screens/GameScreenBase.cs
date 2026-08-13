@@ -2,7 +2,7 @@ using Arch.Core;
 using Microsoft.Xna.Framework;
 using MonoGame.Extended.Screens;
 
-namespace CherryBomb.Screens
+namespace SpaceDrift.Screens
 {
 	// Thin scaffolding: each screen owns an Arch World and gets a typed Game
 	// accessor. Subclasses drive their own update/draw (space-drift uses a

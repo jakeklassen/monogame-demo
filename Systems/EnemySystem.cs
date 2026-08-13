@@ -1,9 +1,9 @@
 using System;
 using Arch.Core;
-using CherryBomb.Components;
 using Microsoft.Xna.Framework;
+using SpaceDrift.Components;
 
-namespace CherryBomb.Systems
+namespace SpaceDrift.Systems
 {
 	// Decay hit flashes and respawn dead enemies near the ship after the delay.
 	// Ported EXACTLY from space-drift/sim.ts enemySystem.

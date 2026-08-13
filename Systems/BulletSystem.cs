@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using Arch.Core;
-using CherryBomb.Components;
+using SpaceDrift.Components;
 
-namespace CherryBomb.Systems
+namespace SpaceDrift.Systems
 {
 	// Advance bullets, home the homing ones, test them against live enemies, and
 	// reap the spent ones. Ported EXACTLY from space-drift/sim.ts bulletSystem +

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace CherryBomb.Lib
+namespace SpaceDrift.Lib
 {
 	public class Timer(float duration)
 	{

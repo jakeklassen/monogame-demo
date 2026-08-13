@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework;
 
-namespace CherryBomb.Components
+namespace SpaceDrift.Components
 {
 	// Snapshot of the transform at the previous fixed step, for render
 	// interpolation. A distinct type from Transform so both can live on one entity.

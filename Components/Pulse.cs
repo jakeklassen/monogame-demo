@@ -1,4 +1,4 @@
-namespace CherryBomb.Components
+namespace SpaceDrift.Components
 {
 	// A gently advancing phase used for soft pulsing / twinkle.
 	public struct Pulse

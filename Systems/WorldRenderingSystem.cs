@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using Arch.Core;
-using CherryBomb.Components;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended.BitmapFonts;
+using SpaceDrift.Components;
 
-namespace CherryBomb.Systems
+namespace SpaceDrift.Systems
 {
 	// The whole space-drift render pipeline. Ported from space-drift/render.ts
 	// (renderFrame + drawWorld + drawStars + drawEntities + drawReticle +

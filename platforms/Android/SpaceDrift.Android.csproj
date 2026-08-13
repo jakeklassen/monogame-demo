@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<!--
-		Android head for CherryBomb. ADDITIVE: it shares the SAME source and content
+		Android head for SpaceDrift. ADDITIVE: it shares the SAME source and content
 		as the desktop project (monogame-demo.csproj) via source-linking instead of
 		duplicating any code. The desktop project is untouched and remains the source
 		of truth for the game logic.
@@ -15,9 +15,9 @@
 		<Nullable>disable</Nullable>
 		<LangVersion>latest</LangVersion>
 		<ImplicitUsings>disable</ImplicitUsings>
-		<RootNamespace>CherryBomb</RootNamespace>
-		<AssemblyName>CherryBomb.Android</AssemblyName>
-		<ApplicationId>com.jakeklassen.cherrybomb</ApplicationId>
+		<RootNamespace>SpaceDrift</RootNamespace>
+		<AssemblyName>SpaceDrift.Android</AssemblyName>
+		<ApplicationId>com.jakeklassen.spacedrift</ApplicationId>
 		<ApplicationVersion>1</ApplicationVersion>
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
 		<SupportedOSPlatformVersion>21</SupportedOSPlatformVersion>

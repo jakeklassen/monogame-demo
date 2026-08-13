@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework;
 
-namespace CherryBomb
+namespace SpaceDrift
 {
 	public readonly struct PlanetPalette(Color dark, Color @base, Color light)
 	{

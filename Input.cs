@@ -2,7 +2,7 @@ using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
-namespace CherryBomb
+namespace SpaceDrift
 {
 	// A snapshot of the high-level game actions for one frame. Ported from
 	// space-drift/input.ts: the sim reads actions, never raw devices. Sampled once

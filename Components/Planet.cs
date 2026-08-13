@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework;
 
-namespace CherryBomb.Components
+namespace SpaceDrift.Components
 {
 	public struct Planet
 	{

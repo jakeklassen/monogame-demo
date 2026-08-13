@@ -1,8 +1,8 @@
 using System;
 using Arch.Core;
-using CherryBomb.Components;
+using SpaceDrift.Components;
 
-namespace CherryBomb.Systems
+namespace SpaceDrift.Systems
 {
 	// Fire on a tap, and stream at ShootInterval while the shoot button is held.
 	// Ported EXACTLY from space-drift/sim.ts shootSystem. Bullets inherit the

@@ -1,9 +1,9 @@
 using System;
 using Arch.Core;
-using CherryBomb.Components;
 using Microsoft.Xna.Framework;
+using SpaceDrift.Components;
 
-namespace CherryBomb.Systems
+namespace SpaceDrift.Systems
 {
 	// Fixed-step ship simulation. Ported EXACTLY from space-drift/sim.ts
 	// (shipSystem + emitThrust) — this is the feel. Operates on the single ship

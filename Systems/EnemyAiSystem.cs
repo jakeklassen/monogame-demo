@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using Arch.Core;
-using CherryBomb.Components;
 using Microsoft.Xna.Framework;
+using SpaceDrift.Components;
 
-namespace CherryBomb.Systems
+namespace SpaceDrift.Systems
 {
 	// Enemy movement AI. Ported EXACTLY from space-drift/sim.ts enemyAiSystem.
 	// Each live enemy flies with the player's handling (turn the nose toward a

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-	App / TV-banner icon for CherryBomb. A vector drawable (supported natively on
+	App / TV-banner icon for SpaceDrift. A vector drawable (supported natively on
 	the min SDK 21 target) so no binary asset is needed: a dark square with a red
 	"cherry bomb" disc and a small green stem. Placeholder art; replace with a real
 	icon/banner before shipping.

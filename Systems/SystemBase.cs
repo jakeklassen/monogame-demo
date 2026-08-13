@@ -1,6 +1,6 @@
 using Arch.Core;
 
-namespace CherryBomb.Systems
+namespace SpaceDrift.Systems
 {
 	/// <summary>
 	///     The <see cref="SystemBase{T}"/> class

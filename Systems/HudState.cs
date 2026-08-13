@@ -1,4 +1,4 @@
-namespace CherryBomb.Systems
+namespace SpaceDrift.Systems
 {
 	// Per-frame HUD readout, computed by GameplayScreen and handed to the renderer.
 	// Mirrors the values space-drift/main.ts writes into its HUD each frame.

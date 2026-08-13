@@ -1,7 +1,7 @@
 using Arch.Core;
-using CherryBomb.Components;
+using SpaceDrift.Components;
 
-namespace CherryBomb.Systems
+namespace SpaceDrift.Systems
 {
 	// Cosmetic phase advance (twinkle / soft pulsing). Ported from
 	// space-drift/sim.ts pulseSystem — runs on the REAL frame delta, not the

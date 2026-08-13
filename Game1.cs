@@ -1,16 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using CherryBomb.Lib;
-using CherryBomb.Screens;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonoGame.Extended.BitmapFonts;
 using MonoGame.Extended.Screens;
+using SpaceDrift.Lib;
+using SpaceDrift.Screens;
 using XnaColor = Microsoft.Xna.Framework.Color;
 
-namespace CherryBomb
+namespace SpaceDrift
 {
 	// Space Drift (phase 1). The game renders at a low internal resolution
 	// (GameWidth×GameHeight) and blits up ×Scale to a WindowWidth×WindowHeight

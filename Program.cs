@@ -1,2 +1,2 @@
-using var game = new CherryBomb.Game1();
+using var game = new SpaceDrift.Game1();
 game.Run();

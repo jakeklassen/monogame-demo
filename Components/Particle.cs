@@ -1,4 +1,4 @@
-namespace CherryBomb.Components
+namespace SpaceDrift.Components
 {
 	public enum ParticleKind
 	{

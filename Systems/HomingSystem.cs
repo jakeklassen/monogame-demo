@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using Arch.Core;
-using CherryBomb.Components;
+using SpaceDrift.Components;
 
-namespace CherryBomb.Systems
+namespace SpaceDrift.Systems
 {
 	// Charge while the homing button is held; on release fire a homing volley at
 	// the locked target, then emit that volley staggered over the next steps.

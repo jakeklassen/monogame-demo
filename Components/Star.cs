@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework;
 
-namespace CherryBomb.Components
+namespace SpaceDrift.Components
 {
 	// Depth is the parallax factor: 1 scrolls with the world, lower is farther.
 	public struct Star

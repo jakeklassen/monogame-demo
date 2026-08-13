@@ -2,7 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended.BitmapFonts;
 
-namespace CherryBomb.Lib
+namespace SpaceDrift.Lib
 {
 	public class SimpleFps
 	{

@@ -1,9 +1,9 @@
 using System;
 using Arch.Core;
-using CherryBomb.Components;
 using Microsoft.Xna.Framework;
+using SpaceDrift.Components;
 
-namespace CherryBomb.Systems
+namespace SpaceDrift.Systems
 {
 	// Entity factories ported from space-drift/factories.ts. Shared by the combat
 	// systems so bullet / enemy / particle creation lives in one place.

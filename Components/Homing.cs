@@ -1,6 +1,6 @@
 using Arch.Core;
 
-namespace CherryBomb.Components
+namespace SpaceDrift.Components
 {
 	// Makes a bullet steer toward Target at up to TurnRate deg/s.
 	public struct Homing

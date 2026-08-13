@@ -1,13 +1,13 @@
 using System;
 using Arch.Core;
-using CherryBomb.Components;
-using CherryBomb.Systems;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonoGame.Extended.BitmapFonts;
+using SpaceDrift.Components;
+using SpaceDrift.Systems;
 
-namespace CherryBomb.Screens
+namespace SpaceDrift.Screens
 {
 	// Space-drift phase 1: a flyable ship drifting in a parallax starfield.
 	// Owns the fixed-step accumulator loop (sim runs at FixedDt; rendering

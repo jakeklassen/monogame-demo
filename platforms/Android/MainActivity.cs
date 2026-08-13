@@ -1,4 +1,4 @@
-// global:: qualifiers because this file's own namespace is CherryBomb.Android, which
+// global:: qualifiers because this file's own namespace is SpaceDrift.Android, which
 // would otherwise shadow the Android.* SDK namespaces during name resolution.
 using global::Android.App;
 using global::Android.Content;
@@ -7,9 +7,9 @@ using global::Android.OS;
 using global::Android.Views;
 using Microsoft.Xna.Framework;
 
-namespace CherryBomb.Android
+namespace SpaceDrift.Android
 {
-	// Android entry point for CherryBomb on Android TV (NVIDIA Shield, arm64).
+	// Android entry point for SpaceDrift on Android TV (NVIDIA Shield, arm64).
 	//
 	// Controller-first: this declares both the standard LAUNCHER category and the
 	// LEANBACK_LAUNCHER category (see AndroidManifest.xml) so the app appears on the

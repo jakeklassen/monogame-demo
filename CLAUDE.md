@@ -4,57 +4,126 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-A MonoGame (DesktopGL, .NET 10) shoot-'em-up called **CherryBomb** ("Short Shwave Shmup"). Despite the repo name `monogame-demo`, the code namespace and game are CherryBomb. It is a wave-based shmup rendered at an internal **128×128** resolution and scaled up to a 512×512 window.
+A MonoGame (DesktopGL, .NET 10) top-down space shooter called **Space Drift**. The
+repo directory and csproj are still named `monogame-demo`, but the assembly, root
+namespace, and game are **SpaceDrift** (`<AssemblyName>`/`<RootNamespace>` in the
+csproj; window title "Space Drift").
+
+It is a **faithful port of a web prototype**: `~/code/gamedev/pixel-art-smoother-movement/src/space-drift`
+(TypeScript on the author's own "objecs" ECS, rendered with pixi.js). A Love2D
+port of the same game lives at `~/code/gamedev/love2d-typescript`. When in doubt
+about behaviour or tuning, the web source is the source of truth — most systems
+and constants are ported near 1:1 and cite their origin in comments.
+
+The game renders at an internal **256×192** resolution, blitted ×**4** into a
+1024×768 scene target, which is then bilinear-upscaled to fill a DPI-scaled
+window (~1280×960). The signature feature is **buttery sub-pixel-smooth camera
+movement** (see the render pipeline below).
+
+> NOTE: this repo was pivoted from an earlier wave-based shmup ("CherryBomb"),
+> recoverable from git history / the `cherrybomb` branch. A few inert leftovers
+> may remain (e.g. `Systems/SystemBase.cs` is unused).
 
 ## Commands
 
 ```bash
-dotnet tool restore   # restore mgcb + csharpier (required once; also runs automatically before Restore)
-dotnet build          # builds; MonoGame.Content.Builder.Task compiles Content/ automatically
-dotnet run            # build + run the game
-dotnet csharpier .    # format all C# (config in .csharpierrc-equivalent defaults; uses TABS)
+mise exec -- dotnet build          # build; MonoGame.Content.Builder.Task compiles Content/ automatically
+mise exec -- dotnet run            # build + run (mise provides the .NET 10 toolchain)
+mise exec -- dotnet csharpier format .   # format all C# — csharpier 1.x needs the `format` subcommand; uses TABS
 ```
 
-There is no test suite. Content is built automatically during `dotnet build` via `MonoGame.Content.Builder.Task` driving `Content/Content.mgcb`.
+`mise exec --` is used because the system .NET may be an older SDK; mise pins .NET
+10. There is no test suite. Content builds automatically during `dotnet build`.
 
 ### Content pipeline notes
-- `Content/Content.mgcb` is the asset manifest. Edit it with `dotnet mgcb-editor` or by hand.
-- `pipeline-references/MonoGame.Extended.Content.Pipeline.dll` must exist for the content build (referenced via `MonoGameExtendedPipelineReferencePath` in the csproj and `/reference:` in the .mgcb). It is gitignored-adjacent — do not delete it.
-- Sprites use magenta (`255,0,255`) as the color key for transparency.
+- `Content/Content.mgcb` is the asset manifest. Edit with `dotnet mgcb-editor` or by hand.
+- `pipeline-references/MonoGame.Extended.Content.Pipeline.dll` must exist for the content build (referenced via `MonoGameExtendedPipelineReferencePath` in the csproj and `/reference:` in the .mgcb). Do not delete it.
+- Sprites (`Graphics/shmup.png`) use magenta (`255,0,255`) as the transparency color key.
 
-### In-game debug keys
-`D` toggles debug rendering (collider boxes), `F` toggles fixed timestep, `V` toggles vsync, `Esc`/gamepad Back quits. These are handled in `Game1.Update`.
+### No custom shaders
+Bloom + CRT (toggle **C**) are done **shader-free** (render-target downsample for
+bloom; generated scanline/vignette overlays), on purpose: compiling an HLSL `.fx`
+for DesktopGL needs Wine/`mgfxc`, which isn't available on the Linux/WSL build box
+and would break the cross-platform build. Screen curvature and animated noise are
+the only effects omitted (they genuinely require a compiled shader).
+
+### In-game keys
+Fly with **WASD / arrows / left stick**; **Space / A** shoot; **X / B** hold to
+charge a homing volley; **Z / RT** boost; **S / down / LT** brake. Debug toggles:
+**I** interpolation, **P** sub-pixel blit, **O** delta-time smoothing, **M**
+minimap, **C** CRT/bloom (shown along the bottom status line). **Esc** / gamepad
+**Back** quits. Handled in `GameplayScreen.HandleDebugToggles` and `Game1.Update`.
 
 ## Architecture
 
-The game is built on the **Arch ECS** library plus **MonoGame.Extended** (screens, tweening, bitmap fonts, input listeners, camera). The two big-picture patterns:
+Built on **Arch ECS** plus **MonoGame.Extended** (screen manager, bitmap fonts).
 
-### Screens own everything (ECS per screen)
-`Game1` is thin: it sets up graphics, a `BoxingViewportAdapter` + `OrthographicCamera` (128×128 logical), shared caches (`FontCache`, `TextureCache`), global `Config` and `State`, and hands control to MonoGame.Extended's `ScreenManager`. It starts on `TitleScreen` → `GameplayScreen`.
+### Game1 (thin shell) + window/DPI
+`Game1` sets up graphics, a shared `SpriteBatch`, caches (`FontCache`,
+`TextureCache` — the latter holds generated `circ-N`/`circfill-N` textures), and
+hands off to the `ScreenManager`, booting straight into `GameplayScreen`. It also
+owns **window sizing**: the app is DPI-aware (under `dotnet run` the process
+inherits `dotnet.exe`'s per-monitor-aware manifest regardless), so it sizes the
+window to `PreferredWindow* (1280×960) × the real DPI scale` and lets the scene
+target bilinear-fill it — a comfortable physical size that matches the Love2D
+build. See `app.manifest` and `Game1.ComputeWindowSize`. A `winmm` timer-resolution
+bump reduces frame-pacing jitter on Windows.
 
-Each screen (`Screens/`) creates its **own** Arch `World`, its own `Tweener`, and two ordered lists of systems: `_updateSystems` and `_drawSystems`. `LoadContent` registers systems and spawns initial entities; `Update`/`Draw` just iterate the respective list calling `system.Update(gameTime)`. `UnloadContent` calls `World.Destroy(_world)`. To change gameplay, you almost always add/modify a system and register it in the screen's `LoadContent` — order matters.
+### One ECS World per screen
+`GameplayScreen` creates its own Arch `World`, spawns the ship / stars / planets /
+enemies (via `Factories`), and runs the **fixed-timestep accumulator loop**: sim
+systems step at `Constants.FixedDt` (1/60); rendering interpolates between the
+previous and current transforms by `alpha = accumulator / FixedDt`. Delta-time
+smoothing (vsync-snap + rolling average) keeps the accumulator phase-locked so the
+sub-pixel camera doesn't jitter.
 
-### Systems
-- `Systems/SystemBase<T>` is the base: holds a `World`, exposes `abstract void Update(in T state)` (T is always `GameTime`). Systems are plain classes constructed with the `World` plus whatever else they need (Game, Tweener, GraphicsDevice, Camera, caches).
-- Systems query via Arch `QueryDescription().WithAll<...>().WithNone<...>()` and either `World.Query(...)` with a ref-struct lambda or `World.GetEntities(...)`.
-- **Update systems** mutate component state (movement, collision, player input, wave spawning, particles, tweened animations).
-- **Rendering systems** end in `RenderingSystem`, each owns its own `SpriteBatch`, and draws with `SamplerState.PointClamp` (pixel art) using `Camera.GetViewMatrix()`. Note `SpriteRenderingSystem` sorts entities by `Id` for stable draw order, and excludes entities `WithNone<Flash>` (flashing sprites are drawn by `FlashRenderingSystem`).
+### Systems (plain classes, explicit order)
+Systems are plain classes constructed with the `World` plus whatever they need,
+exposing `Update(float dt)` or `Update(float dt, in InputState)`. They are NOT
+built on `SystemBase` (that file is a dead leftover). **Order matters** and mirrors
+the web `main.ts`: ship → shoot → homing → bullet → enemyAI → enemy → particle,
+then `pulse` on the real frame delta. Systems query via Arch
+`QueryDescription().WithAll<...>()`; when a step both iterates and makes structural
+changes (spawns/among nested loops), it collects entities into a `List<Entity>`
+first, then processes.
 
-### Components
-`Components/` holds plain data classes (primary-constructor style). Tags are empty marker components (`TagPlayer`, `TagEnemy`, `TagBullet`, `TagInactive`). Events are short-lived entities carrying an event component (`EventNextWave`, `EventPlayerProjectileEnemyCollision`) that a system processes and then destroys — this is the inter-system messaging mechanism.
+### Rendering — the sub-pixel-smooth pipeline
+`Systems/WorldRenderingSystem` owns the **entire** frame (ported from the web
+`render.ts` + HUD from `main.ts`). The smooth-movement crux:
+1. World content (planets, exhaust, enemies, bullets, reticle) is drawn into a
+   low-res `worldRT` (257×193) at `floor(worldPos) - floor(cam)` — whole low-res
+   pixels, never sub-pixel inside the RT.
+2. That RT is blitted ×Scale to the scene at a **whole-screen-pixel offset**
+   carrying the camera fraction (`-round(frac(cam) × Scale)`) — this is what makes
+   motion buttery instead of shimmering.
+3. Stars (screen-space parallax, streak at high speed), the pinned ship (with
+   bank-frame cross-fade), planet light, and the minimap compose the 1024×768
+   `sceneRT`.
+4. `sceneRT` is bilinear-upscaled to the backbuffer (soft, Love2D-style), with the
+   optional bloom/CRT chain and a whole-frame boost shake. The **HUD is drawn last,
+   directly on the backbuffer with point sampling** so text stays crisp.
 
-### Collision
-Bitmask layer/mask system in `Constants.cs` (`CollisionMasks`: Player, PlayerProjectile, Enemy, EnemyProjectile, Pickup). Entities carry a `CollisionLayer` (what they are) and `CollisionMask` (what they collide with); `CollisionSystem` checks overlaps and emits collision event entities.
+Everything uses `SamplerState.PointClamp` for the pixel-art passes.
 
-### Game data / waves
-`Config.cs` holds all tunable data: enemy stats, projectile damage, and the **9 hardcoded waves** as `int[][]` grids (0 = empty, 1–5 = enemy type id). `NextWaveEventSystem` reads the current wave, spawns enemies, and tweens them into formation. `State` (in `Game1.cs`) holds runtime game state (score, lives, wave, flags). `SpriteSheet.cs` is the static atlas map: per-sprite `Frame` rectangles, `BoxCollider`s, and named animations into `Graphics/shmup.png`.
+### Components / data
+`Components/` holds plain structs: `Transform` (Position + Rotation°), `Previous`
+(interpolation snapshot), `Velocity`, `Ship`, `Bullet`, `Homing`, `Enemy`,
+`Particle`, `Planet`, `Star`, `Pulse`. There are no tag/event-entity messaging
+patterns here (unlike the old CherryBomb); collision is direct circle tests in
+`BulletSystem`. `Constants.cs` holds all tunable data (ported from `constants.ts`).
+`Palette.cs` is the Pico-8 palette + planet palettes. `Input.cs` samples keyboard +
+gamepad into an immutable `InputState`.
 
 ### Supporting libs (`Lib/`)
-- `Lib/Tweening/` — a self-contained tweening engine (`Tweener`, `Tween`, easing functions, reflection-based member tweens). Used to animate `Transform.Position` etc. Each screen owns a `Tweener` and must call `_tweener.Update(dt)` every frame.
-- `Lib/Pico8.cs` — `Pico8Extensions` generates `circ`/`circfill` textures at load time (cached in `Game1.TextureCache` as `circ-N`/`circfill-N`); `Pico8Color` (in `Constants.cs`) is the 16-color PICO-8 palette used throughout for `Text`/`Blink`.
-- `Lib/Timer.cs`, `Lib/SimpleFps.cs` — utility helpers.
+- `Lib/Pico8.cs` — generates `circ`/`circfill` textures at load (cached as `circ-N`/`circfill-N`); note `circfill-1` is a plus, not a disc, so tiny dots are drawn as solid squares instead.
+- `Lib/SimpleFps.cs`, `Lib/Timer.cs` — utility helpers.
+
+### Android head (`platforms/Android/`)
+`SpaceDrift.Android.csproj` source-links the shared game code (not a project
+reference) and builds the same `Content.mgcb` for Android. It is **excluded from
+the desktop build** (`<Compile Remove="platforms/**">`) and is not a current focus.
 
 ## Conventions
-- Formatting is **csharpier** with **tabs** for indentation. Run `dotnet csharpier .` before considering work done.
-- Color name collision: `Components.Color` vs XNA's `Color` — files commonly alias `using XnaColor = Microsoft.Xna.Framework.Color;`. Match the surrounding file.
+- Formatting is **csharpier** with **tabs**. Run `dotnet csharpier format .` before considering work done.
+- Color name collision: files alias `using XnaColor = Microsoft.Xna.Framework.Color;` where needed. Match the surrounding file.
 - C# latest features are used freely: primary constructors, collection expressions (`[]`), target-typed `new`, switch expressions.

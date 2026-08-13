@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using Arch.Core;
-using CherryBomb.Components;
+using SpaceDrift.Components;
 
-namespace CherryBomb.Systems
+namespace SpaceDrift.Systems
 {
 	// Fixed-step particle simulation. Ported from space-drift/sim.ts particleSystem:
 	// age, apply light drag, integrate, and reap expired particles.
