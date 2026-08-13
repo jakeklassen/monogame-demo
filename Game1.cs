@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using CherryBomb.Lib;
 using CherryBomb.Screens;
 using Microsoft.Xna.Framework;
@@ -28,8 +29,25 @@ namespace CherryBomb
 		public SpriteBatch SpriteBatch { get; private set; }
 		public Dictionary<string, Texture2D> TextureCache { get; } = new();
 
+		// Windows' default timer resolution is ~15.6ms, which makes MonoGame's
+		// frame pacing jitter (visible as micro-stutter in smooth scrolling). Drop
+		// it to 1ms for precise pacing — a well-known MonoGame stutter fix. Paired
+		// with timeEndPeriod in Dispose. Windows-only (no-op elsewhere).
+		[DllImport("winmm.dll", EntryPoint = "timeBeginPeriod")]
+		private static extern uint TimeBeginPeriod(uint uMilliseconds);
+
+		[DllImport("winmm.dll", EntryPoint = "timeEndPeriod")]
+		private static extern uint TimeEndPeriod(uint uMilliseconds);
+
+		private const uint TimerResolutionMs = 1;
+
 		public Game1()
 		{
+			if (OperatingSystem.IsWindows())
+			{
+				TimeBeginPeriod(TimerResolutionMs);
+			}
+
 			_graphics = new GraphicsDeviceManager(this);
 			Content.RootDirectory = "Content";
 			IsMouseVisible = true;
@@ -115,6 +133,16 @@ namespace CherryBomb
 			base.UnloadContent();
 
 			SpriteBatch.Dispose();
+		}
+
+		protected override void Dispose(bool disposing)
+		{
+			if (OperatingSystem.IsWindows())
+			{
+				TimeEndPeriod(TimerResolutionMs);
+			}
+
+			base.Dispose(disposing);
 		}
 
 		protected override void Update(GameTime gameTime)
