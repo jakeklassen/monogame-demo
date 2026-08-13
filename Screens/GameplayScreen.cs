@@ -5,6 +5,7 @@ using CherryBomb.Systems;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using MonoGame.Extended.BitmapFonts;
 
 namespace CherryBomb.Screens
 {
@@ -200,6 +201,45 @@ namespace CherryBomb.Screens
 		public override void Draw(GameTime gameTime)
 		{
 			_renderer.Draw(_alpha, _subpixel);
+			DrawDebugReadout();
+		}
+
+		// Top-left readout of the comparison toggles (green = ON, red = OFF), so
+		// the I/P/O state is visible while diagnosing the movement feel. Debug-only.
+		private void DrawDebugReadout()
+		{
+			var font = Game.FontCache["pico-8"];
+			var sb = Game.SpriteBatch;
+
+			sb.Begin(
+				SpriteSortMode.Deferred,
+				BlendState.AlphaBlend,
+				SamplerState.PointClamp,
+				null,
+				null,
+				null,
+				Matrix.CreateScale(3f)
+			);
+			DrawToggle(sb, font, "O SMOOTHING", _smoothing, 2f);
+			DrawToggle(sb, font, "I INTERP", _interpolation, 10f);
+			DrawToggle(sb, font, "P SUBPIXEL", _subpixel, 18f);
+			sb.End();
+		}
+
+		private static void DrawToggle(
+			SpriteBatch sb,
+			BitmapFont font,
+			string label,
+			bool on,
+			float y
+		)
+		{
+			sb.DrawString(
+				font,
+				$"{label} {(on ? "ON" : "OFF")}",
+				new Vector2(2f, y),
+				on ? Palette.Green : Palette.Red
+			);
 		}
 
 		public override void UnloadContent()
