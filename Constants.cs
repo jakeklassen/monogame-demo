@@ -21,8 +21,19 @@ namespace CherryBomb
 		public const int CanvasWidth = GameWidth + 1;
 		public const int CanvasHeight = GameHeight + 1;
 
+		// The scene render target size (the low-res view blitted ×Scale). The window
+		// backbuffer is a SEPARATE, larger size (see PreferredWindow*), and this scene
+		// target is bilinear-presented to fill it.
 		public const int WindowWidth = GameWidth * Scale; // 1024
 		public const int WindowHeight = GameHeight * Scale; // 768
+
+		// Desired on-screen window size, matching the Love2D build (1280×960, 4:3) so
+		// the game is a comfortable, consistent physical size across platforms. The
+		// app runs DPI-unaware (see app.manifest) so the OS upscales this like Love2D,
+		// instead of rendering it at true pixels (tiny on high-DPI Windows). Clamped
+		// down to fit small displays at window-creation time.
+		public const int PreferredWindowWidth = 1280;
+		public const int PreferredWindowHeight = 960;
 
 		// A large area to drift around in.
 		public const int WorldWidth = 1536;

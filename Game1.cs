@@ -25,10 +25,6 @@ namespace CherryBomb
 		private readonly SimpleFps _fps = new();
 		private BitmapFont _font;
 
-		// Re-entrancy guard: ApplyChanges inside the resize handler re-fires
-		// ClientSizeChanged.
-		private bool _resizing;
-
 		public Dictionary<string, BitmapFont> FontCache { get; } = new();
 		public SpriteBatch SpriteBatch { get; private set; }
 		public Dictionary<string, Texture2D> TextureCache { get; } = new();
@@ -45,8 +41,9 @@ namespace CherryBomb
 
 		private const uint TimerResolutionMs = 1;
 
-		// Windows display scaling as reported by the OS (1.0 at 96 DPI, 1.5 at 150%).
-		// Informational / diagnostic only now — window sizing is display-relative.
+		// Windows display scaling as reported by the OS. Diagnostic only — the app is
+		// DPI-unaware, so in practice this reads 1.0 (the virtualized value) and window
+		// sizing does NOT depend on it.
 		public float DpiScale { get; private set; } = 1f;
 
 		// The primary display size, for the on-screen diagnostic readout.
@@ -72,23 +69,33 @@ namespace CherryBomb
 			return 1f;
 		}
 
-		// Initial window size: ~85% of the display height at the native 4:3 aspect,
-		// so it's comfortably large on any monitor. Falls back to the native size if
-		// the display mode isn't queryable yet.
+		// Window size = the preferred 1280×960 (Love2D parity), shrunk proportionally
+		// to fit within ~88% of the display if the monitor is small — never enlarged,
+		// and always kept 4:3. The app is DPI-unaware, so on high-DPI Windows the OS
+		// upscales this window like Love2D; the display mode is reported in the same
+		// (virtualized) units the window uses, so the clamp is apples-to-apples.
 		private (int, int) ComputeWindowSize()
 		{
+			int w = Constants.PreferredWindowWidth;
+			int h = Constants.PreferredWindowHeight;
+
 			try
 			{
 				var dm = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode;
 				DisplaySize = new Point(dm.Width, dm.Height);
-				int h = (int)MathF.Round(dm.Height * 0.85f);
-				int w = (int)MathF.Round(h * (float)Constants.WindowWidth / Constants.WindowHeight);
-				return (w, h);
+
+				// Fit within 88% of the display on BOTH axes (work-area headroom for
+				// taskbars/title bars), preserving aspect. scale ≤ 1 → never grow.
+				float scale = MathF.Min(1f, MathF.Min(dm.Width * 0.88f / w, dm.Height * 0.88f / h));
+				w = (int)MathF.Round(w * scale);
+				h = (int)MathF.Round(h * scale);
 			}
 			catch
 			{
-				return (Constants.WindowWidth, Constants.WindowHeight);
+				// Display not queryable yet — use the unclamped preferred size.
 			}
+
+			return (w, h);
 		}
 
 		public Game1()
@@ -104,10 +111,10 @@ namespace CherryBomb
 
 			if (IsDesktop)
 			{
-				// Size the window RELATIVE TO THE DISPLAY (~85% of its height, native
-				// 4:3), not to a fixed pixel size — so it's comfortably large on any
-				// monitor regardless of DPI scaling. The native 1024×768 scene is
-				// bilinear-upscaled to fill this backbuffer in the renderer's present.
+				// Fixed 1280×960 window (Love2D parity), shrunk to fit small displays.
+				// The 1024×768 scene target is bilinear-upscaled to fill this backbuffer
+				// in the renderer's present; the app is DPI-unaware so the OS scales the
+				// whole window up on high-DPI displays for a consistent physical size.
 				DpiScale = QueryDpiScale();
 				var (winW, winH) = ComputeWindowSize();
 				_graphics.PreferredBackBufferWidth = winW;
@@ -118,9 +125,8 @@ namespace CherryBomb
 				_graphics.SynchronizeWithVerticalRetrace = true;
 				_graphics.ApplyChanges();
 
-				Window.AllowUserResizing = true;
+				Window.AllowUserResizing = false;
 				Window.Title = "Space Drift";
-				Window.ClientSizeChanged += OnClientSizeChanged;
 			}
 			else
 			{
@@ -138,25 +144,6 @@ namespace CherryBomb
 			Components.Add(_screenManager);
 		}
 
-		// User dragged the window edge: match the backbuffer to the new client
-		// size so the scene target's bilinear present fills it (no stretch/letterbox).
-		private void OnClientSizeChanged(object sender, EventArgs e)
-		{
-			if (_resizing)
-				return;
-
-			int w = Math.Max(320, Window.ClientBounds.Width);
-			int h = Math.Max(240, Window.ClientBounds.Height);
-			if (w == _graphics.PreferredBackBufferWidth && h == _graphics.PreferredBackBufferHeight)
-				return;
-
-			_resizing = true;
-			_graphics.PreferredBackBufferWidth = w;
-			_graphics.PreferredBackBufferHeight = h;
-			_graphics.ApplyChanges();
-			_resizing = false;
-		}
-
 		// True on the desktop heads (Windows/Linux/macOS). False on Android.
 		private static bool IsDesktop =>
 			OperatingSystem.IsWindows() || OperatingSystem.IsLinux() || OperatingSystem.IsMacOS();
@@ -171,11 +158,12 @@ namespace CherryBomb
 
 			if (IsDesktop)
 			{
-				// Center the window on the primary monitor.
+				// Center on the primary monitor using the ACTUAL client size (the OS may
+				// have clamped the requested backbuffer), not the requested values.
 				var displayMode = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode;
 				Window.Position = new Point(
-					(displayMode.Width - _graphics.PreferredBackBufferWidth) / 2,
-					(displayMode.Height - _graphics.PreferredBackBufferHeight) / 2
+					(displayMode.Width - Window.ClientBounds.Width) / 2,
+					(displayMode.Height - Window.ClientBounds.Height) / 2
 				);
 			}
 

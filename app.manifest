@@ -35,12 +35,14 @@
 
   <application xmlns="urn:schemas-microsoft-com:asm.v3">
     <windowsSettings>
-      <!-- DPI-aware so the window is sized in real pixels: Game1 makes it ~85% of
-           the display height and bilinear-upscales the native scene target to fill
-           it, so it's a comfortable physical size on any monitor regardless of the
-           OS scaling factor. GetDpiForSystem is read for the diagnostic readout. -->
-      <dpiAware xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings">true/pm</dpiAware>
-      <dpiAwareness xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">permonitorv2,permonitor</dpiAwareness>
+      <!-- DPI-UNAWARE, on purpose. A fixed 1280×960 window then gets OS-upscaled on
+           high-DPI displays (exactly like Love2D), giving a comfortable, consistent
+           physical size everywhere — instead of a DPI-aware app rendering 1280×960 at
+           true pixels, which looks tiny on a 150%/200% Windows display. The manifest
+           is authoritative here: it wins over SDL's runtime DPI hint, so this is what
+           actually forces unawareness on Windows. -->
+      <dpiAware xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings">false</dpiAware>
+      <dpiAwareness xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">unaware</dpiAwareness>
     </windowsSettings>
   </application>
 
