@@ -19,6 +19,11 @@ namespace CherryBomb.Screens
 		private Entity _ship;
 
 		private ShipSystem _shipSystem;
+		private ShootSystem _shootSystem;
+		private HomingSystem _homingSystem;
+		private BulletSystem _bulletSystem;
+		private EnemyAiSystem _enemyAiSystem;
+		private EnemySystem _enemySystem;
 		private ParticleSystem _particleSystem;
 		private PulseSystem _pulseSystem;
 		private WorldRenderingSystem _renderer;
@@ -98,8 +103,14 @@ namespace CherryBomb.Screens
 			);
 
 			PopulateStars();
+			SpawnEnemies();
 
 			_shipSystem = new ShipSystem(_world, _ship);
+			_shootSystem = new ShootSystem(_world, _ship);
+			_homingSystem = new HomingSystem(_world, _ship);
+			_bulletSystem = new BulletSystem(_world);
+			_enemyAiSystem = new EnemyAiSystem(_world, _ship);
+			_enemySystem = new EnemySystem(_world, _ship);
 			_particleSystem = new ParticleSystem(_world);
 			_pulseSystem = new PulseSystem(_world);
 			_renderer = new WorldRenderingSystem(
@@ -109,6 +120,26 @@ namespace CherryBomb.Screens
 				Game.SpriteBatch,
 				_shmup
 			);
+		}
+
+		// A handful of enemies ringed loosely around the spawn (ported from
+		// main.ts). They patrol until the player drifts on screen, then engage.
+		private void SpawnEnemies()
+		{
+			var rng = new Random();
+			float cx = Constants.WorldWidth / 2f;
+			float cy = Constants.WorldHeight / 2f;
+			for (int i = 0; i < Constants.EnemyCount; i++)
+			{
+				float angle = (float)i / Constants.EnemyCount * MathF.PI * 2f;
+				float dist = 150f + i * 40f;
+				Factories.CreateEnemy(
+					_world,
+					rng,
+					cx + MathF.Cos(angle) * dist,
+					cy + MathF.Sin(angle) * dist
+				);
+			}
 		}
 
 		// Parallax star layers, far → near (ported from factories.ts STAR_LAYERS /
@@ -172,7 +203,14 @@ namespace CherryBomb.Screens
 
 			while (_accumulator >= Constants.FixedDt)
 			{
+				// Order matches space-drift/main.ts: ship, shoot, homing, bullet,
+				// enemy AI, enemy (flash/respawn), particles.
 				_shipSystem.Update(Constants.FixedDt, input);
+				_shootSystem.Update(Constants.FixedDt, input);
+				_homingSystem.Update(Constants.FixedDt, input);
+				_bulletSystem.Update(Constants.FixedDt);
+				_enemyAiSystem.Update(Constants.FixedDt);
+				_enemySystem.Update(Constants.FixedDt);
 				_particleSystem.Update(Constants.FixedDt);
 				_accumulator -= Constants.FixedDt;
 			}
@@ -200,7 +238,8 @@ namespace CherryBomb.Screens
 
 		public override void Draw(GameTime gameTime)
 		{
-			_renderer.Draw(_alpha, _subpixel);
+			float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
+			_renderer.Draw(_alpha, _subpixel, _homingSystem.LockTarget, _homingSystem.Charging, dt);
 			DrawDebugReadout();
 		}
 

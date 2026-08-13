@@ -26,9 +26,13 @@ namespace CherryBomb.Systems
 		private const int StarWrapW = (Constants.GameWidth + 2) * Constants.Scale;
 		private const int StarWrapH = (Constants.GameHeight + 2) * Constants.Scale;
 
-		// Ship "standard" frame in shmup.png (tile col 2, row 0).
-		private static readonly Rectangle ShipFrame = new(16, 0, 8, 8);
-		private static readonly Vector2 ShipOrigin = new(4f, 4f);
+		// 8×8 sprite frames in shmup.png, addressed by (col, row) tiles.
+		private static readonly Rectangle ShipFrame = new(16, 0, 8, 8); // (2, 0)
+		private static readonly Rectangle BulletFrame = new(48, 0, 8, 8); // (6, 0)
+		private static readonly Rectangle EnemyFrame = new(88, 64, 8, 8); // (11, 8)
+
+		// All 8×8 sprites pivot on their centre.
+		private static readonly Vector2 SpriteOrigin = new(4f, 4f);
 
 		private readonly World _world;
 		private readonly Entity _ship;
@@ -52,6 +56,19 @@ namespace CherryBomb.Systems
 			Transform,
 			Pulse
 		>();
+		private readonly QueryDescription _enemyQuery = new QueryDescription().WithAll<
+			Enemy,
+			Transform,
+			Previous
+		>();
+		private readonly QueryDescription _bulletQuery = new QueryDescription().WithAll<
+			Bullet,
+			Transform,
+			Previous
+		>();
+
+		// Advances the lock-on reticle's breathing animation (real frame time).
+		private float _reticleAnim;
 
 		public WorldRenderingSystem(
 			World world,
@@ -104,7 +121,7 @@ namespace CherryBomb.Systems
 			return Palette.DarkBlue;
 		}
 
-		public void Draw(float alpha, bool subpixel)
+		public void Draw(float alpha, bool subpixel, Entity? lockTarget, bool charging, float dt)
 		{
 			// Interpolated ship transform (render position).
 			ref var tf = ref _world.Get<Transform>(_ship);
@@ -155,6 +172,66 @@ namespace CherryBomb.Systems
 					_spriteBatch.Draw(_pixel, new Rectangle(px, py, size, size), color);
 				}
 			);
+
+			// Enemies (whole low-res pixels, interpolated). Hit flash reads as a
+			// quick scale pop — a tint can't brighten a sprite.
+			_world.Query(
+				in _enemyQuery,
+				(ref Enemy en, ref Transform etf, ref Previous eprev) =>
+				{
+					if (en.RespawnTimer > 0f)
+						return;
+					float ex = MathHelper.Lerp(eprev.Position.X, etf.Position.X, alpha);
+					float ey = MathHelper.Lerp(eprev.Position.Y, etf.Position.Y, alpha);
+					float er = MathHelper.Lerp(eprev.Rotation, etf.Rotation, alpha);
+					var pos = new Vector2(
+						MathF.Floor(ex) - flooredCamX,
+						MathF.Floor(ey) - flooredCamY
+					);
+					float scale = en.HitFlash > 0f ? 1.4f : 1f;
+					_spriteBatch.Draw(
+						_shmup,
+						pos,
+						EnemyFrame,
+						Color.White,
+						er * DegToRad,
+						SpriteOrigin,
+						scale,
+						SpriteEffects.None,
+						0f
+					);
+				}
+			);
+
+			// Bullets (homing missiles read orange to distinguish them from shots).
+			_world.Query(
+				in _bulletQuery,
+				(Entity e, ref Bullet b, ref Transform btf, ref Previous bprev) =>
+				{
+					float bx = MathHelper.Lerp(bprev.Position.X, btf.Position.X, alpha);
+					float by = MathHelper.Lerp(bprev.Position.Y, btf.Position.Y, alpha);
+					float br = MathHelper.Lerp(bprev.Rotation, btf.Rotation, alpha);
+					var pos = new Vector2(
+						MathF.Floor(bx) - flooredCamX,
+						MathF.Floor(by) - flooredCamY
+					);
+					Color tint = _world.Has<Homing>(e) ? Palette.Orange : Color.White;
+					_spriteBatch.Draw(
+						_shmup,
+						pos,
+						BulletFrame,
+						tint,
+						br * DegToRad,
+						SpriteOrigin,
+						1f,
+						SpriteEffects.None,
+						0f
+					);
+				}
+			);
+
+			DrawReticle(lockTarget, charging, dt, flooredCamX, flooredCamY);
+
 			_spriteBatch.End();
 
 			// ── PASS B: native scene (1024×768) ──────────────────────────────────
@@ -275,7 +352,7 @@ namespace CherryBomb.Systems
 				ShipFrame,
 				Color.White,
 				shipRot * DegToRad,
-				ShipOrigin,
+				SpriteOrigin,
 				(float)Constants.Scale,
 				SpriteEffects.None,
 				0f
@@ -309,6 +386,52 @@ namespace CherryBomb.Systems
 				Color.White
 			);
 			_spriteBatch.End();
+		}
+
+		// Lock-on brackets around the targeted enemy. Drawn into the low-res world
+		// RT (whole pixels) inside the current PASS A batch. Ported from render.ts
+		// drawReticle (charge level is a HUD concern, added in a later phase).
+		private void DrawReticle(
+			Entity? lockTarget,
+			bool charging,
+			float dt,
+			int flooredCamX,
+			int flooredCamY
+		)
+		{
+			if (lockTarget is not Entity target)
+				return;
+			if (!_world.IsAlive(target) || !_world.Has<Transform>(target))
+				return;
+
+			_reticleAnim += dt;
+			var pos = _world.Get<Transform>(target).Position;
+			int cx = (int)MathF.Floor(pos.X) - flooredCamX;
+			int cy = (int)MathF.Floor(pos.Y) - flooredCamY;
+
+			// Brackets breathe by a pixel and glow orange while charging, red idle.
+			int half = 6 + (MathF.Sin(_reticleAnim * 7f) > 0.4f ? 1 : 0);
+			const int arm = 2;
+			Color color = charging ? Palette.Orange : Palette.Red;
+
+			void Corner(int px, int py, int dx, int dy)
+			{
+				_spriteBatch.Draw(
+					_pixel,
+					new Rectangle(dx < 0 ? px : px - arm + 1, py, arm, 1),
+					color
+				);
+				_spriteBatch.Draw(
+					_pixel,
+					new Rectangle(px, dy < 0 ? py : py - arm + 1, 1, arm),
+					color
+				);
+			}
+
+			Corner(cx - half, cy - half, -1, -1);
+			Corner(cx + half, cy - half, 1, -1);
+			Corner(cx - half, cy + half, -1, 1);
+			Corner(cx + half, cy + half, 1, 1);
 		}
 
 		public void Dispose()
