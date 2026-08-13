@@ -16,6 +16,7 @@ namespace CherryBomb.Systems
 		public bool Interpolation;
 		public bool Subpixel;
 		public bool Minimap;
+		public bool Crt;
 		public bool Gamepad;
 
 		// Seconds the boost has been held (drives the whole-frame shake).

@@ -50,6 +50,15 @@ namespace CherryBomb.Systems
 		private readonly RenderTarget2D _worldRT;
 		private readonly RenderTarget2D _minimapRT;
 		private readonly RenderTarget2D _sceneRT;
+
+		// Shader-free CRT/bloom chain (toggle C), built at ¼ and ⅛ scene res for a
+		// cheap bloom, plus generated scanline + vignette overlays.
+		private readonly RenderTarget2D _bloomRT;
+		private readonly RenderTarget2D _bloomRT2;
+		private readonly Texture2D _scanlines;
+		private readonly Texture2D _vignette;
+		private readonly BlendState _multiply;
+
 		private readonly Texture2D _pixel;
 		private readonly Texture2D _shipLight; // white ship silhouette, for planet glow
 
@@ -114,9 +123,62 @@ namespace CherryBomb.Systems
 				Constants.MinimapDiameter
 			);
 			_sceneRT = new RenderTarget2D(device, Constants.WindowWidth, Constants.WindowHeight);
+			_bloomRT = new RenderTarget2D(
+				device,
+				Constants.WindowWidth / 4,
+				Constants.WindowHeight / 4
+			);
+			_bloomRT2 = new RenderTarget2D(
+				device,
+				Constants.WindowWidth / 8,
+				Constants.WindowHeight / 8
+			);
 			_pixel = new Texture2D(device, 1, 1);
 			_pixel.SetData([Color.White]);
 			_shipLight = BuildShipLight(device, shmup, ShipStandard);
+			_scanlines = BuildScanlines(device);
+			_vignette = BuildVignette(device, 128);
+			// Multiply blend (src.rgb × dst.rgb) for the scanline + vignette overlays.
+			_multiply = new BlendState
+			{
+				ColorSourceBlend = Blend.DestinationColor,
+				ColorDestinationBlend = Blend.Zero,
+				AlphaSourceBlend = Blend.DestinationAlpha,
+				AlphaDestinationBlend = Blend.Zero,
+			};
+		}
+
+		// A 1×3 vertical pattern: two bright lines then a darker one, tiled (PointWrap)
+		// down the backbuffer under a multiply blend to lay down CRT scanlines.
+		private static Texture2D BuildScanlines(GraphicsDevice device)
+		{
+			var tex = new Texture2D(device, 1, 3);
+			var dim = new Color(0.6f, 0.6f, 0.6f, 1f);
+			tex.SetData([Color.White, Color.White, dim]);
+			return tex;
+		}
+
+		// A radial gradient (bright centre → ~0.5 at the corners), multiplied over the
+		// backbuffer to darken the edges like a CRT vignette.
+		private static Texture2D BuildVignette(GraphicsDevice device, int size)
+		{
+			var data = new Color[size * size];
+			float c = (size - 1) / 2f;
+			float maxD = MathF.Sqrt(2f) * c;
+			for (int y = 0; y < size; y++)
+			{
+				for (int x = 0; x < size; x++)
+				{
+					float dx = x - c;
+					float dy = y - c;
+					float d = MathF.Sqrt(dx * dx + dy * dy) / maxD; // 0 centre → 1 corner
+					float b = MathHelper.Clamp(1f - 0.5f * d * d, 0.5f, 1f);
+					data[y * size + x] = new Color(b, b, b, 1f);
+				}
+			}
+			var tex = new Texture2D(device, size, size);
+			tex.SetData(data);
+			return tex;
 		}
 
 		// A white silhouette of the ship frame (opaque pixels → white, keeping
@@ -356,6 +418,12 @@ namespace CherryBomb.Systems
 				_spriteBatch.End();
 			}
 
+			// Bloom (toggle C): downsample the finished scene twice for a cheap glow,
+			// composited additively in PASS C. Done while sceneRT is still resolvable.
+			bool crt = hud.Crt;
+			if (crt)
+				BuildBloom();
+
 			// ── PASS C: bilinear-upscale the scene to fill the backbuffer, with a
 			// whole-frame boost shake applied as a present offset. ───────────────
 			_device.SetRenderTarget(null);
@@ -392,10 +460,97 @@ namespace CherryBomb.Systems
 			_spriteBatch.Draw(_sceneRT, new Rectangle(shakeX, shakeY, bbW, bbH), Color.White);
 			_spriteBatch.End();
 
+			if (crt)
+			{
+				var full = new Rectangle(0, 0, bbW, bbH);
+
+				// Additive bloom: the two downsampled levels glow bright areas.
+				_spriteBatch.Begin(
+					SpriteSortMode.Deferred,
+					BlendState.Additive,
+					SamplerState.LinearClamp,
+					null,
+					null,
+					null,
+					null
+				);
+				_spriteBatch.Draw(_bloomRT, full, Color.White * 0.35f);
+				_spriteBatch.Draw(_bloomRT2, full, Color.White * 0.5f);
+				_spriteBatch.End();
+
+				// Scanlines: the 1×3 pattern tiled down the screen (multiply).
+				_spriteBatch.Begin(
+					SpriteSortMode.Deferred,
+					_multiply,
+					SamplerState.PointWrap,
+					null,
+					null,
+					null,
+					null
+				);
+				_spriteBatch.Draw(_scanlines, full, new Rectangle(0, 0, bbW, bbH), Color.White);
+				_spriteBatch.End();
+
+				// Vignette: radial darkening toward the edges (multiply).
+				_spriteBatch.Begin(
+					SpriteSortMode.Deferred,
+					_multiply,
+					SamplerState.LinearClamp,
+					null,
+					null,
+					null,
+					null
+				);
+				_spriteBatch.Draw(_vignette, full, Color.White);
+				_spriteBatch.End();
+			}
+
 			// HUD on the backbuffer (NOT the scene) so the text stays crisp: the scene
 			// is bilinear-upscaled (soft, on purpose), which would blur the font. Point
 			// sampling + a scale to the backbuffer keeps it sharp and window-relative.
 			DrawHud(hud, fill);
+		}
+
+		// Downsample the finished scene to ¼ then ⅛ res (bilinear = blur). On the
+		// near-black space background this naturally emphasises bright pixels, so the
+		// additive composite in PASS C reads as a threshold bloom.
+		private void BuildBloom()
+		{
+			_device.SetRenderTarget(_bloomRT);
+			_device.Clear(Color.Black);
+			_spriteBatch.Begin(
+				SpriteSortMode.Deferred,
+				BlendState.Opaque,
+				SamplerState.LinearClamp,
+				null,
+				null,
+				null,
+				null
+			);
+			_spriteBatch.Draw(
+				_sceneRT,
+				new Rectangle(0, 0, _bloomRT.Width, _bloomRT.Height),
+				Color.White
+			);
+			_spriteBatch.End();
+
+			_device.SetRenderTarget(_bloomRT2);
+			_device.Clear(Color.Black);
+			_spriteBatch.Begin(
+				SpriteSortMode.Deferred,
+				BlendState.Opaque,
+				SamplerState.LinearClamp,
+				null,
+				null,
+				null,
+				null
+			);
+			_spriteBatch.Draw(
+				_bloomRT,
+				new Rectangle(0, 0, _bloomRT2.Width, _bloomRT2.Height),
+				Color.White
+			);
+			_spriteBatch.End();
 		}
 
 		// Planets: five stacked circles (glow, shadow disc, lit midtone, highlight,
@@ -892,7 +1047,8 @@ namespace CherryBomb.Systems
 			// Toggle status line along the bottom.
 			string status =
 				$"interp {Box(hud.Interpolation)} i   subpix {Box(hud.Subpixel)} p   "
-				+ $"smooth {Box(hud.Smoothing)} o   map {Box(hud.Minimap)} m"
+				+ $"smooth {Box(hud.Smoothing)} o   map {Box(hud.Minimap)} m   "
+				+ $"crt {Box(hud.Crt)} c"
 				+ (hud.Gamepad ? "   gamepad" : "");
 			_spriteBatch.DrawString(
 				_font,
@@ -971,6 +1127,11 @@ namespace CherryBomb.Systems
 			_worldRT?.Dispose();
 			_minimapRT?.Dispose();
 			_sceneRT?.Dispose();
+			_bloomRT?.Dispose();
+			_bloomRT2?.Dispose();
+			_scanlines?.Dispose();
+			_vignette?.Dispose();
+			_multiply?.Dispose();
 			_pixel?.Dispose();
 			_shipLight?.Dispose();
 		}

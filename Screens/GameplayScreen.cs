@@ -36,6 +36,7 @@ namespace CherryBomb.Screens
 		private bool _subpixel = true;
 		private bool _smoothing = true;
 		private bool _minimap = true;
+		private bool _crt = false;
 		private KeyboardState _prevKeys;
 
 		// Seconds the boost has been held (drives the whole-frame shake), and a
@@ -277,6 +278,8 @@ namespace CherryBomb.Screens
 				_smoothing = !_smoothing;
 			if (keys.IsKeyDown(Keys.M) && _prevKeys.IsKeyUp(Keys.M))
 				_minimap = !_minimap;
+			if (keys.IsKeyDown(Keys.C) && _prevKeys.IsKeyUp(Keys.C))
+				_crt = !_crt;
 			_prevKeys = keys;
 		}
 
@@ -309,6 +312,7 @@ namespace CherryBomb.Screens
 				Interpolation = _interpolation,
 				Subpixel = _subpixel,
 				Minimap = _minimap,
+				Crt = _crt,
 				Gamepad = GamePad.GetState(PlayerIndex.One).IsConnected,
 				BoostHeldTime = _boostHeldTime,
 			};
