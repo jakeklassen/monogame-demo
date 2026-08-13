@@ -407,3 +407,6 @@ FodyWeavers.xsd
 
 # MonoGame content build statistics artifact
 .mgstats
+
+# Machine-local mise config (Android build tooling paths)
+mise.local.toml
