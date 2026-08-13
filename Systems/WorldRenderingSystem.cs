@@ -356,8 +356,6 @@ namespace CherryBomb.Systems
 				_spriteBatch.End();
 			}
 
-			DrawHud(hud);
-
 			// ── PASS C: bilinear-upscale the scene to fill the backbuffer, with a
 			// whole-frame boost shake applied as a present offset. ───────────────
 			_device.SetRenderTarget(null);
@@ -393,6 +391,11 @@ namespace CherryBomb.Systems
 			);
 			_spriteBatch.Draw(_sceneRT, new Rectangle(shakeX, shakeY, bbW, bbH), Color.White);
 			_spriteBatch.End();
+
+			// HUD on the backbuffer (NOT the scene) so the text stays crisp: the scene
+			// is bilinear-upscaled (soft, on purpose), which would blur the font. Point
+			// sampling + a scale to the backbuffer keeps it sharp and window-relative.
+			DrawHud(hud, fill);
 		}
 
 		// Planets: five stacked circles (glow, shadow disc, lit midtone, highlight,
@@ -449,11 +452,13 @@ namespace CherryBomb.Systems
 					RoundHalfUp(r * 0.5f),
 					pl.Light
 				);
-				// Specular dot.
-				DrawCircFill(
-					(int)MathF.Round(cx + Constants.LightDirX * r * 0.55f),
-					(int)MathF.Round(cy + Constants.LightDirY * r * 0.55f),
-					Math.Max(1, RoundHalfUp(r * 0.14f)),
+				// Specular dot — solid square (circfill at radius 1 is a plus).
+				int specR = Math.Max(1, RoundHalfUp(r * 0.14f));
+				int specX = (int)MathF.Round(cx + Constants.LightDirX * r * 0.55f);
+				int specY = (int)MathF.Round(cy + Constants.LightDirY * r * 0.55f);
+				_spriteBatch.Draw(
+					_pixel,
+					new Rectangle(specX - specR, specY - specR, specR * 2, specR * 2),
 					Color.White * 0.9f
 				);
 			}
@@ -712,7 +717,9 @@ namespace CherryBomb.Systems
 					continue;
 				int ax = (int)MathF.Floor(r + dx);
 				int ay = (int)MathF.Floor(r + dy);
-				DrawCircFill(ax, ay, dotR, pl.Base);
+				// Solid square dot — circfill at radius 1 is a plus, not a disc.
+				int d = dotR * 2;
+				_spriteBatch.Draw(_pixel, new Rectangle(ax - dotR, ay - dotR, d, d), pl.Base);
 			}
 
 			// Enemies as red blips, clamped to the rim if off-disc.
@@ -762,8 +769,10 @@ namespace CherryBomb.Systems
 		// HUD: fps / speed, homing-charge meter, boost-fuel meter, and the toggle
 		// status line along the bottom. Ported from main.ts. Drawn into the scene
 		// (so a later CRT pass would cover it). Text uses the pico-8 bitmap font.
-		private void DrawHud(in HudState hud)
+		private void DrawHud(in HudState hud, float fill)
 		{
+			// Drawn to the backbuffer in scene (1024×768) coordinates scaled up by the
+			// fill ratio, with PointClamp — same on-screen size as the scene, but crisp.
 			_spriteBatch.Begin(
 				SpriteSortMode.Deferred,
 				BlendState.AlphaBlend,
@@ -771,7 +780,7 @@ namespace CherryBomb.Systems
 				null,
 				null,
 				null,
-				null
+				Matrix.CreateScale(fill)
 			);
 
 			var big = new Vector2(2f, 2f);
