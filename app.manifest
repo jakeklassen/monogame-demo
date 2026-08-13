@@ -35,14 +35,15 @@
 
   <application xmlns="urn:schemas-microsoft-com:asm.v3">
     <windowsSettings>
-      <!-- DPI-UNAWARE, on purpose. A fixed 1280×960 window then gets OS-upscaled on
-           high-DPI displays (exactly like Love2D), giving a comfortable, consistent
-           physical size everywhere — instead of a DPI-aware app rendering 1280×960 at
-           true pixels, which looks tiny on a 150%/200% Windows display. The manifest
-           is authoritative here: it wins over SDL's runtime DPI hint, so this is what
-           actually forces unawareness on Windows. -->
-      <dpiAware xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings">false</dpiAware>
-      <dpiAwareness xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">unaware</dpiAwareness>
+      <!-- DPI-aware (per-monitor v2). Under `dotnet run` the process inherits
+           dotnet.exe's own per-monitor-aware manifest regardless of what we declare,
+           so we embrace awareness rather than fight it: Game1 multiplies the window
+           size by the real DPI scale (GetDpiForSystem) so the window is a comfortable
+           PHYSICAL size on a high-DPI display and renders crisply at true pixels. An
+           unaware host reports 96 DPI here, so the ×1 window is OS-upscaled instead —
+           same physical result either way. -->
+      <dpiAware xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings">true/pm</dpiAware>
+      <dpiAwareness xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">permonitorv2,permonitor</dpiAwareness>
     </windowsSettings>
   </application>
 

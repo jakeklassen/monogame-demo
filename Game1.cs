@@ -69,15 +69,16 @@ namespace CherryBomb
 			return 1f;
 		}
 
-		// Window size = the preferred 1280×960 (Love2D parity), shrunk proportionally
-		// to fit within ~88% of the display if the monitor is small — never enlarged,
-		// and always kept 4:3. The app is DPI-unaware, so on high-DPI Windows the OS
-		// upscales this window like Love2D; the display mode is reported in the same
-		// (virtualized) units the window uses, so the clamp is apples-to-apples.
+		// Window size = the preferred 1280×960 (Love2D parity) times the real DPI
+		// scale, so it's a comfortable PHYSICAL size on a high-DPI display: 1280×960 ×
+		// 1.5 = 1920×1440 on a 150% monitor, rendered crisply at true pixels. A
+		// DPI-unaware host reports 96 DPI here → ×1, and the OS upscales the window
+		// instead — same physical result. Finally shrunk to fit within 88% of the
+		// display on small monitors, preserving 4:3. Assumes DpiScale is already set.
 		private (int, int) ComputeWindowSize()
 		{
-			int w = Constants.PreferredWindowWidth;
-			int h = Constants.PreferredWindowHeight;
+			float w = Constants.PreferredWindowWidth * DpiScale;
+			float h = Constants.PreferredWindowHeight * DpiScale;
 
 			try
 			{
@@ -85,17 +86,17 @@ namespace CherryBomb
 				DisplaySize = new Point(dm.Width, dm.Height);
 
 				// Fit within 88% of the display on BOTH axes (work-area headroom for
-				// taskbars/title bars), preserving aspect. scale ≤ 1 → never grow.
-				float scale = MathF.Min(1f, MathF.Min(dm.Width * 0.88f / w, dm.Height * 0.88f / h));
-				w = (int)MathF.Round(w * scale);
-				h = (int)MathF.Round(h * scale);
+				// taskbars/title bars), preserving aspect. clamp ≤ 1 → never grow.
+				float clamp = MathF.Min(1f, MathF.Min(dm.Width * 0.88f / w, dm.Height * 0.88f / h));
+				w *= clamp;
+				h *= clamp;
 			}
 			catch
 			{
-				// Display not queryable yet — use the unclamped preferred size.
+				// Display not queryable yet — use the DPI-scaled preferred size.
 			}
 
-			return (w, h);
+			return ((int)MathF.Round(w), (int)MathF.Round(h));
 		}
 
 		public Game1()
@@ -111,10 +112,10 @@ namespace CherryBomb
 
 			if (IsDesktop)
 			{
-				// Fixed 1280×960 window (Love2D parity), shrunk to fit small displays.
-				// The 1024×768 scene target is bilinear-upscaled to fill this backbuffer
-				// in the renderer's present; the app is DPI-unaware so the OS scales the
-				// whole window up on high-DPI displays for a consistent physical size.
+				// 1280×960 (Love2D parity) scaled by the display DPI so it's a comfortable
+				// physical size on high-DPI Windows, shrunk to fit small displays. The
+				// 1024×768 scene target is bilinear-upscaled to fill this backbuffer in
+				// the renderer's present.
 				DpiScale = QueryDpiScale();
 				var (winW, winH) = ComputeWindowSize();
 				_graphics.PreferredBackBufferWidth = winW;
@@ -164,6 +165,14 @@ namespace CherryBomb
 				Window.Position = new Point(
 					(displayMode.Width - Window.ClientBounds.Width) / 2,
 					(displayMode.Height - Window.ClientBounds.Height) / 2
+				);
+
+				// Print the real numbers to the console — readable no matter how big or
+				// small the window ends up, so window sizing can be verified directly.
+				Console.WriteLine(
+					$"[window] DPI={DpiScale:0.00}  DISP={DisplaySize.X}x{DisplaySize.Y}  "
+						+ $"BACKBUFFER={_graphics.PreferredBackBufferWidth}x{_graphics.PreferredBackBufferHeight}  "
+						+ $"CLIENT={Window.ClientBounds.Width}x{Window.ClientBounds.Height}"
 				);
 			}
 
