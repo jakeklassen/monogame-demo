@@ -29,6 +29,11 @@ namespace CherryBomb
 		public SpriteBatch SpriteBatch { get; private set; }
 		public Dictionary<string, Texture2D> TextureCache { get; } = new();
 
+		// Integer scale from the native 1024×768 scene to the backbuffer (chosen to
+		// fill the display crisply — the DPI-aware fix). 1 unless a larger multiple
+		// fits. Read by the renderer's present pass.
+		public int RenderScale { get; private set; } = 1;
+
 		// Windows' default timer resolution is ~15.6ms, which makes MonoGame's
 		// frame pacing jitter (visible as micro-stutter in smooth scrolling). Drop
 		// it to 1ms for precise pacing — a well-known MonoGame stutter fix. Paired
@@ -54,11 +59,13 @@ namespace CherryBomb
 
 			if (IsDesktop)
 			{
-				// Fixed backbuffer at the exact window size so the ×Scale blit stays
-				// an integer (pixel-perfect). No DPI scaling — that would change the
-				// backbuffer size and break the integer scale.
-				_graphics.PreferredBackBufferWidth = Constants.WindowWidth;
-				_graphics.PreferredBackBufferHeight = Constants.WindowHeight;
+				// Pick the largest INTEGER scale of the native 1024×768 scene that
+				// fits ~90% of the display, and size the window to it. Keeps the pixel
+				// art crisp (integer scaling only) while filling a high-DPI screen —
+				// a DPI-aware 1024×768 window renders at true pixels and looks tiny.
+				RenderScale = FitScale();
+				_graphics.PreferredBackBufferWidth = Constants.WindowWidth * RenderScale;
+				_graphics.PreferredBackBufferHeight = Constants.WindowHeight * RenderScale;
 				_graphics.HardwareModeSwitch = false;
 				_graphics.IsFullScreen = false;
 				_graphics.PreferMultiSampling = false;
@@ -82,6 +89,31 @@ namespace CherryBomb
 
 			_screenManager = new ScreenManager();
 			Components.Add(_screenManager);
+		}
+
+		// Largest integer scale of the native 1024×768 scene that fits ~90% of the
+		// primary display (min 1). Degrades to 1 if the adapter isn't queryable yet.
+		private static int FitScale()
+		{
+			try
+			{
+				var dm = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode;
+				int maxW = (int)(dm.Width * 0.9f);
+				int maxH = (int)(dm.Height * 0.9f);
+				int scale = 1;
+				while (
+					Constants.WindowWidth * (scale + 1) <= maxW
+					&& Constants.WindowHeight * (scale + 1) <= maxH
+				)
+				{
+					scale++;
+				}
+				return scale;
+			}
+			catch
+			{
+				return 1;
+			}
 		}
 
 		// True on the desktop heads (Windows/Linux/macOS). False on Android.
