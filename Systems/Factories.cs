@@ -70,6 +70,34 @@ namespace CherryBomb.Systems
 			);
 		}
 
+		public static void CreatePlanet(
+			World world,
+			Random rng,
+			float x,
+			float y,
+			float radius,
+			PlanetPalette palette
+		)
+		{
+			float RndRange(float a, float b) => a + rng.NextSingle() * (b - a);
+			world.Create(
+				new Transform(new Vector2(x, y), 0f),
+				new Planet
+				{
+					Radius = radius,
+					Dark = palette.Dark,
+					Base = palette.Base,
+					Light = palette.Light,
+				},
+				new Pulse
+				{
+					Time = RndRange(0f, MathF.PI * 2f),
+					Speed = RndRange(0.5f, 1.0f),
+					Amplitude = 1f,
+				}
+			);
+		}
+
 		public static Entity CreateEnemy(World world, Random rng, float x, float y)
 		{
 			float RndRange(float a, float b) => a + rng.NextSingle() * (b - a);

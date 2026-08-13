@@ -117,5 +117,24 @@ namespace CherryBomb
 		// Shared light direction for all planets (up-and-to-the-left). Normalized.
 		public const float LightDirX = -0.7071f;
 		public const float LightDirY = -0.7071f;
+
+		// ── Minimap ─────────────────────────────────────────────────────────────
+		// Geometry in game (low-res) pixels — drawn into its own buffer and blitted
+		// up ×Scale so it shares the pixel grid with the world.
+		public const int MinimapRadius = 14;
+		public const int MinimapMargin = 4;
+		public const int MinimapDiameter = MinimapRadius * 2 + 1; // 29
+		public const float MinimapZoom = 1f / 32f; // minimap px per world px (~900px span)
+		public const float MinimapTickSweep = 0.6f; // heading-tick arc width, radians
+
+		// ── HUD bars (in scene / low-res-×Scale pixels) ─────────────────────────
+		public const int ChargeBarX = 52;
+		public const int ChargeBarY = 44;
+		public const int ChargeBarW = 120;
+		public const int ChargeBarH = 6;
+		public const int FuelBarX = 52;
+		public const int FuelBarY = 60;
+		public const int FuelBarW = 120;
+		public const int FuelBarH = 10;
 	}
 }

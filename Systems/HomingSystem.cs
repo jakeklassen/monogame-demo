@@ -33,9 +33,11 @@ namespace CherryBomb.Systems
 		private float _volleyTimer;
 		private Entity? _volleyTarget;
 
-		// For the render reticle.
+		// For the render reticle + HUD charge meter.
 		public Entity? LockTarget => _lock;
 		public bool Charging => _held;
+		public int ChargeCount => ChargeToCount(_charge);
+		public float ChargeSeconds => _charge;
 
 		public void Update(float dt, in InputState input)
 		{

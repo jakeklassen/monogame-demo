@@ -31,11 +31,19 @@ namespace CherryBomb.Screens
 		private float _accumulator;
 		private float _alpha = 1f;
 
-		// Comparison toggles (I/P/O keys) — see HandleDebugToggles.
+		// Comparison toggles (I/P/O/M keys) — see HandleDebugToggles.
 		private bool _interpolation = true;
 		private bool _subpixel = true;
 		private bool _smoothing = true;
+		private bool _minimap = true;
 		private KeyboardState _prevKeys;
+
+		// Seconds the boost has been held (drives the whole-frame shake), and a
+		// simple smoothed FPS counter for the HUD.
+		private float _boostHeldTime;
+		private int _fpsFrames;
+		private float _fpsElapsed;
+		private int _fpsValue;
 
 		// Delta-time smoothing (Glaiel). MonoGame's per-frame ElapsedGameTime is
 		// noisier than rAF / love.update, and that jitter feeds the accumulator ->
@@ -103,6 +111,7 @@ namespace CherryBomb.Screens
 			);
 
 			PopulateStars();
+			PopulatePlanets();
 			SpawnEnemies();
 
 			_shipSystem = new ShipSystem(_world, _ship);
@@ -118,8 +127,37 @@ namespace CherryBomb.Screens
 				_ship,
 				Game.GraphicsDevice,
 				Game.SpriteBatch,
-				_shmup
+				_shmup,
+				Game.FontCache["pico-8"],
+				Game.TextureCache
 			);
+		}
+
+		// Ring PlanetCount planets around the spawn at increasing distance, each a
+		// random type/size (ported from factories.ts populateWorld).
+		private void PopulatePlanets()
+		{
+			var rng = new Random();
+			float cx = Constants.WorldWidth / 2f;
+			float cy = Constants.WorldHeight / 2f;
+			float RndRange(float a, float b) => a + rng.NextSingle() * (b - a);
+
+			for (int i = 0; i < Constants.PlanetCount; i++)
+			{
+				float angle =
+					(float)i / Constants.PlanetCount * MathF.PI * 2f + RndRange(-0.35f, 0.35f);
+				float distance = RndRange(72f, 108f) + i * RndRange(55f, 90f);
+				float radius = rng.Next(10, 27); // rndInt(10, 26) inclusive
+				var palette = Palette.PlanetPalettes[rng.Next(Palette.PlanetPalettes.Length)];
+				Factories.CreatePlanet(
+					_world,
+					rng,
+					cx + MathF.Cos(angle) * distance,
+					cy + MathF.Sin(angle) * distance,
+					radius,
+					palette
+				);
+			}
 		}
 
 		// A handful of enemies ringed loosely around the spawn (ported from
@@ -218,6 +256,10 @@ namespace CherryBomb.Screens
 			// Frame-rate (cosmetic) system runs on the real delta.
 			_pulseSystem.Update(frame);
 
+			// Track how long boost has been held for the whole-frame shake.
+			bool boosting = _world.Get<Ship>(_ship).Boosting;
+			_boostHeldTime = boosting ? _boostHeldTime + frame : 0f;
+
 			_alpha = _interpolation ? _accumulator / Constants.FixedDt : 1f;
 		}
 
@@ -233,66 +275,51 @@ namespace CherryBomb.Screens
 				_subpixel = !_subpixel;
 			if (keys.IsKeyDown(Keys.O) && _prevKeys.IsKeyUp(Keys.O))
 				_smoothing = !_smoothing;
+			if (keys.IsKeyDown(Keys.M) && _prevKeys.IsKeyUp(Keys.M))
+				_minimap = !_minimap;
 			_prevKeys = keys;
 		}
 
 		public override void Draw(GameTime gameTime)
 		{
 			float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
-			_renderer.Draw(_alpha, _subpixel, _homingSystem.LockTarget, _homingSystem.Charging, dt);
-			DrawDebugReadout();
-		}
 
-		// Top-left readout of the comparison toggles (green = ON, red = OFF), so
-		// the I/P/O state is visible while diagnosing the movement feel. Debug-only.
-		private void DrawDebugReadout()
-		{
-			var font = Game.FontCache["pico-8"];
-			var sb = Game.SpriteBatch;
-			var pp = Game.GraphicsDevice.PresentationParameters;
+			// Smoothed FPS over a ~0.5s window.
+			_fpsFrames++;
+			_fpsElapsed += dt;
+			if (_fpsElapsed >= 0.5f)
+			{
+				_fpsValue = (int)MathF.Round(_fpsFrames / _fpsElapsed);
+				_fpsFrames = 0;
+				_fpsElapsed = 0f;
+			}
 
-			// The readout is drawn straight to the backbuffer (after the scene present),
-			// so scale it by the same fill ratio the scene uses — it stays a constant
-			// physical size as the window grows, instead of a fixed pixel size that
-			// shrinks on big displays.
-			float fill = pp.BackBufferHeight / (float)Constants.WindowHeight;
+			var ship = _world.Get<Ship>(_ship);
+			float speed = _world.Get<Velocity>(_ship).Value.Length();
 
-			sb.Begin(
-				SpriteSortMode.Deferred,
-				BlendState.AlphaBlend,
-				SamplerState.PointClamp,
-				null,
-				null,
-				null,
-				Matrix.CreateScale(3f * fill)
-			);
-			DrawToggle(sb, font, "O SMOOTHING", _smoothing, 2f);
-			DrawToggle(sb, font, "I INTERP", _interpolation, 10f);
-			DrawToggle(sb, font, "P SUBPIXEL", _subpixel, 18f);
-			// Diagnostic: the real DPI / display / window numbers, so window sizing
-			// can be verified against the actual hardware.
-			sb.DrawString(
-				font,
-				$"DPI {Game.DpiScale:0.00} DISP {Game.DisplaySize.X}x{Game.DisplaySize.Y} WIN {pp.BackBufferWidth}x{pp.BackBufferHeight}",
-				new Vector2(2f, 26f),
-				Palette.White
-			);
-			sb.End();
-		}
+			var hud = new HudState
+			{
+				Fps = _fpsValue,
+				Speed = (int)MathF.Round(speed),
+				ChargeCount = _homingSystem.ChargeCount,
+				ChargeSeconds = _homingSystem.ChargeSeconds,
+				Fuel = Math.Clamp(ship.Fuel / Constants.BoostFuelMax, 0f, 1f),
+				Boosting = ship.Boosting,
+				Smoothing = _smoothing,
+				Interpolation = _interpolation,
+				Subpixel = _subpixel,
+				Minimap = _minimap,
+				Gamepad = GamePad.GetState(PlayerIndex.One).IsConnected,
+				BoostHeldTime = _boostHeldTime,
+			};
 
-		private static void DrawToggle(
-			SpriteBatch sb,
-			BitmapFont font,
-			string label,
-			bool on,
-			float y
-		)
-		{
-			sb.DrawString(
-				font,
-				$"{label} {(on ? "ON" : "OFF")}",
-				new Vector2(2f, y),
-				on ? Palette.Green : Palette.Red
+			_renderer.Draw(
+				_alpha,
+				_subpixel,
+				_homingSystem.LockTarget,
+				_homingSystem.Charging,
+				dt,
+				hud
 			);
 		}
 
