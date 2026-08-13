@@ -296,60 +296,9 @@ namespace SpaceDrift.Systems
 				}
 			);
 
-			_world.Query(
-				in _enemyQuery,
-				(ref Enemy en, ref Transform etf, ref Previous eprev) =>
-				{
-					if (en.RespawnTimer > 0f)
-						return;
-					float ex = MathHelper.Lerp(eprev.Position.X, etf.Position.X, alpha);
-					float ey = MathHelper.Lerp(eprev.Position.Y, etf.Position.Y, alpha);
-					float er = MathHelper.Lerp(eprev.Rotation, etf.Rotation, alpha);
-					var pos = new Vector2(
-						MathF.Floor(ex) - flooredCamX,
-						MathF.Floor(ey) - flooredCamY
-					);
-					float scale = en.HitFlash > 0f ? 1.4f : 1f;
-					_spriteBatch.Draw(
-						_shmup,
-						pos,
-						EnemyFrame,
-						Color.White,
-						er * DegToRad,
-						SpriteOrigin,
-						scale,
-						SpriteEffects.None,
-						0f
-					);
-				}
-			);
-
-			_world.Query(
-				in _bulletQuery,
-				(Entity e, ref Bullet b, ref Transform btf, ref Previous bprev) =>
-				{
-					float bx = MathHelper.Lerp(bprev.Position.X, btf.Position.X, alpha);
-					float by = MathHelper.Lerp(bprev.Position.Y, btf.Position.Y, alpha);
-					float br = MathHelper.Lerp(bprev.Rotation, btf.Rotation, alpha);
-					var pos = new Vector2(
-						MathF.Floor(bx) - flooredCamX,
-						MathF.Floor(by) - flooredCamY
-					);
-					Color tint = _world.Has<Homing>(e) ? Palette.Orange : Color.White;
-					_spriteBatch.Draw(
-						_shmup,
-						pos,
-						BulletFrame,
-						tint,
-						br * DegToRad,
-						SpriteOrigin,
-						1f,
-						SpriteEffects.None,
-						0f
-					);
-				}
-			);
-
+			// Enemies + bullets are NOT drawn here — they'd rotate at the low-res 8px
+			// grid and blur under the upscale. They're drawn in PASS B at ×Scale (32px)
+			// for crisp rotation, at the identical floored + blit position.
 			DrawReticle(lockTarget, charging, dt, flooredCamX, flooredCamY);
 			_spriteBatch.End();
 
@@ -386,6 +335,7 @@ namespace SpaceDrift.Systems
 			);
 			_spriteBatch.End();
 
+			DrawSceneEntities(alpha, flooredCamX, flooredCamY, blitX, blitY);
 			DrawShip(shipRot, turnDelta, dt);
 			DrawPlanetLight(shipX, shipY, shipRot);
 
@@ -682,6 +632,85 @@ namespace SpaceDrift.Systems
 					}
 				}
 			);
+			_spriteBatch.End();
+		}
+
+		// Enemies + bullets, drawn in SCENE space at ×Scale so their rotation is
+		// resampled at 32px (crisp) instead of the low-res 8px world RT (blurry under
+		// the upscale). Position is the identical whole-low-res + blit offset the RT
+		// blit uses, so movement stays pixel-locked to the world behind them.
+		private void DrawSceneEntities(
+			float alpha,
+			int flooredCamX,
+			int flooredCamY,
+			int blitX,
+			int blitY
+		)
+		{
+			_spriteBatch.Begin(
+				SpriteSortMode.Deferred,
+				BlendState.AlphaBlend,
+				SamplerState.PointClamp,
+				null,
+				null,
+				null,
+				null
+			);
+
+			_world.Query(
+				in _enemyQuery,
+				(ref Enemy en, ref Transform etf, ref Previous eprev) =>
+				{
+					if (en.RespawnTimer > 0f)
+						return;
+					float ex = MathHelper.Lerp(eprev.Position.X, etf.Position.X, alpha);
+					float ey = MathHelper.Lerp(eprev.Position.Y, etf.Position.Y, alpha);
+					float er = MathHelper.Lerp(eprev.Rotation, etf.Rotation, alpha);
+					var pos = new Vector2(
+						(MathF.Floor(ex) - flooredCamX) * Constants.Scale + blitX,
+						(MathF.Floor(ey) - flooredCamY) * Constants.Scale + blitY
+					);
+					float scale = (en.HitFlash > 0f ? 1.4f : 1f) * Constants.Scale;
+					_spriteBatch.Draw(
+						_shmup,
+						pos,
+						EnemyFrame,
+						Color.White,
+						er * DegToRad,
+						SpriteOrigin,
+						scale,
+						SpriteEffects.None,
+						0f
+					);
+				}
+			);
+
+			_world.Query(
+				in _bulletQuery,
+				(Entity e, ref Bullet b, ref Transform btf, ref Previous bprev) =>
+				{
+					float bx = MathHelper.Lerp(bprev.Position.X, btf.Position.X, alpha);
+					float by = MathHelper.Lerp(bprev.Position.Y, btf.Position.Y, alpha);
+					float br = MathHelper.Lerp(bprev.Rotation, btf.Rotation, alpha);
+					var pos = new Vector2(
+						(MathF.Floor(bx) - flooredCamX) * Constants.Scale + blitX,
+						(MathF.Floor(by) - flooredCamY) * Constants.Scale + blitY
+					);
+					Color tint = _world.Has<Homing>(e) ? Palette.Orange : Color.White;
+					_spriteBatch.Draw(
+						_shmup,
+						pos,
+						BulletFrame,
+						tint,
+						br * DegToRad,
+						SpriteOrigin,
+						(float)Constants.Scale,
+						SpriteEffects.None,
+						0f
+					);
+				}
+			);
+
 			_spriteBatch.End();
 		}
 
