@@ -4,6 +4,7 @@ using CherryBomb.Components;
 using CherryBomb.Systems;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 
 namespace CherryBomb.Screens
 {
@@ -23,6 +24,57 @@ namespace CherryBomb.Screens
 
 		private float _accumulator;
 		private float _alpha = 1f;
+
+		// Comparison toggles (I/P/O keys) — see HandleDebugToggles.
+		private bool _interpolation = true;
+		private bool _subpixel = true;
+		private bool _smoothing = true;
+		private KeyboardState _prevKeys;
+
+		// Delta-time smoothing (Glaiel). MonoGame's per-frame ElapsedGameTime is
+		// noisier than rAF / love.update, and that jitter feeds the accumulator ->
+		// a wobbling interpolation alpha -> the interpolated camera bounces ±1px
+		// against the hard pixel floor (visible as star jitter even at low speed).
+		// Snapping near-vsync deltas to exact FixedDt multiples + a short rolling
+		// average makes the accumulator advance in lockstep, so alpha is stable.
+		private readonly float[] _dtHistory =
+		[
+			Constants.FixedDt,
+			Constants.FixedDt,
+			Constants.FixedDt,
+			Constants.FixedDt,
+		];
+		private int _dtHistoryIndex;
+
+		private float SmoothDelta(float raw)
+		{
+			// 1. Vsync snap: if raw is within 10% of an integer multiple of FixedDt
+			//    (a 60/59.94Hz frame, a dropped frame, etc.), snap it exactly so the
+			//    accumulator stays phase-locked instead of beating.
+			float snapped = raw;
+			for (int m = 1; m <= 6; m++)
+			{
+				float target = m * Constants.FixedDt;
+				if (MathF.Abs(raw - target) < Constants.FixedDt * 0.1f)
+				{
+					snapped = target;
+					break;
+				}
+			}
+
+			// 2. Rolling average over the last few frames to absorb residual jitter
+			//    (also smooths high-refresh displays that don't snap).
+			_dtHistory[_dtHistoryIndex] = snapped;
+			_dtHistoryIndex = (_dtHistoryIndex + 1) % _dtHistory.Length;
+
+			float sum = 0f;
+			for (int i = 0; i < _dtHistory.Length; i++)
+			{
+				sum += _dtHistory[i];
+			}
+
+			return sum / _dtHistory.Length;
+		}
 
 		public override void LoadContent()
 		{
@@ -107,10 +159,10 @@ namespace CherryBomb.Screens
 
 		public override void Update(GameTime gameTime)
 		{
-			float frame = MathF.Min(
-				(float)gameTime.ElapsedGameTime.TotalSeconds,
-				Constants.MaxFrameTime
-			);
+			HandleDebugToggles();
+
+			float raw = (float)gameTime.ElapsedGameTime.TotalSeconds;
+			float frame = MathF.Min(_smoothing ? SmoothDelta(raw) : raw, Constants.MaxFrameTime);
 			_accumulator += frame;
 
 			// Sample once per frame; reused for every fixed step this frame (the
@@ -127,12 +179,27 @@ namespace CherryBomb.Screens
 			// Frame-rate (cosmetic) system runs on the real delta.
 			_pulseSystem.Update(frame);
 
-			_alpha = _accumulator / Constants.FixedDt;
+			_alpha = _interpolation ? _accumulator / Constants.FixedDt : 1f;
+		}
+
+		// Comparison toggles (mirror the source demos): I = interpolation,
+		// P = sub-pixel blit, O = delta-time smoothing. For diagnosing the
+		// smooth-movement feel; strip before release.
+		private void HandleDebugToggles()
+		{
+			var keys = Keyboard.GetState();
+			if (keys.IsKeyDown(Keys.I) && _prevKeys.IsKeyUp(Keys.I))
+				_interpolation = !_interpolation;
+			if (keys.IsKeyDown(Keys.P) && _prevKeys.IsKeyUp(Keys.P))
+				_subpixel = !_subpixel;
+			if (keys.IsKeyDown(Keys.O) && _prevKeys.IsKeyUp(Keys.O))
+				_smoothing = !_smoothing;
+			_prevKeys = keys;
 		}
 
 		public override void Draw(GameTime gameTime)
 		{
-			_renderer.Draw(_alpha);
+			_renderer.Draw(_alpha, _subpixel);
 		}
 
 		public override void UnloadContent()

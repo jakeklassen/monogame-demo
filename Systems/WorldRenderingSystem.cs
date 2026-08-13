@@ -98,7 +98,7 @@ namespace CherryBomb.Systems
 			return Palette.DarkBlue;
 		}
 
-		public void Draw(float alpha)
+		public void Draw(float alpha, bool subpixel)
 		{
 			// Interpolated ship transform (render position).
 			ref var tf = ref _world.Get<Transform>(_ship);
@@ -116,8 +116,11 @@ namespace CherryBomb.Systems
 			int flooredCamY = (int)MathF.Floor(camY);
 			float fracX = camX - flooredCamX;
 			float fracY = camY - flooredCamY;
-			int blitX = -RoundHalfUp(fracX * Constants.Scale);
-			int blitY = -RoundHalfUp(fracY * Constants.Scale);
+			// Sub-pixel ON: express the camera fraction as whole SCREEN pixels of blit
+			// offset (the smooth-movement trick). OFF: integer camera, no blit — the
+			// jittery baseline for comparison (matches the demos' [p] toggle).
+			int blitX = subpixel ? -RoundHalfUp(fracX * Constants.Scale) : 0;
+			int blitY = subpixel ? -RoundHalfUp(fracY * Constants.Scale) : 0;
 
 			// ── PASS A: world content (exhaust particles) → low-res RT ───────────
 			// Whole low-res pixels only; cleared transparent so the stars behind
@@ -185,8 +188,13 @@ namespace CherryBomb.Systems
 				{
 					float worldX = stf.Position.X - camX * star.Depth;
 					float worldY = stf.Position.Y - camY * star.Depth;
-					int rawX = (int)MathF.Floor(worldX * Constants.Scale);
-					int rawY = (int)MathF.Floor(worldY * Constants.Scale);
+					// Sub-pixel: floor at full res; else floor at low-res then ×Scale.
+					int rawX = subpixel
+						? (int)MathF.Floor(worldX * Constants.Scale)
+						: (int)MathF.Floor(worldX) * Constants.Scale;
+					int rawY = subpixel
+						? (int)MathF.Floor(worldY * Constants.Scale)
+						: (int)MathF.Floor(worldY) * Constants.Scale;
 					int sx = Wrap(rawX, StarWrapW) - Constants.Scale;
 					int sy = Wrap(rawY, StarWrapH) - Constants.Scale;
 
