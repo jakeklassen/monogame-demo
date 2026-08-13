@@ -1,377 +1,143 @@
+using System;
 using Arch.Core;
 using CherryBomb.Components;
-using CherryBomb.EntityFactories;
 using CherryBomb.Systems;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
-using MonoGame.Extended.Input;
-using XnaColor = Microsoft.Xna.Framework.Color;
 
 namespace CherryBomb.Screens
 {
-	public class GameplayScreen(Game1 game) : GameScreenBase(game)
+	// Space-drift phase 1: a flyable ship drifting in a parallax starfield.
+	// Owns the fixed-step accumulator loop (sim runs at FixedDt; rendering
+	// interpolates by alpha = accumulator / FixedDt). Ported from
+	// space-drift/main.ts.
+	public sealed class GameplayScreen(Game1 game) : GameScreenBase(game)
 	{
-		private Texture2D _spriteSheetTexture;
-		private SoundSystem _soundSystem;
+		private Texture2D _shmup;
+		private Entity _ship;
 
-		private readonly QueryDescription _gameOverQuery =
-			new QueryDescription().WithAll<EventGameOver>();
-		private readonly QueryDescription _gameWonQuery =
-			new QueryDescription().WithAll<EventGameWon>();
+		private ShipSystem _shipSystem;
+		private ParticleSystem _particleSystem;
+		private PulseSystem _pulseSystem;
+		private WorldRenderingSystem _renderer;
+
+		private float _accumulator;
+		private float _alpha = 1f;
 
 		public override void LoadContent()
 		{
 			base.LoadContent();
-			_spriteSheetTexture = Game.Content.Load<Texture2D>("Graphics/shmup");
 
-			// Start each run from a clean slate: full lives, score 0, not game-over.
-			Game.State.Reset();
+			_shmup = Game.Content.Load<Texture2D>("Graphics/shmup");
 
-			_soundSystem = new SoundSystem(_world, Game.SoundCache);
-
-			_updateSystems.Add(
-				new NextWaveEventSystem(_world, Game.State, Game.Config, _tweener, _scheduler)
-			);
-			_updateSystems.Add(new TimeToLiveSystem(_world));
-			_updateSystems.Add(new BlinkSystem(_world));
-			// Input / fire.
-			_updateSystems.Add(new PlayerSystem(_world, Game.State));
-			// Enemy AI: cadence emits attack/fire events, then the handlers select
-			// enemies and switch them into attack runs / make them fire.
-			_updateSystems.Add(new EnemyPickSystem(_world, Game.State, Game.Config));
-			_updateSystems.Add(new TriggerEnemyAttackEventSystem(_world, _scheduler));
-			_updateSystems.Add(new TriggerEnemyFireEventSystem(_world));
-			// Per-type attack behaviour: tweak velocity/direction before movement.
-			_updateSystems.Add(new LateralHunterSystem(_world));
-			_updateSystems.Add(new YellowShipSystem(_world));
-			// Boss (wave 9) 4-phase attack cycle: sets direction/velocity + fires,
-			// so it must run before MovementSystem applies the motion.
-			_updateSystems.Add(new BossSystem(_world));
-			// Movement.
-			_updateSystems.Add(new MovementSystem(_world));
-			// Horizontal weave for attacking enemies; owns X so it runs after movement.
-			_updateSystems.Add(new SwaySystem(_world));
-			// After movement so children follow the parent's freshly-updated position.
-			_updateSystems.Add(new LocalTransformSystem(_world));
-			_updateSystems.Add(new BoundToViewportSystem(_world, Game1.Viewport));
-			_updateSystems.Add(new DestroyOnViewportExitSystem(_world));
-			// Collision detection then the collision-event handlers.
-			_updateSystems.Add(new CollisionSystem(_world, Game.Config));
-			_updateSystems.Add(
-				new PlayerProjectileEnemyCollisionEventSystem(_world, Game.State, Game.Config)
-			);
-			_updateSystems.Add(
-				new PlayerEnemyCollisionEventSystem(_world, Game.State, Game.Config, _scheduler)
-			);
-			// Boss damage / hurt-flash path (kept separate from the enemy-death path
-			// so the boss is never destroyed by it) and the scripted win sequence.
-			_updateSystems.Add(new PlayerProjectileBossCollisionEventSystem(_world));
-			_updateSystems.Add(
-				new DestroyBossEventSystem(_world, Game.State, Game.Config, _scheduler)
-			);
-			_updateSystems.Add(new PlayerPickupCollisionEventSystem(_world, Game.State));
-			// HUD text sync (diff State -> Text content).
-			_updateSystems.Add(new ScoreSystem(_world, Game.State));
-			_updateSystems.Add(new CherryTextSystem(_world, Game.State));
-			_updateSystems.Add(new ParticleSystem(_world));
-			_updateSystems.Add(new InvulnerableSystem(_world));
-			_updateSystems.Add(new StarfieldSystem(_world));
-			_updateSystems.Add(new SpriteAnimationSystem(_world));
-			_updateSystems.Add(new SpriteOutlineAnimationSystem(_world));
-			_updateSystems.Add(new ShockwaveSystem(_world));
-			// Cherry-bomb: input emits EventTriggerBomb (PlayerSystem); this consumes
-			// it and ripple-spawns bomb projectiles via the scheduler.
-			_updateSystems.Add(new BombSystem(_world, Game.State, _scheduler));
-			// Muzzle flash shrink + lifetime.
-			_updateSystems.Add(new MuzzleFlashSystem(_world));
-			// Consume sound events emitted this frame.
-			_updateSystems.Add(_soundSystem);
-			// Camera shake last: jitters the shared camera right before Draw so all
-			// camera-matrix rendering shakes together (non-accumulating).
-			_updateSystems.Add(new CameraShakeSystem(_world, Game.Camera));
-
-			_drawSystems.Add(new StarfieldRenderingSystem(_world, Game.SpriteBatch, Game.Camera));
-			// Sprite outlines draw behind the sprites they wrap (cherry pickup).
-			_drawSystems.Add(
-				new SpriteOutlineRenderingSystem(
-					_world,
-					Game.SpriteBatch,
-					Game.Camera,
-					_spriteSheetTexture
-				)
-			);
-			_drawSystems.Add(
-				new SpriteRenderingSystem(
-					_world,
-					Game.SpriteBatch,
-					Game.Camera,
-					_spriteSheetTexture
-				)
-			);
-			_drawSystems.Add(
-				new FlashRenderingSystem(_world, Game.SpriteBatch, Game.Camera, _spriteSheetTexture)
-			);
-			_drawSystems.Add(
-				new PaletteSwapRenderingSystem(
-					_world,
-					Game.SpriteBatch,
-					Game.Camera,
-					_spriteSheetTexture
-				)
-			);
-			_drawSystems.Add(
-				new ShockwaveRenderingSystem(
-					_world,
-					Game.SpriteBatch,
-					Game.Camera,
-					Game.TextureCache
-				)
-			);
-			_drawSystems.Add(
-				new ParticleRenderingSystem(
-					_world,
-					Game.SpriteBatch,
-					Game.Camera,
-					Game.TextureCache
-				)
-			);
-			// Muzzle flash FX overlay, on top of the world but under HUD text.
-			_drawSystems.Add(
-				new MuzzleFlashRenderingSystem(
-					_world,
-					Game.SpriteBatch,
-					Game.Camera,
-					Game.TextureCache
-				)
-			);
-			_drawSystems.Add(
-				new TextRenderingSystem(_world, Game.SpriteBatch, Game.Camera, Game.FontCache)
-			);
-			// HUD hearts drawn on top of the world.
-			_drawSystems.Add(
-				new LivesRenderingSystem(
-					_world,
-					Game.SpriteBatch,
-					Game.Camera,
-					_spriteSheetTexture,
-					Game.State
-				)
-			);
-			_drawSystems.Add(new DebugRenderingSystem(_world, Game, Game.SpriteBatch, Game.Camera));
-
-			StarFactory.CreateStarfield(_world, Game1.TargetWidth, Game1.TargetHeight, 100);
-
-			var player = _world.Create();
-
-			_world.Add(player, new BoundToViewport());
-			_world.Add(
-				player,
-				new BoxCollider(
-					SpriteSheet.Player.BoxCollider.Width,
-					SpriteSheet.Player.BoxCollider.Height,
-					new Vector2(
-						SpriteSheet.Player.BoxCollider.Offset.X,
-						SpriteSheet.Player.BoxCollider.Offset.Y
-					)
-				)
-			);
-			_world.Add(player, new CollisionLayer(CollisionMasks.Player));
-			_world.Add(
-				player,
-				new CollisionMask(
-					CollisionMasks.Enemy | CollisionMasks.EnemyProjectile | CollisionMasks.Pickup
-				)
-			);
-			_world.Add(player, new Direction());
-			_world.Add(player, new Sprite(new Rectangle(16, 0, 8, 8)));
-			_world.Add(player, new TagPlayer());
-			_world.Add(
-				player,
-				new Transform(new Vector2((Game1.TargetWidth / 2) - 4, 100), 0f, Vector2.One)
-			);
-			_world.Add(player, new Velocity(60, 60));
-
-			// Player thruster: a child entity parented to the player. Its position is
-			// driven each frame by LocalTransformSystem (player position + offset),
-			// so it stays attached as the player moves. Offset is one sprite-height
-			// below the player. First consumer of the Parent/LocalTransform plumbing.
-			var thruster = _world.Create();
-
-			_world.Add(thruster, new Parent(player));
-			_world.Add(thruster, new LocalTransform(new Vector2(0, 8)));
-			_world.Add(thruster, new Transform(Vector2.Zero, 0f, Vector2.One));
-			_world.Add(thruster, new Sprite(SpriteSheet.Player.Thruster.Frame));
-			_world.Add(
-				thruster,
-				SpriteAnimation.Factory(
-					new AnimationDetails
-					{
-						Name = "player-thruster",
-						SourceX = SpriteSheet.Player.Thruster.Animations["Thrust"].SourceX,
-						SourceY = SpriteSheet.Player.Thruster.Animations["Thrust"].SourceY,
-						Width = SpriteSheet.Player.Thruster.Animations["Thrust"].Width,
-						Height = SpriteSheet.Player.Thruster.Animations["Thrust"].Height,
-						FrameWidth = SpriteSheet.Player.Thruster.Animations["Thrust"].FrameWidth,
-						FrameHeight = SpriteSheet.Player.Thruster.Animations["Thrust"].FrameHeight,
-					},
-					durationSeconds: 0.1f
-				)
-			);
-
-			// --- HUD entities -------------------------------------------------
-			// Cherry icon (top-right). Source: gameplay-screen.ts -> (108, 1).
-			var cherryIcon = _world.Create();
-			_world.Add(cherryIcon, new Sprite(SpriteSheet.Cherry.Frame));
-			_world.Add(cherryIcon, new Transform(new Vector2(108, 1), 0f, Vector2.One));
-
-			// Score text on the SAME top row as the hearts, to their right.
-			// Source: gameplay-screen.ts -> (40, 2), Color12, left-aligned,
-			// "Score:{score}". ScoreSystem keeps the content in sync with State.Score.
-			var scoreText = _world.Create();
-			_world.Add(
-				scoreText,
-				new Text()
+			// One ship at world centre.
+			var center = new Vector2(Constants.WorldWidth / 2f, Constants.WorldHeight / 2f);
+			_ship = _world.Create(
+				new Transform(center, 0f),
+				new Previous(center, 0f),
+				new Velocity(Vector2.Zero),
+				new Ship
 				{
-					Alignment = Alignment.Left,
-					Color = Pico8Color.Color12,
-					Content = $"Score:{Game.State.Score}",
-					Font = "pico-8",
+					Thrusting = false,
+					Boosting = false,
+					Fuel = Constants.BoostFuelMax,
 				}
 			);
-			_world.Add(scoreText, new TagScoreText());
-			_world.Add(scoreText, new Transform(new Vector2(40, 2), 0f, Vector2.One));
 
-			// Cherry count text (top-right, just right of the cherry icon).
-			// Source: gameplay-screen.ts -> (118, 2), Color14, left-aligned.
-			// CherryTextSystem keeps the count in sync with State.Cherries.
-			var cherryText = _world.Create();
-			_world.Add(
-				cherryText,
-				new Text()
-				{
-					Alignment = Alignment.Left,
-					Color = Pico8Color.Color14,
-					Content = $"{Game.State.Cherries}",
-					Font = "pico-8",
-				}
+			PopulateStars();
+
+			_shipSystem = new ShipSystem(_world, _ship);
+			_particleSystem = new ParticleSystem(_world);
+			_pulseSystem = new PulseSystem(_world);
+			_renderer = new WorldRenderingSystem(
+				_world,
+				_ship,
+				Game.GraphicsDevice,
+				Game.SpriteBatch,
+				_shmup
 			);
-			_world.Add(cherryText, new TagCherryText());
-			_world.Add(cherryText, new Transform(new Vector2(118, 2), 0f, Vector2.One));
+		}
 
-			_world.Create(new EventNextWave());
+		// Parallax star layers, far → near (ported from factories.ts STAR_LAYERS /
+		// createStar). ~250 stars scattered across the world with varied depth,
+		// size, and twinkle.
+		private void PopulateStars()
+		{
+			var rng = new Random();
 
-			// Play the game-start jingle when the gameplay screen begins.
-			// Source: gameplay-screen.ts initialize().
-			SoundSystem.Play(_world, "game-start");
+			float RndRange(float min, float max) => min + rng.NextSingle() * (max - min);
+
+			(int count, float depth, Color[] colors, float bigChance)[] layers =
+			[
+				(116, 0.3f, [Palette.DarkGray, Palette.Lavender], 0f),
+				(80, 0.55f, [Palette.Lavender, Palette.LightGray], 0f),
+				(54, 0.85f, [Palette.LightGray, Palette.White], 0.2f),
+			];
+
+			foreach (var layer in layers)
+			{
+				for (int i = 0; i < layer.count; i++)
+				{
+					var pos = new Vector2(
+						RndRange(0f, Constants.WorldWidth),
+						RndRange(0f, Constants.WorldHeight)
+					);
+					var color = layer.colors[rng.Next(layer.colors.Length)];
+					float size = rng.NextSingle() < layer.bigChance ? 2f : 1f;
+
+					_world.Create(
+						new Transform(pos, 0f),
+						new Star
+						{
+							Color = color,
+							Size = size,
+							Depth = layer.depth,
+						},
+						new Pulse
+						{
+							Time = RndRange(0f, MathF.PI * 2f),
+							// Visible-but-subtle twinkle (~2-5s per cycle).
+							Speed = RndRange(1.2f, 3.0f),
+							Amplitude = RndRange(0.35f, 0.65f),
+						}
+					);
+				}
+			}
 		}
 
 		public override void Update(GameTime gameTime)
 		{
-			base.Update(gameTime);
+			float frame = MathF.Min(
+				(float)gameTime.ElapsedGameTime.TotalSeconds,
+				Constants.MaxFrameTime
+			);
+			_accumulator += frame;
 
-			HandleDebugWaveJump();
+			// Sample once per frame; reused for every fixed step this frame (the
+			// device state is constant across the loop, matching the source).
+			var input = Input.Sample();
 
-			// M1 emits EventGameOver (out of lives) and M4 emits EventGameWon (boss
-			// death sequence) but neither had a consumer until now. Detect either,
-			// freeze the current frame for the backdrop, and swap screens.
-			if (_world.CountEntities(_gameOverQuery) > 0)
+			while (_accumulator >= Constants.FixedDt)
 			{
-				CaptureFrozenFrame();
-				ScreenManager.ReplaceScreen(new GameOverScreen(Game));
-
-				return;
+				_shipSystem.Update(Constants.FixedDt, input);
+				_particleSystem.Update(Constants.FixedDt);
+				_accumulator -= Constants.FixedDt;
 			}
 
-			if (_world.CountEntities(_gameWonQuery) > 0)
-			{
-				CaptureFrozenFrame();
-				ScreenManager.ReplaceScreen(new GameWonScreen(Game));
-			}
+			// Frame-rate (cosmetic) system runs on the real delta.
+			_pulseSystem.Update(frame);
+
+			_alpha = _accumulator / Constants.FixedDt;
 		}
 
-		// Debug/dev: top-row number keys 1-9 jump straight to that wave at any time.
-		private void HandleDebugWaveJump()
+		public override void Draw(GameTime gameTime)
 		{
-			var keyboard = KeyboardExtended.GetState();
-
-			for (var wave = 1; wave <= Game.State.MaxWaves; wave++)
-			{
-				if (keyboard.WasKeyPressed((Keys)((int)Keys.D0 + wave)))
-				{
-					JumpToWave(wave);
-					break;
-				}
-			}
-		}
-
-		// Clears the combat field (keeping the player, thruster, HUD, and starfield)
-		// and spawns the requested wave. NextWaveEventSystem increments State.Wave, so
-		// we set it to wave-1 and emit EventNextWave.
-		private void JumpToWave(int wave)
-		{
-			DestroyAllWith<TagEnemy>();
-			DestroyAllWith<TagBoss>();
-			DestroyAllWith<TagEnemyBullet>();
-			DestroyAllWith<TagBullet>();
-			DestroyAllWith<TagBigBullet>();
-			DestroyAllWith<TagBomb>();
-			DestroyAllWith<TagPickup>();
-			DestroyAllWith<Particle>();
-			DestroyAllWith<Shockwave>();
-
-			// Stop any looping track (e.g. boss music) before respawning.
-			_soundSystem?.StopAll();
-
-			Game.State.Wave = wave - 1;
-			Game.State.WaveReady = false;
-			Game.State.BombLocked = true;
-			Game.State.GameOver = false;
-
-			_world.Create(new EventNextWave());
-		}
-
-		private void DestroyAllWith<T>()
-		{
-			var query = new QueryDescription().WithAll<T>();
-			var count = _world.CountEntities(in query);
-
-			if (count == 0)
-			{
-				return;
-			}
-
-			var entities = new Entity[count];
-			_world.GetEntities(in query, entities, 0);
-
-			foreach (var entity in entities)
-			{
-				_world.Destroy(entity);
-			}
-		}
-
-		// Snapshots the back buffer (the last drawn gameplay frame) into a texture so
-		// the GameOver/GameWon screen can draw a frozen-frame backdrop. Stored on Game1.
-		private void CaptureFrozenFrame()
-		{
-			var device = Game.GraphicsDevice;
-			var width = device.PresentationParameters.BackBufferWidth;
-			var height = device.PresentationParameters.BackBufferHeight;
-
-			var data = new XnaColor[width * height];
-			device.GetBackBufferData(data);
-
-			Game.FrozenFrame?.Dispose();
-
-			var snapshot = new Texture2D(device, width, height);
-			snapshot.SetData(data);
-
-			Game.FrozenFrame = snapshot;
+			_renderer.Draw(_alpha);
 		}
 
 		public override void UnloadContent()
 		{
-			_soundSystem?.StopAll();
+			_renderer?.Dispose();
 
 			base.UnloadContent();
 		}

@@ -1,7 +1,12 @@
+using Microsoft.Xna.Framework;
+
 namespace CherryBomb.Components
 {
-	public class Star(Color color)
+	// Depth is the parallax factor: 1 scrolls with the world, lower is farther.
+	public struct Star
 	{
-		public Color Color { get; set; } = color;
+		public Color Color;
+		public float Size;
+		public float Depth;
 	}
 }

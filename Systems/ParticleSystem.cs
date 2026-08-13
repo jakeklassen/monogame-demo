@@ -1,165 +1,49 @@
+using System;
+using System.Collections.Generic;
 using Arch.Core;
-using CherryBomb;
 using CherryBomb.Components;
-using Microsoft.Xna.Framework;
 
 namespace CherryBomb.Systems
 {
-	public class ParticleSystem(World world) : SystemBase<GameTime>(world)
+	// Fixed-step particle simulation. Ported from space-drift/sim.ts particleSystem:
+	// age, apply light drag, integrate, and reap expired particles.
+	public sealed class ParticleSystem(World world)
 	{
-		private GameTime _gameTime;
-		private QueryDescription _particleEntities = new QueryDescription().WithAll<
+		private readonly World _world = world;
+		private readonly QueryDescription _query = new QueryDescription().WithAll<
 			Particle,
+			Transform,
 			Velocity
 		>();
+		private readonly List<Entity> _dead = [];
 
-		public override void Update(in GameTime gameTime)
+		public void Update(float dt)
 		{
-			_gameTime = gameTime;
+			_dead.Clear();
+			float drag = MathF.Max(0f, 1f - 3f * dt);
 
-			World.Query(
-				in _particleEntities,
-				(Entity entity, ref Particle particle, ref Velocity velocity) =>
+			_world.Query(
+				in _query,
+				(Entity entity, ref Particle p, ref Transform tf, ref Velocity vel) =>
 				{
-					particle.Age += (float)_gameTime.ElapsedGameTime.TotalSeconds;
-					velocity.X -= velocity.X * 6f * (float)_gameTime.ElapsedGameTime.TotalSeconds;
-					velocity.Y -= velocity.Y * 6f * (float)_gameTime.ElapsedGameTime.TotalSeconds;
-
-					if (particle.Age >= particle.MaxAge)
+					p.Age += dt;
+					if (p.Age >= p.MaxAge)
 					{
-						particle.Radius -= 0.5f;
-
-						if (particle.Radius <= 0)
-						{
-							World.Destroy(entity);
-
-							return;
-						}
+						_dead.Add(entity);
+						return;
 					}
 
-					particle.Color = particle.IsBlue
-						? DetermineParticleColorFromAge(particle, "blue")
-						: DetermineParticleColorFromAge(particle, "red");
+					tf.Position.X += vel.Value.X * dt;
+					tf.Position.Y += vel.Value.Y * dt;
+					vel.Value.X *= drag;
+					vel.Value.Y *= drag;
 				}
 			);
-		}
 
-		private static Microsoft.Xna.Framework.Color DetermineParticleColorFromAge(
-			Particle particle,
-			string bias
-		)
-		{
-			if (bias == "red")
+			foreach (var entity in _dead)
 			{
-				if (particle.Age > 0.5)
-				{
-					return new Microsoft.Xna.Framework.Color(
-						Pico8Color.Color5.R,
-						Pico8Color.Color5.G,
-						Pico8Color.Color5.B,
-						Pico8Color.Color5.A
-					);
-				}
-
-				if (particle.Age > 0.4)
-				{
-					return new Microsoft.Xna.Framework.Color(
-						Pico8Color.Color2.R,
-						Pico8Color.Color2.G,
-						Pico8Color.Color2.B,
-						Pico8Color.Color2.A
-					);
-				}
-
-				if (particle.Age > 0.33)
-				{
-					return new Microsoft.Xna.Framework.Color(
-						Pico8Color.Color8.R,
-						Pico8Color.Color8.G,
-						Pico8Color.Color8.B,
-						Pico8Color.Color8.A
-					);
-				}
-
-				if (particle.Age > 0.233)
-				{
-					return new Microsoft.Xna.Framework.Color(
-						Pico8Color.Color9.R,
-						Pico8Color.Color9.G,
-						Pico8Color.Color9.B,
-						Pico8Color.Color9.A
-					);
-				}
-
-				if (particle.Age > 0.166)
-				{
-					return new Microsoft.Xna.Framework.Color(
-						Pico8Color.Color10.R,
-						Pico8Color.Color10.G,
-						Pico8Color.Color10.B,
-						Pico8Color.Color10.A
-					);
-				}
+				_world.Destroy(entity);
 			}
-			else if (bias == "blue")
-			{
-				if (particle.Age > 0.5)
-				{
-					return new Microsoft.Xna.Framework.Color(
-						Pico8Color.Color1.R,
-						Pico8Color.Color1.G,
-						Pico8Color.Color1.B,
-						Pico8Color.Color1.A
-					);
-				}
-
-				if (particle.Age > 0.4)
-				{
-					return new Microsoft.Xna.Framework.Color(
-						Pico8Color.Color1.R,
-						Pico8Color.Color1.G,
-						Pico8Color.Color1.B,
-						Pico8Color.Color1.A
-					);
-				}
-
-				if (particle.Age > 0.33)
-				{
-					return new Microsoft.Xna.Framework.Color(
-						Pico8Color.Color13.R,
-						Pico8Color.Color13.G,
-						Pico8Color.Color13.B,
-						Pico8Color.Color13.A
-					);
-				}
-
-				if (particle.Age > 0.233)
-				{
-					return new Microsoft.Xna.Framework.Color(
-						Pico8Color.Color12.R,
-						Pico8Color.Color12.G,
-						Pico8Color.Color12.B,
-						Pico8Color.Color12.A
-					);
-				}
-
-				if (particle.Age > 0.166)
-				{
-					return new Microsoft.Xna.Framework.Color(
-						Pico8Color.Color6.R,
-						Pico8Color.Color6.G,
-						Pico8Color.Color6.B,
-						Pico8Color.Color6.A
-					);
-				}
-			}
-
-			return new Microsoft.Xna.Framework.Color(
-				Pico8Color.Color7.R,
-				Pico8Color.Color7.G,
-				Pico8Color.Color7.B,
-				Pico8Color.Color7.A
-			);
 		}
 	}
 }

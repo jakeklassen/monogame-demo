@@ -1,26 +1,17 @@
 namespace CherryBomb.Components
 {
-	public enum Shape
+	public enum ParticleKind
 	{
-		Circle,
+		Flame,
+		Smoke,
 	}
 
-	public struct Particle(
-		float age,
-		float maxAge,
-		Microsoft.Xna.Framework.Color color,
-		bool isBlue,
-		float radius,
-		Shape shape,
-		bool spark
-	)
+	// A short-lived exhaust pixel. Kind selects its color ramp.
+	public struct Particle
 	{
-		public float Age { get; set; } = age;
-		public float MaxAge { get; set; } = maxAge;
-		public Microsoft.Xna.Framework.Color Color { get; set; } = color;
-		public bool IsBlue { get; set; } = isBlue;
-		public float Radius { get; set; } = radius;
-		public Shape Shape { get; set; } = shape;
-		public bool Spark { get; set; } = spark;
+		public float Age;
+		public float MaxAge;
+		public ParticleKind Kind;
+		public float Size;
 	}
 }

@@ -1,26 +1,9 @@
+using Microsoft.Xna.Framework;
+
 namespace CherryBomb.Components
 {
-	public struct Velocity
+	public struct Velocity(Vector2 value)
 	{
-		public float X { get; set; }
-		public float Y { get; set; }
-
-		public Velocity()
-		{
-			X = 0;
-			Y = 0;
-		}
-
-		public Velocity(float x, float y)
-		{
-			X = x;
-			Y = y;
-		}
-
-		public Velocity(Velocity velocity)
-		{
-			X = velocity.X;
-			Y = velocity.Y;
-		}
+		public Vector2 Value = value;
 	}
 }

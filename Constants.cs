@@ -1,60 +1,110 @@
-// public enum Pico8Color
-// {
-//   Color0 = 0x000000,
-//   Color1 = 0x1D2B53,
-//   Color2 = 0x7E2553,
-//   Color3 = 0x008751,
-//   Color4 = 0xAB5236,
-//   Color5 = 0x5F574F,
-//   Color6 = 0xC2C3C7,
-//   Color7 = 0xFFF1E8,
-//   Color8 = 0xFF004D,
-//   Color9 = 0xFFA300,
-//   Color10 = 0xFFEC27,
-//   Color11 = 0x00E436,
-//   Color12 = 0x29ADFF,
-//   Color13 = 0x83769C,
-//   Color14 = 0xFF77A8,
-//   Color15 = 0xFFCCAA
-// }
-
-using CherryBomb.Components;
+using Microsoft.Xna.Framework;
 
 namespace CherryBomb
 {
-	public class Pico8Color
+	// Ported from space-drift/constants.ts. All tunable game data lives here so
+	// later phases (combat, enemies, planets, homing) have the numbers on hand.
+	// NOTE: the namespace stays CherryBomb for this phase (a later phase renames
+	// the whole project to SpaceDrift).
+	public static class Constants
 	{
-		public static readonly Color Color0 = new(0x00, 0x00, 0x00, 0xFF);
-		public static readonly Color Color1 = new(0x1D, 0x2B, 0x53, 0xFF);
-		public static readonly Color Color2 = new(0x7E, 0x25, 0x53, 0xFF);
-		public static readonly Color Color3 = new(0x00, 0x87, 0x51, 0xFF);
-		public static readonly Color Color4 = new(0xAB, 0x52, 0x36, 0xFF);
-		public static readonly Color Color5 = new(0x5F, 0x57, 0x4F, 0xFF);
-		public static readonly Color Color6 = new(0xC2, 0xC3, 0xC7, 0xFF);
-		public static readonly Color Color7 = new(0xFF, 0xF1, 0xE8, 0xFF);
-		public static readonly Color Color8 = new(0xFF, 0x00, 0x4D, 0xFF);
-		public static readonly Color Color9 = new(0xFF, 0xA3, 0x00, 0xFF);
-		public static readonly Color Color10 = new(0xFF, 0xEC, 0x27, 0xFF);
-		public static readonly Color Color11 = new(0x00, 0xE4, 0x36, 0xFF);
-		public static readonly Color Color12 = new(0x29, 0xAD, 0xFF, 0xFF);
-		public static readonly Color Color13 = new(0x83, 0x76, 0x9C, 0xFF);
-		public static readonly Color Color14 = new(0xFF, 0x77, 0xA8, 0xFF);
-		public static readonly Color Color15 = new(0xFF, 0xCC, 0xAA, 0xFF);
-	}
+		// ── Resolution & render pipeline ────────────────────────────────────────
+		// Low-res viewport, upscaled ×SCALE. SCALE stays an integer so pixel art
+		// never shimmers. 256×192 ×4 = 1024×768 (4:3, 32px ship).
+		public const int GameWidth = 256;
+		public const int GameHeight = 192;
+		public const int Scale = 4;
 
-	public class CollisionMasks
-	{
-		public const int Player = 1 << 0;
-		public const int PlayerProjectile = 1 << 1;
-		public const int Enemy = 1 << 2;
-		public const int EnemyProjectile = 1 << 3;
-		public const int Pickup = 1 << 4;
+		// The world render target is one pixel larger than the view so the
+		// sub-pixel blit offset (up to one low-res pixel) never reveals an
+		// uncovered edge. 257×193.
+		public const int CanvasWidth = GameWidth + 1;
+		public const int CanvasHeight = GameHeight + 1;
 
-		public int Value { get; set; }
+		public const int WindowWidth = GameWidth * Scale; // 1024
+		public const int WindowHeight = GameHeight * Scale; // 768
 
-		public CollisionMasks(int value)
-		{
-			Value = value;
-		}
+		// A large area to drift around in.
+		public const int WorldWidth = 1536;
+		public const int WorldHeight = 1536;
+
+		// Fixed-timestep simulation; rendering interpolates between steps.
+		public const float FixedDt = 1f / 60f;
+		public const float MaxFrameTime = 0.25f;
+
+		// ── Ship tuning — a deliberately "tight" asteroids feel ─────────────────
+		public const float ShipRotationSpeed = 210f; // degrees / second
+		public const float ShipThrust = 280f; // pixels / second^2
+		public const float ShipBrake = 0.6f; // reverse-thrust fraction on brake
+
+		// Grip handling: velocity is split into forward (along the nose) and
+		// lateral (sideways) components each step and dragged separately. High
+		// lateral drag = the ship "grips" and goes where it points.
+		public const float ShipForwardDrag = 2.5f;
+		public const float ShipLateralDrag = 9f; // strong grip → go where you point
+
+		// Absolute speed clamp — only the Z boost reaches it.
+		public const float ShipMaxSpeed = 520f;
+
+		// Boost (Z): huge forward thrust, gated by a fuel meter. Tapping fires a
+		// punchy dash; holding sustains until the meter drains, then it refills.
+		public const float ShipBoostThrust = 1500f;
+		public const float BoostFuelMax = 1f; // full tank (arbitrary units)
+		public const float BoostDrain = 0.6f; // fuel/sec while boosting
+		public const float BoostRefill = 0.32f; // fuel/sec while not boosting
+		public const float BoostDashCost = 0.18f; // fuel spent on a tap-dash
+		public const float BoostDashImpulse = 170f; // forward px/s from a tap-dash
+
+		// Star streaking during high-speed flight.
+		public const float StreakThreshold = 140f;
+		public const float StreakK = 0.07f;
+		public const float StreakMax = 46f;
+
+		// Whole-frame boost shake.
+		public const float BoostShakeDelay = 0.25f; // seconds into boost before it starts
+		public const float BoostShakeRamp = 0.12f; // ease-in time so it doesn't pop
+		public const float BoostShakeAmp = 1.0f; // sustained amplitude, game px
+
+		// ── Shooting (wired later) ──────────────────────────────────────────────
+		public const float BulletSpeed = 320f; // px/s added on top of ship velocity
+		public const float BulletLifetime = 1.1f; // seconds before a bullet expires
+		public const float BulletRadius = 2f; // px, for hit tests
+		public const float ShootInterval = 0.13f; // seconds between shots while held
+		public const float MuzzleOffset = 5f; // px ahead of the ship centre
+		public const float ShotSpread = 3f; // ± offset of the double-wide shot
+
+		// ── Homing charge shot (wired later) ────────────────────────────────────
+		public const float HomingChargeMax = 3f; // seconds to full charge
+		public const float HomingLockMargin = 6f; // px past the view edge still on-screen
+		public const float HomingSpeed = 250f; // px/s constant cruise speed
+		public const float HomingTurnRate = 540f; // deg/s base steering
+		public const float HomingCloseDist = 80f; // px range where turn rate ramps up
+		public const float HomingTurnCloseBoost = 6f; // extra turn-rate multiplier point blank
+		public const float HomingSeekDelay = 0.13f; // seconds flown straight before homing
+		public const float HomingProximity = 3f; // px bonus hit radius for homing missiles
+		public const float HomingSpreadDeg = 82f; // wide initial fan-out across the volley
+		public const float HomingStagger = 0.06f; // seconds between symmetric pairs
+		public const float HomingLifetime = 3.0f; // seconds before a homing missile expires
+
+		// ── Enemy (wired later) ─────────────────────────────────────────────────
+		public const int EnemyCount = 3;
+		public const int EnemyHealth = 3;
+		public const float EnemyRadius = 5f;
+		public const float EnemyHitFlash = 0.08f;
+		public const float EnemyRespawnDelay = 1.2f;
+		public const float EnemyThrust = 240f;
+		public const float EnemySightLoseMargin = 48f;
+		public const float EnemyPatrolRadius = 200f;
+		public const float EnemyWaypointReached = 22f;
+		public const float EnemyRepathTime = 4f;
+		public const float EnemySeparation = 26f;
+		public const float EnemySeparationForce = 480f;
+
+		// ── Planets (wired later) ───────────────────────────────────────────────
+		public const int PlanetCount = 7;
+
+		// Shared light direction for all planets (up-and-to-the-left). Normalized.
+		public const float LightDirX = -0.7071f;
+		public const float LightDirY = -0.7071f;
 	}
 }
