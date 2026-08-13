@@ -77,9 +77,9 @@
 	     AndroidResource items are needed here (declaring them would double-include). -->
 
 	<ItemGroup>
-		<PackageReference Include="MonoGame.Framework.Android" Version="3.8.4.1" />
-		<PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.4.1" />
-		<PackageReference Include="MonoGame.Extended" Version="6.0.0" />
+		<PackageReference Include="MonoGame.Framework.Android" Version="3.8.5" />
+		<PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.5" />
+		<PackageReference Include="MonoGame.Extended" Version="6.1.0" />
 		<PackageReference Include="Arch" Version="2.1.0" />
 	</ItemGroup>
 </Project>
