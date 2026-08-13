@@ -36,12 +36,6 @@ namespace CherryBomb.Systems
 		private readonly SpriteBatch _spriteBatch;
 		private readonly Texture2D _shmup;
 		private readonly RenderTarget2D _worldRT;
-
-		// Native 1024×768 scene. PASS C blits it to the (larger) backbuffer at an
-		// integer scale, so a high-DPI window is filled crisply instead of the OS
-		// DPI-blurring a small window.
-		private readonly RenderTarget2D _sceneRT;
-		private readonly int _renderScale;
 		private readonly Texture2D _pixel;
 
 		private readonly QueryDescription _particleQuery = new QueryDescription().WithAll<
@@ -59,8 +53,7 @@ namespace CherryBomb.Systems
 			Entity ship,
 			GraphicsDevice device,
 			SpriteBatch spriteBatch,
-			Texture2D shmup,
-			int renderScale
+			Texture2D shmup
 		)
 		{
 			_world = world;
@@ -68,10 +61,8 @@ namespace CherryBomb.Systems
 			_device = device;
 			_spriteBatch = spriteBatch;
 			_shmup = shmup;
-			_renderScale = renderScale;
 
 			_worldRT = new RenderTarget2D(device, Constants.CanvasWidth, Constants.CanvasHeight);
-			_sceneRT = new RenderTarget2D(device, Constants.WindowWidth, Constants.WindowHeight);
 			_pixel = new Texture2D(device, 1, 1);
 			_pixel.SetData([Color.White]);
 		}
@@ -160,8 +151,8 @@ namespace CherryBomb.Systems
 			);
 			_spriteBatch.End();
 
-			// ── PASS B: native scene (1024×768) ──────────────────────────────────
-			_device.SetRenderTarget(_sceneRT);
+			// ── PASS B: backbuffer ───────────────────────────────────────────────
+			_device.SetRenderTarget(null);
 			_device.Clear(Palette.SpaceColor);
 
 			// Above StreakThreshold, fast stars become motion lines along the ship's
@@ -284,45 +275,11 @@ namespace CherryBomb.Systems
 				0f
 			);
 			_spriteBatch.End();
-
-			// ── PASS C: present the native scene to the backbuffer at an integer
-			// scale (crisp), centered (letterboxed if the backbuffer isn't an exact
-			// multiple — e.g. Android fullscreen). ───────────────────────────────
-			_device.SetRenderTarget(null);
-			_device.Clear(Palette.SpaceColor);
-
-			int bbW = _device.PresentationParameters.BackBufferWidth;
-			int bbH = _device.PresentationParameters.BackBufferHeight;
-			int offX = (bbW - Constants.WindowWidth * _renderScale) / 2;
-			int offY = (bbH - Constants.WindowHeight * _renderScale) / 2;
-
-			_spriteBatch.Begin(
-				SpriteSortMode.Deferred,
-				BlendState.Opaque,
-				SamplerState.PointClamp,
-				null,
-				null,
-				null,
-				null
-			);
-			_spriteBatch.Draw(
-				_sceneRT,
-				new Vector2(offX, offY),
-				null,
-				Color.White,
-				0f,
-				Vector2.Zero,
-				(float)_renderScale,
-				SpriteEffects.None,
-				0f
-			);
-			_spriteBatch.End();
 		}
 
 		public void Dispose()
 		{
 			_worldRT?.Dispose();
-			_sceneRT?.Dispose();
 			_pixel?.Dispose();
 		}
 	}
