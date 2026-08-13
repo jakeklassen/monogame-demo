@@ -152,6 +152,22 @@ namespace CherryBomb.Systems
 			_device.SetRenderTarget(null);
 			_device.Clear(Palette.SpaceColor);
 
+			// Above StreakThreshold, fast stars become motion lines along the ship's
+			// velocity (source drawStars) so high-speed flight / boost streaks
+			// instead of strobing. Direction/length from the ship's current velocity.
+			Vector2 shipVel = _world.Get<Velocity>(_ship).Value;
+			float speed = shipVel.Length();
+			bool streaking = speed > Constants.StreakThreshold;
+			float dirX = streaking ? shipVel.X / speed : 0f;
+			float dirY = streaking ? shipVel.Y / speed : 0f;
+			float streakAngle = streaking ? MathF.Atan2(dirY, dirX) : 0f;
+			float baseLen = streaking
+				? MathF.Min(
+					(speed - Constants.StreakThreshold) * Constants.StreakK,
+					Constants.StreakMax
+				)
+				: 0f;
+
 			// Stars: screen-space parallax, drawn BEHIND the world, sub-pixel at
 			// full res, wrapped toroidally.
 			_spriteBatch.Begin(
@@ -177,7 +193,30 @@ namespace CherryBomb.Systems
 					float brightness = 1f - pulse.Amplitude * (0.5f + 0.5f * MathF.Sin(pulse.Time));
 					Color tint = Palette.Scale(star.Color, brightness);
 					int size = (int)star.Size * Constants.Scale;
-					_spriteBatch.Draw(_pixel, new Rectangle(sx, sy, size, size), tint);
+
+					if (streaking)
+					{
+						// Nearer stars (higher depth) streak longer → depth-cued speed.
+						float len = baseLen * star.Depth * Constants.Scale;
+						var center = new Vector2(sx + size * 0.5f, sy + size * 0.5f);
+						// 1×1 pixel stretched to len×size, pivoted at its left-center so
+						// it extends from the star centre along the velocity direction.
+						_spriteBatch.Draw(
+							_pixel,
+							center,
+							null,
+							tint,
+							streakAngle,
+							new Vector2(0f, 0.5f),
+							new Vector2(len, size),
+							SpriteEffects.None,
+							0f
+						);
+					}
+					else
+					{
+						_spriteBatch.Draw(_pixel, new Rectangle(sx, sy, size, size), tint);
+					}
 				}
 			);
 			_spriteBatch.End();
