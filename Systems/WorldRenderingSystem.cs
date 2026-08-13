@@ -47,7 +47,6 @@ namespace SpaceDrift.Systems
 		private readonly Dictionary<string, Texture2D> _textures;
 		private readonly Random _rng = new();
 
-		private readonly RenderTarget2D _worldRT;
 		private readonly RenderTarget2D _minimapRT;
 		private readonly RenderTarget2D _sceneRT;
 
@@ -116,7 +115,6 @@ namespace SpaceDrift.Systems
 			_font = font;
 			_textures = textures;
 
-			_worldRT = new RenderTarget2D(device, Constants.CanvasWidth, Constants.CanvasHeight);
 			_minimapRT = new RenderTarget2D(
 				device,
 				Constants.MinimapDiameter,
@@ -268,9 +266,24 @@ namespace SpaceDrift.Systems
 			_planets.Clear();
 			_world.Query(in _planetQuery, (Entity e, ref Planet p) => _planets.Add(e));
 
-			// ── PASS A: world content → low-res RT (planets, exhaust, entities) ──
-			_device.SetRenderTarget(_worldRT);
-			_device.Clear(Color.Transparent);
+			// Minimap into its own low-res RT (before the scene target is bound).
+			if (hud.Minimap)
+				DrawMinimap(shipX, shipY, shipRot);
+
+			// ── Scene (1024×768). ALL world content is drawn in one batch through a
+			// scale+blit transform: whole-low-res world positions × Scale, translated
+			// by the whole-screen-pixel blit that carries the sub-pixel camera
+			// fraction. Sprites/rotations are therefore resampled at scene resolution
+			// (crisp) while staying pixel-locked to the world grid — this replaces the
+			// old low-res world RT + blit, and is why nothing needs promoting one at a
+			// time: the transform gives everything the ×Scale treatment at once. ─────
+			_device.SetRenderTarget(_sceneRT);
+			_device.Clear(Palette.SpaceColor);
+
+			DrawStars(camX, camY, subpixel);
+
+			var worldXform =
+				Matrix.CreateScale(Constants.Scale) * Matrix.CreateTranslation(blitX, blitY, 0f);
 			_spriteBatch.Begin(
 				SpriteSortMode.Deferred,
 				BlendState.AlphaBlend,
@@ -278,7 +291,7 @@ namespace SpaceDrift.Systems
 				null,
 				null,
 				null,
-				null
+				worldXform
 			);
 
 			DrawPlanets(flooredCamX, flooredCamY, viewLeft, viewTop, viewRight, viewBottom);
@@ -296,46 +309,11 @@ namespace SpaceDrift.Systems
 				}
 			);
 
-			// Enemies + bullets are NOT drawn here — they'd rotate at the low-res 8px
-			// grid and blur under the upscale. They're drawn in PASS B at ×Scale (32px)
-			// for crisp rotation, at the identical floored + blit position.
+			DrawWorldEntities(alpha, flooredCamX, flooredCamY);
 			DrawReticle(lockTarget, charging, dt, flooredCamX, flooredCamY);
+
 			_spriteBatch.End();
 
-			// ── PASS A.5: minimap → its own low-res RT ───────────────────────────
-			if (hud.Minimap)
-				DrawMinimap(shipX, shipY, shipRot);
-
-			// ── PASS B: native 1024×768 scene ────────────────────────────────────
-			_device.SetRenderTarget(_sceneRT);
-			_device.Clear(Palette.SpaceColor);
-
-			DrawStars(camX, camY, subpixel);
-
-			// World RT blit: whole-pixel offset (blit), scaled ×Scale.
-			_spriteBatch.Begin(
-				SpriteSortMode.Deferred,
-				BlendState.AlphaBlend,
-				SamplerState.PointClamp,
-				null,
-				null,
-				null,
-				null
-			);
-			_spriteBatch.Draw(
-				_worldRT,
-				new Vector2(blitX, blitY),
-				null,
-				Color.White,
-				0f,
-				Vector2.Zero,
-				(float)Constants.Scale,
-				SpriteEffects.None,
-				0f
-			);
-			_spriteBatch.End();
-
-			DrawSceneEntities(alpha, flooredCamX, flooredCamY, blitX, blitY);
 			DrawShip(shipRot, turnDelta, dt);
 			DrawPlanetLight(shipX, shipY, shipRot);
 
@@ -635,28 +613,11 @@ namespace SpaceDrift.Systems
 			_spriteBatch.End();
 		}
 
-		// Enemies + bullets, drawn in SCENE space at ×Scale so their rotation is
-		// resampled at 32px (crisp) instead of the low-res 8px world RT (blurry under
-		// the upscale). Position is the identical whole-low-res + blit offset the RT
-		// blit uses, so movement stays pixel-locked to the world behind them.
-		private void DrawSceneEntities(
-			float alpha,
-			int flooredCamX,
-			int flooredCamY,
-			int blitX,
-			int blitY
-		)
+		// Enemies + bullets, at whole-low-res world positions. Drawn INSIDE the
+		// world transform batch (no Begin/End of its own), so the ×Scale + blit is
+		// applied by the transform and their rotation is resampled at scene res.
+		private void DrawWorldEntities(float alpha, int flooredCamX, int flooredCamY)
 		{
-			_spriteBatch.Begin(
-				SpriteSortMode.Deferred,
-				BlendState.AlphaBlend,
-				SamplerState.PointClamp,
-				null,
-				null,
-				null,
-				null
-			);
-
 			_world.Query(
 				in _enemyQuery,
 				(ref Enemy en, ref Transform etf, ref Previous eprev) =>
@@ -667,10 +628,10 @@ namespace SpaceDrift.Systems
 					float ey = MathHelper.Lerp(eprev.Position.Y, etf.Position.Y, alpha);
 					float er = MathHelper.Lerp(eprev.Rotation, etf.Rotation, alpha);
 					var pos = new Vector2(
-						(MathF.Floor(ex) - flooredCamX) * Constants.Scale + blitX,
-						(MathF.Floor(ey) - flooredCamY) * Constants.Scale + blitY
+						MathF.Floor(ex) - flooredCamX,
+						MathF.Floor(ey) - flooredCamY
 					);
-					float scale = (en.HitFlash > 0f ? 1.4f : 1f) * Constants.Scale;
+					float scale = en.HitFlash > 0f ? 1.4f : 1f;
 					_spriteBatch.Draw(
 						_shmup,
 						pos,
@@ -693,8 +654,8 @@ namespace SpaceDrift.Systems
 					float by = MathHelper.Lerp(bprev.Position.Y, btf.Position.Y, alpha);
 					float br = MathHelper.Lerp(bprev.Rotation, btf.Rotation, alpha);
 					var pos = new Vector2(
-						(MathF.Floor(bx) - flooredCamX) * Constants.Scale + blitX,
-						(MathF.Floor(by) - flooredCamY) * Constants.Scale + blitY
+						MathF.Floor(bx) - flooredCamX,
+						MathF.Floor(by) - flooredCamY
 					);
 					Color tint = _world.Has<Homing>(e) ? Palette.Orange : Color.White;
 					_spriteBatch.Draw(
@@ -704,14 +665,12 @@ namespace SpaceDrift.Systems
 						tint,
 						br * DegToRad,
 						SpriteOrigin,
-						(float)Constants.Scale,
+						1f,
 						SpriteEffects.None,
 						0f
 					);
 				}
 			);
-
-			_spriteBatch.End();
 		}
 
 		// Ship, pinned to view centre. Bank frame follows the smoothed turn with
@@ -1153,7 +1112,6 @@ namespace SpaceDrift.Systems
 
 		public void Dispose()
 		{
-			_worldRT?.Dispose();
 			_minimapRT?.Dispose();
 			_sceneRT?.Dispose();
 			_bloomRT?.Dispose();
