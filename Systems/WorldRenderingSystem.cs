@@ -36,6 +36,11 @@ namespace CherryBomb.Systems
 		private readonly SpriteBatch _spriteBatch;
 		private readonly Texture2D _shmup;
 		private readonly RenderTarget2D _worldRT;
+
+		// Native 1024×768 scene. PASS C bilinear-upscales it to fill the (DPI-sized)
+		// backbuffer, so the window is a comfortable physical size on a high-DPI
+		// display without the game logic caring about the window size.
+		private readonly RenderTarget2D _sceneRT;
 		private readonly Texture2D _pixel;
 
 		private readonly QueryDescription _particleQuery = new QueryDescription().WithAll<
@@ -63,6 +68,7 @@ namespace CherryBomb.Systems
 			_shmup = shmup;
 
 			_worldRT = new RenderTarget2D(device, Constants.CanvasWidth, Constants.CanvasHeight);
+			_sceneRT = new RenderTarget2D(device, Constants.WindowWidth, Constants.WindowHeight);
 			_pixel = new Texture2D(device, 1, 1);
 			_pixel.SetData([Color.White]);
 		}
@@ -151,8 +157,8 @@ namespace CherryBomb.Systems
 			);
 			_spriteBatch.End();
 
-			// ── PASS B: backbuffer ───────────────────────────────────────────────
-			_device.SetRenderTarget(null);
+			// ── PASS B: native scene (1024×768) ──────────────────────────────────
+			_device.SetRenderTarget(_sceneRT);
 			_device.Clear(Palette.SpaceColor);
 
 			// Above StreakThreshold, fast stars become motion lines along the ship's
@@ -275,11 +281,40 @@ namespace CherryBomb.Systems
 				0f
 			);
 			_spriteBatch.End();
+
+			// ── PASS C: bilinear-upscale the native scene to fill the (DPI-sized)
+			// backbuffer. LinearClamp = the smooth non-integer upscale the OS does
+			// for a DPI-unaware app (e.g. Love2D), so the window is comfortably
+			// sized. Internal pixel art stays crisp (rendered PointClamp above). ────
+			_device.SetRenderTarget(null);
+			_device.Clear(Palette.SpaceColor);
+
+			_spriteBatch.Begin(
+				SpriteSortMode.Deferred,
+				BlendState.Opaque,
+				SamplerState.LinearClamp,
+				null,
+				null,
+				null,
+				null
+			);
+			_spriteBatch.Draw(
+				_sceneRT,
+				new Rectangle(
+					0,
+					0,
+					_device.PresentationParameters.BackBufferWidth,
+					_device.PresentationParameters.BackBufferHeight
+				),
+				Color.White
+			);
+			_spriteBatch.End();
 		}
 
 		public void Dispose()
 		{
 			_worldRT?.Dispose();
+			_sceneRT?.Dispose();
 			_pixel?.Dispose();
 		}
 	}

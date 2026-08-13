@@ -41,6 +41,32 @@ namespace CherryBomb
 
 		private const uint TimerResolutionMs = 1;
 
+		// Windows display scaling (1.0 at 96 DPI, 1.5 at 150%, …). The app is
+		// DPI-aware, so a fixed 1024×768 window renders at true pixels and looks
+		// tiny on a high-DPI screen — we size the window by this factor and
+		// bilinear-upscale the native scene to fill it. 1.0 off Windows.
+		public float DpiScale { get; private set; } = 1f;
+
+		[DllImport("user32.dll")]
+		private static extern uint GetDpiForSystem();
+
+		private static float QueryDpiScale()
+		{
+			if (OperatingSystem.IsWindows())
+			{
+				try
+				{
+					return GetDpiForSystem() / 96f;
+				}
+				catch (EntryPointNotFoundException)
+				{
+					// GetDpiForSystem needs Windows 10 1607+; fall back to 1.0.
+				}
+			}
+
+			return 1f;
+		}
+
 		public Game1()
 		{
 			if (OperatingSystem.IsWindows())
@@ -54,11 +80,14 @@ namespace CherryBomb
 
 			if (IsDesktop)
 			{
-				// Fixed backbuffer at the exact window size so the ×Scale blit stays
-				// an integer (pixel-perfect). No DPI scaling — that would change the
-				// backbuffer size and break the integer scale.
-				_graphics.PreferredBackBufferWidth = Constants.WindowWidth;
-				_graphics.PreferredBackBufferHeight = Constants.WindowHeight;
+				// Size the window by the display's DPI scale so it isn't tiny on a
+				// high-DPI screen (the native 1024×768 scene is bilinear-upscaled to
+				// fill this larger backbuffer in the renderer's present pass).
+				DpiScale = QueryDpiScale();
+				_graphics.PreferredBackBufferWidth = (int)
+					MathF.Round(Constants.WindowWidth * DpiScale);
+				_graphics.PreferredBackBufferHeight = (int)
+					MathF.Round(Constants.WindowHeight * DpiScale);
 				_graphics.HardwareModeSwitch = false;
 				_graphics.IsFullScreen = false;
 				_graphics.PreferMultiSampling = false;

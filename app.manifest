@@ -35,12 +35,11 @@
 
   <application xmlns="urn:schemas-microsoft-com:asm.v3">
     <windowsSettings>
-      <!-- DPI-UNAWARE on purpose: the game is a fixed low-res pixel-art window
-           (1024x768). Being unaware lets Windows scale the whole window up on a
-           high-DPI display (as Love2D does by default), so it isn't tiny —
-           instead of rendering at true physical pixels. -->
-      <dpiAware xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings">false</dpiAware>
-      <dpiAwareness xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">unaware</dpiAwareness>
+      <!-- DPI-aware so GetDpiForSystem reports the real scaling; Game1 then sizes
+           the window by that factor (a native scene target is bilinear-scaled to
+           fill it) so it's a comfortable physical size on a high-DPI display. -->
+      <dpiAware xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings">true/pm</dpiAware>
+      <dpiAwareness xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">permonitorv2,permonitor</dpiAwareness>
     </windowsSettings>
   </application>
 

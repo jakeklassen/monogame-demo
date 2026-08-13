@@ -218,7 +218,7 @@ namespace CherryBomb.Screens
 				null,
 				null,
 				null,
-				Matrix.CreateScale(3f)
+				Matrix.CreateScale(3f * Game.DpiScale)
 			);
 			DrawToggle(sb, font, "O SMOOTHING", _smoothing, 2f);
 			DrawToggle(sb, font, "I INTERP", _interpolation, 10f);
