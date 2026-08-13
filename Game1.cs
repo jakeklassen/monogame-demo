@@ -166,14 +166,6 @@ namespace CherryBomb
 					(displayMode.Width - Window.ClientBounds.Width) / 2,
 					(displayMode.Height - Window.ClientBounds.Height) / 2
 				);
-
-				// Print the real numbers to the console — readable no matter how big or
-				// small the window ends up, so window sizing can be verified directly.
-				Console.WriteLine(
-					$"[window] DPI={DpiScale:0.00}  DISP={DisplaySize.X}x{DisplaySize.Y}  "
-						+ $"BACKBUFFER={_graphics.PreferredBackBufferWidth}x{_graphics.PreferredBackBufferHeight}  "
-						+ $"CLIENT={Window.ClientBounds.Width}x{Window.ClientBounds.Height}"
-				);
 			}
 
 			_screenManager.ReplaceScreen(new GameplayScreen(this));
